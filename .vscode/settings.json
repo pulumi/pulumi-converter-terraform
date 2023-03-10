@@ -1,0 +1,8 @@
+{
+    "go.testTags": "all",
+    "go.buildTags": "all",
+    "gopls": {
+        // Uses https://github.com/mvdan/gofumpt for formatting.
+        "formatting.gofumpt": true,
+    }
+}
