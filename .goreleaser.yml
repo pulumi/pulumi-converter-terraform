@@ -1,0 +1,24 @@
+dist: goreleaser
+project_name: pulumi-converter-terraform
+snapshot:
+  name_template: "{{ .Version }}-SNAPSHOT"
+checksum:
+  name_template: "{{ .ProjectName }}-{{ .Version }}-checksums.txt"
+archives:
+- id: archive
+  name_template: '{{ .Binary }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}'
+builds:
+- id: pulumi-converter-terraform
+  binary: pulumi-converter-terraform
+  goarch:
+  - amd64
+  - arm64
+  goos:
+  - darwin
+  - windows
+  - linux
+  ldflags:
+  - -s
+  - -w
+  - -X github.com/pulumi/pulumi-converter-terraform/pkg/version.Version={{.Tag}}
+  main: ./cmd/pulumi-converter-terraform/

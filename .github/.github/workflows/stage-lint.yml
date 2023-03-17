@@ -1,0 +1,48 @@
+name: Lint
+
+on:
+  workflow_call:
+
+permissions: read-all
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  lint:
+    container: golangci/golangci-lint:latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Set up Go 1.19.x
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19.x
+      - run: go mod tidy -compat=1.17
+      - name: Fail if god mod not tidy
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error go.mod not tidy"
+            exit 1
+          fi
+      - name: Lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.49.0
+          make lint-golang || true
+
+  check-copyright:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Install pulumictl
+        uses: jaxxstorm/action-install-gh-release@v1.5.0
+        with:
+          repo: pulumi/pulumictl
+      - name: Set up Go 1.18.x
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18.x
+      - name: Lint
+        run: make lint-copyright

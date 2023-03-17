@@ -1,0 +1,57 @@
+name: Test
+
+on:
+  workflow_call:
+    inputs:
+      live-test:
+        description: |
+          Whether to run tests against a live environment. When false, tests that require secrets
+          should be skipped.
+        default: false
+        required: false
+        type: boolean
+      commit-ref:
+        description: Commit ref to check out and run tests against.
+        default: ''
+        required: false
+        type: string
+    secrets:
+      PULUMI_ACCESS_TOKEN:   { required: false }
+      AWS_ACCESS_KEY_ID:     { required: false }
+      AWS_SECRET_ACCESS_KEY: { required: false }
+      AWS_CI_ROLE_ARN:       { required: false }
+      ARM_CLIENT_ID:         { required: false }
+      ARM_CLIENT_SECRET:     { required: false }
+      ARM_SUBSCRIPTION_ID:   { required: false }
+      ARM_TENANT_ID:         { required: false }
+
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.commit-ref }}
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+          stable: ${{ matrix.go-stable }}
+      - name: Fixup go.mod if we're not targeting 1.17x
+        run: |
+          if [ "${{ matrix.go-version }}" != "1.17.x" ]; then
+            go mod tidy -compat=1.17
+          fi
+      - name: Test
+        run: make test
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: [1.19.x]
+        go-stable: [true]
