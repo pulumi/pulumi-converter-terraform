@@ -4,7 +4,9 @@ go 1.20
 
 require (
 	github.com/pulumi/pulumi-terraform-bridge/v3 v3.41.1-0.20230313122816-246e49b6af2d
+	github.com/pulumi/pulumi/pkg/v3 v3.57.2-0.20230313054553-5bf51b03ef4c
 	github.com/pulumi/pulumi/sdk/v3 v3.57.2-0.20230313054553-5bf51b03ef4c
+	github.com/spf13/afero v1.6.0
 	google.golang.org/grpc v1.53.0
 )
 
@@ -173,7 +175,6 @@ require (
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/pulumi/pulumi-java/pkg v0.8.0 // indirect
 	github.com/pulumi/pulumi-yaml v1.0.4 // indirect
-	github.com/pulumi/pulumi/pkg/v3 v3.57.2-0.20230313054553-5bf51b03ef4c // indirect
 	github.com/pulumi/terraform v0.12.1-0.20230310170752-37b2d9e36318 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
@@ -185,7 +186,6 @@ require (
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/skeema/knownhosts v1.1.0 // indirect
-	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/cobra v1.6.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
