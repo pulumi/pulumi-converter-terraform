@@ -18,15 +18,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 
 	tfconvert "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/convert"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
-	"github.com/pulumi/pulumi/sdk/v3/go/common/diag"
-	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
-	"github.com/pulumi/pulumi/sdk/v3/go/common/util/cmdutil"
-	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/rpcutil"
 	pulumirpc "github.com/pulumi/pulumi/sdk/v3/proto/go"
 	"github.com/spf13/afero"
@@ -46,21 +41,9 @@ func (*tfConverter) ConvertState(ctx context.Context,
 func (*tfConverter) ConvertProgram(ctx context.Context,
 	req *pulumirpc.ConvertProgramRequest,
 ) (*pulumirpc.ConvertProgramResponse, error) {
-	cwd, err := os.Getwd()
+	mapper, err := convert.NewMapper(req.MapperTarget)
 	if err != nil {
-		return nil, fmt.Errorf("get working directory: %w", err)
-	}
-	sink := diag.DefaultSink(os.Stderr, os.Stderr, diag.FormatOptions{
-		Color: cmdutil.GetGlobalColorization(),
-	})
-	pluginCtx, err := plugin.NewContext(sink, sink, nil, nil, cwd, nil, true, nil)
-	if err != nil {
-		return nil, fmt.Errorf("create plugin host: %w", err)
-	}
-	defer contract.IgnoreClose(pluginCtx.Host)
-	mapper, err := convert.NewPluginMapper(pluginCtx.Host, "terraform", nil)
-	if err != nil {
-		return nil, fmt.Errorf("create provider mapper: %w", err)
+		return nil, fmt.Errorf("create mapper: %w", err)
 	}
 	providerInfoSource := il.NewMapperProviderInfoSource(mapper)
 
