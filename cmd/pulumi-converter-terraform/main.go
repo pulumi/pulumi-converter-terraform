@@ -41,17 +41,16 @@ func (*tfConverter) ConvertState(ctx context.Context,
 func (*tfConverter) ConvertProgram(ctx context.Context,
 	req *pulumirpc.ConvertProgramRequest,
 ) (*pulumirpc.ConvertProgramResponse, error) {
-	mapper, err := convert.NewMapper(req.MapperTarget)
+	mapper, err := convert.NewMapperClient(req.MapperTarget)
 	if err != nil {
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
 	providerInfoSource := il.NewMapperProviderInfoSource(mapper)
 
 	fs := afero.NewOsFs()
-	src := afero.NewBasePathFs(fs, req.SourceDirectory)
 	dst := afero.NewBasePathFs(fs, req.TargetDirectory)
 
-	diags := tfconvert.TranslateModule(src, dst, providerInfoSource)
+	diags := tfconvert.TranslateModule(fs, req.SourceDirectory, dst, providerInfoSource)
 	if diags != nil {
 		return nil, fmt.Errorf("eject program: %w", diags)
 	}
