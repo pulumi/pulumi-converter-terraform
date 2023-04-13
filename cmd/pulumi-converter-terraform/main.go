@@ -48,10 +48,9 @@ func (*tfConverter) ConvertProgram(ctx context.Context,
 	providerInfoSource := il.NewMapperProviderInfoSource(mapper)
 
 	fs := afero.NewOsFs()
-	src := afero.NewBasePathFs(fs, req.SourceDirectory)
 	dst := afero.NewBasePathFs(fs, req.TargetDirectory)
 
-	diags := tfconvert.TranslateModule(src, "/", dst, providerInfoSource)
+	diags := tfconvert.TranslateModule(fs, req.SourceDirectory, dst, providerInfoSource)
 	if diags != nil {
 		return nil, fmt.Errorf("eject program: %w", diags)
 	}
