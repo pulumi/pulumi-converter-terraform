@@ -48,6 +48,8 @@ jobs:
           if [ "${{ matrix.go-version }}" != "1.17.x" ]; then
             go mod tidy -compat=1.17
           fi
+      - name: Build
+        run: make build
       - name: Test
         run: make test
     strategy:
