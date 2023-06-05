@@ -22,6 +22,7 @@ import (
 	tfconvert "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/convert"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/rpcutil"
 	pulumirpc "github.com/pulumi/pulumi/sdk/v3/proto/go"
 	"github.com/spf13/afero"
@@ -29,19 +30,22 @@ import (
 )
 
 type tfConverter struct {
-	pulumirpc.UnimplementedConverterServer
+}
+
+func (*tfConverter) Close() error {
+	return nil
 }
 
 func (*tfConverter) ConvertState(ctx context.Context,
-	req *pulumirpc.ConvertStateRequest,
-) (*pulumirpc.ConvertStateResponse, error) {
+	req *plugin.ConvertStateRequest,
+) (*plugin.ConvertStateResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
 func (*tfConverter) ConvertProgram(ctx context.Context,
-	req *pulumirpc.ConvertProgramRequest,
-) (*pulumirpc.ConvertProgramResponse, error) {
-	mapper, err := convert.NewMapperClient(req.MapperTarget)
+	req *plugin.ConvertProgramRequest,
+) (*plugin.ConvertProgramResponse, error) {
+	mapper, err := convert.NewMapperClient(req.MapperAddress)
 	if err != nil {
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
@@ -51,18 +55,16 @@ func (*tfConverter) ConvertProgram(ctx context.Context,
 	dst := afero.NewBasePathFs(fs, req.TargetDirectory)
 
 	diags := tfconvert.TranslateModule(fs, req.SourceDirectory, dst, providerInfoSource)
-	if diags != nil {
-		return nil, fmt.Errorf("eject program: %w", diags)
-	}
-
-	return &pulumirpc.ConvertProgramResponse{}, nil
+	return &plugin.ConvertProgramResponse{
+		Diagnostics: diags,
+	}, nil
 }
 
 func main() {
 	// Fire up a gRPC server, letting the kernel choose a free port for us.
 	handle, err := rpcutil.ServeWithOptions(rpcutil.ServeOptions{
 		Init: func(srv *grpc.Server) error {
-			pulumirpc.RegisterConverterServer(srv, &tfConverter{})
+			pulumirpc.RegisterConverterServer(srv, plugin.NewConverterServer(&tfConverter{}))
 			return nil
 		},
 		Options: rpcutil.OpenTracingServerInterceptorOptions(nil),
