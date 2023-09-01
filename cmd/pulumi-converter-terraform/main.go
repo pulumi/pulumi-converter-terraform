@@ -15,7 +15,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
@@ -29,8 +28,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type tfConverter struct {
-}
+type tfConverter struct{}
 
 func (*tfConverter) Close() error {
 	return nil
@@ -39,13 +37,24 @@ func (*tfConverter) Close() error {
 func (*tfConverter) ConvertState(ctx context.Context,
 	req *plugin.ConvertStateRequest,
 ) (*plugin.ConvertStateResponse, error) {
-	return nil, errors.New("not implemented")
+	mapper, err := convert.NewMapperClient(req.MapperTarget)
+	if err != nil {
+		return nil, fmt.Errorf("create mapper: %w", err)
+	}
+	providerInfoSource := il.NewMapperProviderInfoSource(mapper)
+
+	if len(req.Args) != 1 {
+		return nil, fmt.Errorf("expected exactly one argument")
+	}
+	path := req.Args[0]
+
+	return tfconvert.TranslateState(providerInfoSource, path)
 }
 
 func (*tfConverter) ConvertProgram(ctx context.Context,
 	req *plugin.ConvertProgramRequest,
 ) (*plugin.ConvertProgramResponse, error) {
-	mapper, err := convert.NewMapperClient(req.MapperAddress)
+	mapper, err := convert.NewMapperClient(req.MapperTarget)
 	if err != nil {
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
