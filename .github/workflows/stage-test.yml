@@ -32,7 +32,7 @@ env:
 jobs:
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: pulumi-ubuntu-8core
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
@@ -76,7 +76,7 @@ jobs:
       - name: Test examples
         run: |
           set -euo pipefail
-          cd tests && go test -json -v -timeout 2h -parallel 10 ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
+          cd tests && go test -json -v -timeout 2h -parallel 6 ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
 
       # Upload the original go test log as an artifact for later review
       - name: Upload test log
