@@ -75,17 +75,16 @@ jobs:
       # Run tests with nice formatting. Save the original log in /tmp/gotest.log
       - name: Test examples
         run: |
-          set -euo pipefail
-          cd tests && go test -json -v -timeout 2h -parallel 6 ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
+          cd tests && go test -v -timeout 2h -parallel 4 ./...
 
-      # Upload the original go test log as an artifact for later review
-      - name: Upload test log
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: test-log
-          path: /tmp/gotest.log
-          if-no-files-found: error
+      # # Upload the original go test log as an artifact for later review
+      # - name: Upload test log
+      #   uses: actions/upload-artifact@v3
+      #   if: always()
+      #   with:
+      #     name: test-log
+      #     path: /tmp/gotest.log
+      #     if-no-files-found: error
     strategy:
       fail-fast: false
       matrix:
