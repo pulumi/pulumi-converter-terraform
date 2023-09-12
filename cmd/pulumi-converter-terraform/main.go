@@ -15,9 +15,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
+	"strings"
 
+	"github.com/hashicorp/hcl/v2"
 	tfconvert "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/convert"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
@@ -25,6 +30,7 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/rpcutil"
 	pulumirpc "github.com/pulumi/pulumi/sdk/v3/proto/go"
 	"github.com/spf13/afero"
+	"github.com/spf13/pflag"
 	"google.golang.org/grpc"
 )
 
@@ -34,7 +40,7 @@ func (*tfConverter) Close() error {
 	return nil
 }
 
-func (*tfConverter) ConvertState(ctx context.Context,
+func (*tfConverter) ConvertState(_ context.Context,
 	req *plugin.ConvertStateRequest,
 ) (*plugin.ConvertStateResponse, error) {
 	mapper, err := convert.NewMapperClient(req.MapperTarget)
@@ -51,15 +57,75 @@ func (*tfConverter) ConvertState(ctx context.Context,
 	return tfconvert.TranslateState(providerInfoSource, path)
 }
 
-func (*tfConverter) ConvertProgram(ctx context.Context,
+type translatedExample struct {
+	PCL         string          `json:"pcl"`
+	Diagnostics hcl.Diagnostics `json:"diagnostics"`
+}
+
+func (*tfConverter) ConvertProgram(_ context.Context,
 	req *plugin.ConvertProgramRequest,
 ) (*plugin.ConvertProgramResponse, error) {
+	flags := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
+	convertExamples := flags.String("convert-examples", "", "path to a terraform bridge example file to convert")
+
 	mapper, err := convert.NewMapperClient(req.MapperTarget)
 	if err != nil {
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
 	providerInfoSource := il.NewMapperProviderInfoSource(mapper)
 
+	if *convertExamples != "" {
+		examplesBytes, err := os.ReadFile(filepath.Join(req.SourceDirectory, *convertExamples))
+		if err != nil {
+			return nil, fmt.Errorf("read examples.json: %w", err)
+		}
+
+		var examples map[string]string
+		err = json.Unmarshal(examplesBytes, &examples)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshal examples.json, expected map[string]string: %w", err)
+		}
+
+		// For each example make up a small InMemFs for it and run the translation and save the results
+		results := make(map[string]translatedExample)
+		for name, example := range examples {
+			src := afero.NewMemMapFs()
+			safename := strings.ReplaceAll(name, "/", "-")
+			err := afero.WriteFile(src, "/"+safename+".tf", []byte(example), 0o600)
+			if err != nil {
+				return nil, fmt.Errorf("write example %s to memory store: %w", name, err)
+			}
+
+			dst := afero.NewMemMapFs()
+			diags := tfconvert.TranslateModule(src, "/", dst, providerInfoSource)
+
+			pcl, err := afero.ReadFile(dst, "/"+safename+".pp")
+			if err != nil && !os.IsNotExist(err) {
+				return nil, fmt.Errorf("read example %s from memory store: %w", name, err)
+			}
+
+			results[name] = translatedExample{
+				PCL:         string(pcl),
+				Diagnostics: diags,
+			}
+		}
+
+		// Now marshal the results and return them, we use the same base name as our input file but written to the
+		// target directory
+		resultsBytes, err := json.Marshal(results)
+		if err != nil {
+			return nil, fmt.Errorf("marshal results: %w", err)
+		}
+		basename := filepath.Base(*convertExamples)
+		err = os.WriteFile(filepath.Join(req.TargetDirectory, basename), resultsBytes, 0o600)
+		if err != nil {
+			return nil, fmt.Errorf("write results: %w", err)
+		}
+		// We don't return any diagnostics here, the bridge will parse them out of the examples.json file.
+		return &plugin.ConvertProgramResponse{}, nil
+	}
+
+	// Normal path, just doing a plain module translation
 	fs := afero.NewOsFs()
 	dst := afero.NewBasePathFs(fs, req.TargetDirectory)
 
