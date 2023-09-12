@@ -346,7 +346,7 @@ func TestExample(t *testing.T) {
 			skip: allLanguages,
 		},
 		{
-			example: "https://github.com/aws-ia/terraform-aws-eks-blueprints/examples/multi-tenancy-with-teams",
+			example: "https://github.com/aws-ia/terraform-aws-eks-blueprints/patterns/multi-tenancy-with-teams",
 		},
 	}
 	for _, tt := range tests {
