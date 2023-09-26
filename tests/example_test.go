@@ -237,6 +237,8 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-role-for-service-accounts-eks",
+			// TODO[pulumi/pulumi-converter-terraform#32]: upstream example change can no longer convert
+			skip: allLanguages,
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-user",
@@ -318,6 +320,8 @@ func TestExample(t *testing.T) {
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-acm",
 			strict:  true,
+			// TODO[pulumi/pulumi-converter-terraform#32]: upstream example change can no longer convert
+			skip: allLanguages,
 		},
 		{
 			example: "https://github.com/avantoss/vault-infra/terraform/main",
@@ -347,6 +351,8 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/aws-ia/terraform-aws-eks-blueprints/patterns/multi-tenancy-with-teams",
+			// TODO[pulumi/pulumi-converter-terraform#32]: upstream example change can no longer convert
+			skip: allLanguages,
 		},
 	}
 	for _, tt := range tests {
