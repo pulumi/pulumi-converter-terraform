@@ -3,7 +3,7 @@ module github.com/pulumi/pulumi-converter-terraform
 go 1.20
 
 require (
-	github.com/pulumi/pulumi-terraform-bridge/v3 v3.59.1-0.20230926205315-2159a1402a1b
+	github.com/pulumi/pulumi-terraform-bridge/v3 v3.59.1-0.20230927220108-1621302635b8
 	github.com/pulumi/pulumi/pkg/v3 v3.81.0
 	github.com/pulumi/pulumi/sdk/v3 v3.81.0
 	github.com/spf13/afero v1.9.5
