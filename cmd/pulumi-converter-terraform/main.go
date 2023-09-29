@@ -68,6 +68,10 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	flags := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
 	convertExamples := flags.String("convert-examples", "", "path to a terraform bridge example file to convert")
 
+	if env, ok := os.LookupEnv("PULUMI_CONVERT_EXAMPLES"); ok {
+		convertExamples = &env
+	}
+
 	mapper, err := convert.NewMapperClient(req.MapperTarget)
 	if err != nil {
 		return nil, fmt.Errorf("create mapper: %w", err)
