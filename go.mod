@@ -3,10 +3,13 @@ module github.com/pulumi/pulumi-converter-terraform
 go 1.20
 
 require (
-	github.com/pulumi/pulumi-terraform-bridge/v3 v3.59.1-0.20230928154617-ad76640ab095
-	github.com/pulumi/pulumi/pkg/v3 v3.81.0
-	github.com/pulumi/pulumi/sdk/v3 v3.81.0
+	github.com/hashicorp/hcl/v2 v2.17.0
+	github.com/pulumi/pulumi-terraform-bridge/v3 v3.59.1-0.20230929214327-3ef90cde6023
+	github.com/pulumi/pulumi/pkg/v3 v3.86.0
+	github.com/pulumi/pulumi/sdk/v3 v3.86.0
 	github.com/spf13/afero v1.9.5
+	github.com/spf13/pflag v1.0.5
+	github.com/stretchr/testify v1.8.3
 	google.golang.org/grpc v1.57.0
 )
 
@@ -19,7 +22,7 @@ require (
 	cloud.google.com/go/logging v1.7.0 // indirect
 	cloud.google.com/go/longrunning v0.5.1 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
-	github.com/AlecAivazis/survey/v2 v2.0.5 // indirect
+	github.com/AlecAivazis/survey/v2 v2.3.7 // indirect
 	github.com/Azure/azure-sdk-for-go v66.0.0+incompatible // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.1.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.0.0 // indirect
@@ -135,7 +138,6 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hashicorp/hcl/v2 v2.17.0 // indirect
 	github.com/hashicorp/hil v0.0.0-20190212132231-97b3a9cdfa93 // indirect
 	github.com/hashicorp/terraform-registry-address v0.2.1 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
@@ -203,8 +205,6 @@ require (
 	github.com/skeema/knownhosts v1.1.0 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/cobra v1.7.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/testify v1.8.3 // indirect
 	github.com/texttheater/golang-levenshtein v1.0.1 // indirect
 	github.com/tweekmonster/luser v0.0.0-20161003172636-3fa38070dbd7 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
