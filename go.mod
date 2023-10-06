@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/hashicorp/hcl/v2 v2.17.0
-	github.com/pulumi/pulumi-terraform-bridge/v3 v3.59.1-0.20230929214327-3ef90cde6023
+	github.com/pulumi/pulumi-terraform-bridge/v3 v3.59.1-0.20231006210426-9a2269e361b5
 	github.com/pulumi/pulumi/pkg/v3 v3.86.0
 	github.com/pulumi/pulumi/sdk/v3 v3.86.0
 	github.com/spf13/afero v1.9.5
