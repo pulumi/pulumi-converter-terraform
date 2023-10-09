@@ -24,3 +24,8 @@ test::
 
 install:: build
 	cp $(WORKING_DIR)/bin/${BINARY} ${GOPATH}/bin
+	
+generate_builtins_test::
+	if [ ! -d ./scripts/venv ]; then python -m venv ./scripts/venv; fi
+	. ./scripts/venv/*/activate && python -m pip install -r ./scripts/requirements.txt
+	. ./scripts/venv/*/activate &&  python ./scripts/generate_builtins.py

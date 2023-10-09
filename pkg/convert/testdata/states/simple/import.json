@@ -1,0 +1,11 @@
+{
+  "Resources": [
+    {
+      "Type": "simple:index:resource",
+      "Name": "a_resource",
+      "ID": "abc123",
+      "Version": "",
+      "PluginDownloadURL": ""
+    }
+  ]
+}
