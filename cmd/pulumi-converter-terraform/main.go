@@ -114,7 +114,7 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 		}
 
 		workers := -1 // numCPU
-		batch := 128
+		batch := 16
 
 		results, err := parTransformMapWith(examples, translateExample, workers, batch)
 
