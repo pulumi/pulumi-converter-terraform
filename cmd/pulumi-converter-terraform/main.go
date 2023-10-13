@@ -114,9 +114,8 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 		}
 
 		workers := -1 // numCPU
-		batch := 16
 
-		results, err := parTransformMapWith(examples, translateExample, workers, batch)
+		results, err := parTransformMapWith(examples, translateExample, workers)
 
 		// Now marshal the results and return them, we use the same base name as our input file but written to the
 		// target directory

@@ -16,7 +16,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"sync/atomic"
 	"testing"
 
@@ -33,55 +32,60 @@ func TestParTransformMap(t *testing.T) {
 		return m
 	}
 
-	inputs := mkMap(1000)
+	inputs := mkMap(10)
 
-	inputsBad := mkMap(1000)
+	inputsBad := mkMap(10)
 	inputsBad[4] = -8
 
 	type testCase struct {
 		inputs  map[int]int
 		workers int
-		batch   int
 	}
 
-	increment := func(m map[int]int) (map[int]int, error) {
-		out := map[int]int{}
-		for k, v := range m {
-			if v < 0 {
-				return nil, fmt.Errorf("neg")
-			}
-			out[k] = v + 1
+	increment := func(k, v int) (int, error) {
+		if v < 0 {
+			return 0, fmt.Errorf("neg")
 		}
-		return out, nil
+		return v + 1, nil
 	}
 
 	testCases := []testCase{
-		{inputs, -1, 3},
-		{inputs, 2, 3},
-		{inputs, 4, 3},
-		{inputsBad, -1, 3},
-		{inputsBad, 2, 3},
-		{inputsBad, 4, 3},
+		{inputs, -1},
+		{inputs, 2},
+		{inputs, 4},
+		{inputsBad, -1},
+		{inputsBad, 2},
+		{inputsBad, 4},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		t.Run(fmt.Sprintf("w%d__b%d", tc.workers, tc.batch), func(t *testing.T) {
+		t.Run(fmt.Sprintf("w%d", tc.workers), func(t *testing.T) {
 			var ops atomic.Uint64
 
-			inc := func(m map[int]int) (map[int]int, error) {
-				assert.LessOrEqual(t, len(m), tc.batch)
+			inc := func(k, v int) (int, error) {
 				ops.Add(1)
-				return increment(m)
+				return increment(k, v)
 			}
 
-			actual, actualErr := parTransformMap(tc.inputs, inc, tc.workers, tc.batch)
-			expect, expectErr := increment(tc.inputs)
-			assert.Equal(t, int(math.Ceil(float64(len(tc.inputs))/float64(tc.batch))),
-				int(ops.Load()))
+			actual, actualErr := parTransformMapWith(tc.inputs, inc, tc.workers)
+			expect, expectErr := apply(increment, tc.inputs)
+			assert.Equal(t, len(tc.inputs), int(ops.Load()))
 			assert.Equal(t, expectErr, actualErr)
 			assert.Equal(t, expect, actual)
 		})
 	}
+}
+
+func apply[K comparable, T, U any](f func(K, T) (U, error), m map[K]T) (map[K]U, error) {
+	r := make(map[K]U)
+	for key, value := range m {
+		var err error
+		r[key], err = f(key, value)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return r, nil
 }

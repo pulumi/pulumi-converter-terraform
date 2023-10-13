@@ -15,22 +15,17 @@
 package main
 
 import (
-	"fmt"
 	"runtime"
 	"sync"
 )
 
-// Transforms a large map in batches of up to batch elements, using workers number of goroutines. If
-// workers is -1, uses one worker per CPU.
-func parTransformMap[K comparable, T any, U any](
+// Transforms map values in parallel over n workers. If workers is negaive use NumCPU.
+func parTransformMapWith[K comparable, T any, U any](
 	inputs map[K]T,
-	transform func(map[K]T) (map[K]U, error),
+	transform func(K, T) (U, error),
 	workers int,
-	batch int,
 ) (map[K]U, error) {
-	if batch < 1 {
-		return nil, fmt.Errorf("batch cannot be less than 1")
-	}
+
 	n := workers
 	if workers < 1 {
 		n = runtime.NumCPU()
@@ -39,56 +34,40 @@ func parTransformMap[K comparable, T any, U any](
 		}
 	}
 
-	keys := []K{}
-	keyIndex := map[K]int{}
-	for k := range inputs {
-		keys = append(keys, k)
-		keyIndex[k] = len(keys) - 1
+	type kv struct {
+		k K
+		v T
 	}
 
-	translations := make([]U, len(keys))
+	ch := make(chan kv)
 	errors := make([]error, n)
-
-	ch := make(chan []K)
 
 	// Start n workers to do convertViaPulumiCLI work
 	wg := sync.WaitGroup{}
 	wg.Add(n)
 
+	var results sync.Map
+
 	for i := 0; i < n; i++ {
 		go func(worker int) {
 			defer wg.Done()
-			for keyBatch := range ch {
-				ex := map[K]T{}
-				for _, k := range keyBatch {
-					ex[k] = inputs[k]
-				}
-				out, err := transform(ex)
+			for entry := range ch {
+				result, err := transform(entry.k, entry.v)
 				if err != nil {
 					errors[worker] = err
 					return
 				}
-				for _, k := range keyBatch {
-					translations[keyIndex[k]] = out[k]
-				}
+				results.Store(entry.k, result)
 			}
 		}(i)
 	}
 
-	// Queue up work in batches.
-	remainingKeys := keys
-	for len(remainingKeys) > 0 {
-		var keyBatch []K
-		if len(remainingKeys) <= batch {
-			keyBatch, remainingKeys = remainingKeys, nil
-		} else {
-			keyBatch, remainingKeys = remainingKeys[:batch], remainingKeys[batch:]
-		}
-		ch <- keyBatch
+	for k, v := range inputs {
+		ch <- kv{k, v}
 	}
+
 	close(ch)
 
-	// Wait till workers are done.
 	wg.Wait()
 
 	for _, e := range errors {
@@ -99,28 +78,10 @@ func parTransformMap[K comparable, T any, U any](
 	}
 
 	translatedMap := map[K]U{}
-	for _, k := range keys {
-		translatedMap[k] = translations[keyIndex[k]]
-	}
-	return translatedMap, nil
-}
+	results.Range(func(k, v any) bool {
+		translatedMap[k.(K)] = v.(U)
+		return true
+	})
 
-func parTransformMapWith[K comparable, T any, U any](
-	inputs map[K]T,
-	transform func(K, T) (U, error),
-	workers int,
-	batch int,
-) (map[K]U, error) {
-	t := func(m map[K]T) (map[K]U, error) {
-		r := map[K]U{}
-		for k, v := range m {
-			tv, err := transform(k, v)
-			if err != nil {
-				return nil, err
-			}
-			r[k] = tv
-		}
-		return r, nil
-	}
-	return parTransformMap(inputs, t, workers, batch)
+	return translatedMap, nil
 }
