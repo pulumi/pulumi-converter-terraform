@@ -72,7 +72,7 @@ func TestParTransformMap(t *testing.T) {
 			actual, actualErr := parTransformMapWith(tc.inputs, inc, tc.workers)
 			expect, expectErr := apply(increment, tc.inputs)
 			assert.Equal(t, len(tc.inputs), int(ops.Load()))
-			assert.Equal(t, expectErr, actualErr)
+			assert.Equal(t, expectErr == nil, actualErr == nil)
 			assert.Equal(t, expect, actual)
 		})
 	}

@@ -15,6 +15,7 @@
 package main
 
 import (
+	"errors"
 	"runtime"
 	"sync"
 )
@@ -40,7 +41,7 @@ func parTransformMapWith[K comparable, T any, U any](
 	}
 
 	ch := make(chan kv)
-	errors := make([]error, n)
+	errorSlice := make([]error, n)
 
 	// Start n workers to do convertViaPulumiCLI work
 	wg := sync.WaitGroup{}
@@ -54,7 +55,7 @@ func parTransformMapWith[K comparable, T any, U any](
 			for entry := range ch {
 				result, err := transform(entry.k, entry.v)
 				if err != nil {
-					errors[worker] = err
+					errorSlice[worker] = err
 					return
 				}
 				results.Store(entry.k, result)
@@ -70,11 +71,8 @@ func parTransformMapWith[K comparable, T any, U any](
 
 	wg.Wait()
 
-	for _, e := range errors {
-		// Returning the first error here, could instead consider merging them.
-		if e != nil {
-			return nil, e
-		}
+	if err := errors.Join(errorSlice...); err != nil {
+		return nil, err
 	}
 
 	translatedMap := map[K]U{}
