@@ -19,7 +19,7 @@ import (
 	"sync"
 )
 
-// Transforms map values in parallel over n workers. If workers is negaive use NumCPU.
+// Transforms map values in parallel over n workers. If workers is negative use NumCPU.
 func parTransformMapWith[K comparable, T any, U any](
 	inputs map[K]T,
 	transform func(K, T) (U, error),
