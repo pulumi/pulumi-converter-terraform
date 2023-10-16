@@ -91,13 +91,12 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 		}
 
 		// For each example make up a small InMemFs for it and run the translation and save the results
-		results := make(map[string]translatedExample)
-		for name, example := range examples {
+		translateExample := func(name, example string) (translatedExample, error) {
 			src := afero.NewMemMapFs()
 			safename := strings.ReplaceAll(name, "/", "-")
 			err := afero.WriteFile(src, "/"+safename+".tf", []byte(example), 0o600)
 			if err != nil {
-				return nil, fmt.Errorf("write example %s to memory store: %w", name, err)
+				return translatedExample{}, fmt.Errorf("write example %s to memory store: %w", name, err)
 			}
 
 			dst := afero.NewMemMapFs()
@@ -105,14 +104,18 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 
 			pcl, err := afero.ReadFile(dst, "/"+safename+".pp")
 			if err != nil && !os.IsNotExist(err) {
-				return nil, fmt.Errorf("read example %s from memory store: %w", name, err)
+				return translatedExample{}, fmt.Errorf("read example %s from memory store: %w", name, err)
 			}
 
-			results[name] = translatedExample{
+			return translatedExample{
 				PCL:         string(pcl),
 				Diagnostics: diags,
-			}
+			}, nil
 		}
+
+		workers := -1 // numCPU
+
+		results, err := parTransformMapWith(examples, translateExample, workers)
 
 		// Now marshal the results and return them, we use the same base name as our input file but written to the
 		// target directory
