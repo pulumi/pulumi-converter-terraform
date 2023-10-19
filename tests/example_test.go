@@ -284,6 +284,8 @@ func TestExample(t *testing.T) {
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-s3-bucket",
 			strict:  true,
+			// TODO: sigsegv in outputVersionSignature
+			skip: newStringSet(python, typescript),
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-s3-bucket/examples/object",

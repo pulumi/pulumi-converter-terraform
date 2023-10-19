@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
-	tfconvert "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/convert"
+	tfconvert "github.com/pulumi/pulumi-converter-terraform/pkg/convert"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
