@@ -21,20 +21,6 @@ releases](https://github.com/pulumi/tf2pulumi/releases) hosted on GitHub.
 pulumi plugin install converter terraform
 ```
 
-### Building
-
-`pulumi-converter-terraform` uses [Go modules](https://github.com/golang/go/wiki/Modules) to manage dependencies. If you want to develop `pulumi-converter-terraform` itself, you'll need to have [Go](https://golang.org/) installed in order to build.
-Once this prerequisite is installed, run the following to build the `pulumi-converter-terraform` binary and install it into `$GOPATH/bin`:
-
-```console
-$ make install
-```
-
-Go should automatically handle pulling the dependencies for you.
-
-If `$GOPATH/bin` is not on your path, you may want to move the `pulumi-converter-terraform` binary from `$GOPATH/bin`
-into a directory that is on your path.
-
 ## Usage
 
 In order to use `pulumi-converter-terraform` to convert a Terraform project to Pulumi and then deploy it,
@@ -117,3 +103,7 @@ While the majority of Terraform constructs are already supported, there are some
 - Various built-in interpolation functions. Calls to unimplemented functions will throw at
   runtime.
 - `self` and `terraform` variable references.
+
+## Contributing
+
+Visit [CONTRIBUTING.md](./CONTRIBUTING.md) for information on building from source or contributing improvements.
