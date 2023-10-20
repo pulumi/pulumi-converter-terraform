@@ -1,0 +1,3 @@
+[
+  "warning:provider_config/main.tf:7,5-18:Provider config not supported:Blocks in provider config are not supported, ignoring configured:object_config"
+]

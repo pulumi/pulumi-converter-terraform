@@ -24,10 +24,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// If zeroValue is non-nil it's used if a JSON file is missing. This saves us having to keep a load of diagnostic.json files with just "[]" in them.
 func AssertEqualsJSONFile[T any](
 	t *testing.T,
 	expectedJSONFile string,
 	actualData T,
+	zeroValue *T,
 ) {
 	var empty T
 
@@ -38,6 +40,9 @@ func AssertEqualsJSONFile[T any](
 
 	readTFromFile := func(file string) (T, error) {
 		jsonBytes, err := os.ReadFile(file)
+		if os.IsNotExist(err) && zeroValue != nil {
+			return *zeroValue, nil
+		}
 		if err != nil {
 			return empty, err
 		}
@@ -67,7 +72,13 @@ func AssertEqualsJSONFile[T any](
 		buf := bytes.Buffer{}
 		err := marshalT(actualData, &buf)
 		assert.NoError(t, err)
-		err = os.WriteFile(expectedJSONFile, buf.Bytes(), 0600)
+
+		// Don't write if its equal to the zero value.
+		if zeroValue != nil && assert.ObjectsAreEqual(*zeroValue, actualData) {
+			return
+		}
+
+		err = os.WriteFile(expectedJSONFile, buf.Bytes(), 0o600)
 		assert.NoError(t, err)
 	}
 

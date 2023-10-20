@@ -199,9 +199,42 @@ func TestTranslate(t *testing.T) {
 				diagnostics.HasErrors(),
 				"translate diagnostics should not have errors: %v",
 				diagnostics)
+
+			// Keep track of all diagnostics, from each of the three phases. We'll check these match what we expect at the end of the test.
+			allDiagnostics := []string{}
 			logDiagnostics := func(label string, diagnostics hcl.Diagnostics) {
 				if len(diagnostics) > 0 {
 					t.Logf("%s diagnostics: %v", label, diagnostics)
+				}
+				for _, diagnostic := range diagnostics {
+					sev := "error"
+					if diagnostic.Severity == hcl.DiagWarning {
+						sev = "warning"
+					}
+					assert.True(t,
+						diagnostic.Severity == hcl.DiagError || diagnostic.Severity == hcl.DiagWarning,
+						"diagnostic should be an error or warning")
+
+					assert.NotNil(t, diagnostic.Subject, "diagnostic should have a subject")
+
+					// We need to ensure the ranges just print relative paths here because the absolute paths
+					// change on each test run. We're ok to mutate the struct here because we aren't going to
+					// be using these diagnostic objects again after this.
+					rangeToString := func(r *hcl.Range) string {
+						path, err := filepath.Rel(tempDir, r.Filename)
+						if err == nil {
+							r.Filename = path
+						}
+						return r.String()
+					}
+
+					if diagnostic.Context == nil {
+						allDiagnostics = append(allDiagnostics,
+							fmt.Sprintf("%s:%s:%s:%s", sev, rangeToString(diagnostic.Subject), diagnostic.Summary, diagnostic.Detail))
+					} else {
+						allDiagnostics = append(allDiagnostics,
+							fmt.Sprintf("%s:%s:%s:%s:%s", sev, rangeToString(diagnostic.Context), rangeToString(diagnostic.Subject), diagnostic.Summary, diagnostic.Detail))
+					}
 				}
 			}
 			logDiagnostics("translate", diagnostics)
@@ -251,6 +284,10 @@ func TestTranslate(t *testing.T) {
 				diagnostics)
 			logDiagnostics("bind", diagnostics)
 
+			// We have all the diagnostics now check they match what we expect.
+			expectedDiagnosticsPath := filepath.Join(tt.path, "pcl", "diagnostics.json")
+			bridgetesting.AssertEqualsJSONFile(t, expectedDiagnosticsPath, allDiagnostics, &[]string{})
+
 			// Assert every pcl file is seen
 			_, err = os.ReadDir(snapshotPath)
 			if !os.IsNotExist(err) && !assert.NoError(t, err) {
@@ -266,7 +303,7 @@ func TestTranslate(t *testing.T) {
 					return err
 				}
 				if info == nil || info.IsDir() {
-					// ignore directories
+					// ignore directories, just recuse down
 					return nil
 				}
 
@@ -286,7 +323,7 @@ func TestTranslate(t *testing.T) {
 				if err != nil {
 					return err
 				}
-				if info == nil || info.IsDir() {
+				if info == nil || info.IsDir() || filepath.Ext(info.Name()) != ".pp" {
 					// ignore directories and non-PCL files
 					return nil
 				}
@@ -333,7 +370,7 @@ func Test_GenerateTestDataSchemas(t *testing.T) {
 			require.NoError(t, err)
 
 			schemaPath := filepath.Join(schemasPath, pkg+".json")
-			bridgetesting.AssertEqualsJSONFile(t, schemaPath, schema)
+			bridgetesting.AssertEqualsJSONFile(t, schemaPath, schema, nil)
 		})
 	}
 }
