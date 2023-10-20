@@ -1,0 +1,3 @@
+[
+  "warning:provider_config_dynamic/main.tf:3,5-28:Provider config not supported:Blocks in provider config are not supported, ignoring configured:dynamic"
+]

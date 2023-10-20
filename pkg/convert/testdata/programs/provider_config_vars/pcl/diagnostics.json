@@ -1,0 +1,3 @@
+[
+  "warning:provider_config_vars/main.tf:6,1-22:Failed to evaluate provider config:Could not evaluate expression for configured:string_config"
+]
