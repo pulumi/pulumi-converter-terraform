@@ -21,6 +21,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/hashicorp/hcl/v2"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
@@ -51,6 +52,8 @@ func TranslateState(info il.ProviderInfoSource, path string) (*plugin.ConvertSta
 	if err != nil {
 		return nil, err
 	}
+
+	diagnostics := hcl.Diagnostics{}
 
 	state := file.State
 	var resources []plugin.ResourceImport
@@ -150,7 +153,12 @@ func TranslateState(info il.ProviderInfoSource, path string) (*plugin.ConvertSta
 					provider := impliedProvider(tfType)
 					providerInfo, err := info.GetProviderInfo("", "", provider, "")
 					if err != nil {
-						return nil, fmt.Errorf("failed to get provider info for %q: %v", tfType, err)
+						// Don't fail the import, just warn
+						diagnostics = append(diagnostics, &hcl.Diagnostic{
+							Severity: hcl.DiagWarning,
+							Summary:  "Failed to get provider info",
+							Detail:   fmt.Sprintf("Failed to get provider info for %q: %v", tfType, err),
+						})
 					}
 
 					// Get the pulumi type of this resource
@@ -160,7 +168,11 @@ func TranslateState(info il.ProviderInfoSource, path string) (*plugin.ConvertSta
 						if resourceInfo != nil {
 							pulumiType = resourceInfo.Tok.String()
 						} else {
-							return nil, fmt.Errorf("failed to get resource info for %q", tfType)
+							diagnostics = append(diagnostics, &hcl.Diagnostic{
+								Severity: hcl.DiagWarning,
+								Summary:  "Failed to get provider info",
+								Detail:   fmt.Sprintf("Failed to get resource info for %q", tfType),
+							})
 						}
 					}
 
@@ -187,6 +199,7 @@ func TranslateState(info il.ProviderInfoSource, path string) (*plugin.ConvertSta
 	}
 
 	return &plugin.ConvertStateResponse{
-		Resources: resources,
+		Resources:   resources,
+		Diagnostics: diagnostics,
 	}, nil
 }
