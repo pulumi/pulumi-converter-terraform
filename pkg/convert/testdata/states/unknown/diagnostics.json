@@ -1,0 +1,3 @@
+[
+  "warning:Failed to get provider info:Failed to get provider info for \"unknown_resource\": could not find mapping information for provider unknown; try installing a pulumi plugin that supports this terraform provider"
+]

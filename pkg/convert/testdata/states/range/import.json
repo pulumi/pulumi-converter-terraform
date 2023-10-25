@@ -1,18 +1,16 @@
-{
-  "Resources": [
-    {
-      "Type": "simple:index:resource",
-      "Name": "a_resource-hello",
-      "ID": "abc123",
-      "Version": "",
-      "PluginDownloadURL": ""
-    },
-    {
-      "Type": "simple:index:resource",
-      "Name": "a_resource-goodbye",
-      "ID": "def456",
-      "Version": "",
-      "PluginDownloadURL": ""
-    }
-  ]
-}
+[
+  {
+    "Type": "simple:index:resource",
+    "Name": "a_resource-hello",
+    "ID": "abc123",
+    "Version": "",
+    "PluginDownloadURL": ""
+  },
+  {
+    "Type": "simple:index:resource",
+    "Name": "a_resource-goodbye",
+    "ID": "def456",
+    "Version": "",
+    "PluginDownloadURL": ""
+  }
+]

@@ -1,0 +1,21 @@
+{
+    "version": 4,
+    "resources": [
+        {
+            "mode": "managed",
+            "type": "unknown_resource",
+            "name": "a_resource",
+            "provider": "provider[\"registry.terraform.io/pulumi/unknown\"]",
+            "instances": [
+                {
+                    "attributes": {
+                        "id": "abc123",
+                        "input_one": "hello",
+                        "input_two": 42,
+                        "result": "hello42"
+                    }
+                }
+            ]
+        }
+    ]
+}

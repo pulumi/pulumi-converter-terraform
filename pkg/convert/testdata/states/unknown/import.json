@@ -1,6 +1,6 @@
 [
   {
-    "Type": "simple:index:resource",
+    "Type": "unknown:index:resource",
     "Name": "a_resource",
     "ID": "abc123",
     "Version": "",

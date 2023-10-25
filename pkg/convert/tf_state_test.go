@@ -16,10 +16,12 @@ package convert
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/hashicorp/hcl/v2"
 	bridgetesting "github.com/pulumi/pulumi-converter-terraform/pkg/testing"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
@@ -67,10 +69,35 @@ func TestTranslateState(t *testing.T) {
 
 			actualImport, err := TranslateState(info, statePath)
 			require.NoError(t, err)
+			diagnostics := []string{}
+			if len(actualImport.Diagnostics) > 0 {
+				t.Logf("diagnostics: %v", actualImport.Diagnostics)
+			}
+			for _, diagnostic := range actualImport.Diagnostics {
+				sev := "error"
+				if diagnostic.Severity == hcl.DiagWarning {
+					sev = "warning"
+				}
+				assert.True(t,
+					diagnostic.Severity == hcl.DiagError || diagnostic.Severity == hcl.DiagWarning,
+					"diagnostic should be an error or warning")
 
-			// If PULUMI_ACCEPT is set then write the expected file
+				assert.Nil(t, diagnostic.Subject, "diagnostic should not have a subject")
+				assert.Nil(t, diagnostic.Context, "diagnostic should not have a context")
+
+				diagnostics = append(diagnostics,
+					fmt.Sprintf("%s:%s:%s", sev, diagnostic.Summary, diagnostic.Detail))
+			}
+
+			// Check the diagnostics match what we expect
+			expectedDiagnosticsPath := filepath.Join(tt.path, "diagnostics.json")
+			bridgetesting.AssertEqualsJSONFile(t, expectedDiagnosticsPath, diagnostics, &[]string{})
+
+			// Check the set of imported resources is what we expect. We can't use AssertEqualsJSONFile here
+			// because this looks like a list but we actually need to treat it as a set.
 			if cmdutil.IsTruthy(os.Getenv("PULUMI_ACCEPT")) {
-				actualImportBytes, err := json.MarshalIndent(actualImport, "", "  ")
+				// If PULUMI_ACCEPT is set then write the expected file
+				actualImportBytes, err := json.MarshalIndent(actualImport.Resources, "", "  ")
 				require.NoError(t, err)
 				err = os.WriteFile(filepath.Join(tt.path, "import.json"), actualImportBytes, 0o600)
 				require.NoError(t, err)
@@ -78,12 +105,12 @@ func TestTranslateState(t *testing.T) {
 
 			expectedImportBytes, err := os.ReadFile(filepath.Join(tt.path, "import.json"))
 			require.NoError(t, err)
-			var expectedImport plugin.ConvertStateResponse
+			var expectedImport []plugin.ResourceImport
 			err = json.Unmarshal(expectedImportBytes, &expectedImport)
 			require.NoError(t, err)
 
 			// We don't actually care about order here, just that the "set" of resources is the same.
-			assert.ElementsMatch(t, expectedImport.Resources, actualImport.Resources)
+			assert.ElementsMatch(t, expectedImport, actualImport.Resources)
 		})
 	}
 }
