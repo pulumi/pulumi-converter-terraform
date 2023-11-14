@@ -615,7 +615,7 @@ var tfFunctionStd = map[string]struct {
 	},
 	"parseint": {
 		token:  "std:index:parseint",
-		inputs: []string{"base", "input"},
+		inputs: []string{"input", "base"},
 		output: "result",
 	},
 	"pathexpand": {
