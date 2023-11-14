@@ -898,38 +898,38 @@ output "funcOne5" {
 # Examples for parseint
 output "funcParseint0" {
   value = invoke("std:index:parseint", {
-    base  = "100"
-    input = 10
+    input = "100"
+    base  = 10
   }).result
 }
 output "funcParseint1" {
   value = invoke("std:index:parseint", {
-    base  = "FF"
-    input = 16
+    input = "FF"
+    base  = 16
   }).result
 }
 output "funcParseint2" {
   value = invoke("std:index:parseint", {
-    base  = "-10"
-    input = 16
+    input = "-10"
+    base  = 16
   }).result
 }
 output "funcParseint3" {
   value = invoke("std:index:parseint", {
-    base  = "1011111011101111"
-    input = 2
+    input = "1011111011101111"
+    base  = 2
   }).result
 }
 output "funcParseint4" {
   value = invoke("std:index:parseint", {
-    base  = "aA"
-    input = 62
+    input = "aA"
+    base  = 62
   }).result
 }
 output "funcParseint5" {
   value = invoke("std:index:parseint", {
-    base  = "12"
-    input = 2
+    input = "12"
+    base  = 2
   }).result
 }
 
