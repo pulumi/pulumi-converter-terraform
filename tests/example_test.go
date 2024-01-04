@@ -242,7 +242,7 @@ func TestExample(t *testing.T) {
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-role-for-service-accounts-eks",
 			// TODO[pulumi/pulumi-converter-terraform#32]: upstream example change can no longer convert
-			skip: allLanguages,
+			//skip: allLanguages,
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-user",
