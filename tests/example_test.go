@@ -117,6 +117,7 @@ func TestExample(t *testing.T) {
 
 	tests := []struct {
 		example string
+		commit  string
 		strict  bool
 		skip    stringSet
 	}{
@@ -385,6 +386,10 @@ func TestExample(t *testing.T) {
 
 			// Test each language.
 			exampleDir := filepath.Join(repoDir, parsed.path)
+			if tt.commit != "" {
+				_, _, err := runCommand(t, exampleDir, "git", "checkout", tt.commit)
+				require.NoError(t, err, "using commit %s", tt.commit)
+			}
 			for _, language := range languages {
 				language := language
 				t.Run(language, func(t *testing.T) {
