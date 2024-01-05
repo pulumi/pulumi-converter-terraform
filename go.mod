@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/go-version v1.6.0
 	github.com/hashicorp/hcl/v2 v2.17.0
 	github.com/hashicorp/terraform-svchost v0.1.1
-	github.com/pulumi/pulumi-terraform-bridge/v3 v3.62.0
+	github.com/pulumi/pulumi-terraform-bridge/v3 v3.59.1-0.20230911150723-a9649538b07f
 	github.com/pulumi/pulumi/pkg/v3 v3.90.1
 	github.com/pulumi/pulumi/sdk/v3 v3.90.1
 	github.com/pulumi/terraform v0.12.1-0.20230322133416-a268cd0892c9
