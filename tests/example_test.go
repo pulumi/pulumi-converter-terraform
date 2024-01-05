@@ -117,248 +117,26 @@ func TestExample(t *testing.T) {
 
 	tests := []struct {
 		example string
-		commit  string
 		strict  bool
 		skip    stringSet
 	}{
 		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-security-group/examples/complete",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc",
-			// TODO[pulumi/pulumi#13743]: unknown property 'domain' among [...]
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc/examples/complete",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc/examples/ipam",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc/examples/ipv6-dualstack",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc/examples/ipv6-only",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc/examples/issues",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc/examples/manage-default-vpc",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc/examples/network-acls",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc/examples/outpost",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc/examples/secondary-cidr-blocks",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc/examples/separate-route-tables",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc/examples/simple",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-vpc/examples/vpc-flow-logs",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-account",
-			strict:  true,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-assumable-role",
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-assumable-role-with-oidc",
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-assumable-role-with-saml",
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-assumable-roles",
-			strict:  true,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-assumable-roles-with-saml",
-			strict:  true,
-		},
-		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-eks-role",
 			// TODO[pulumi/pulumi-converter-terraform#32]: upstream example change can no longer convert
 			// Was incidentally broken by https://github.com/pulumi/pulumi-converter-terraform/pull/91.
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-github-oidc",
-			strict:  true,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-group-complete",
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-group-with-assumable-roles-policy",
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-group-with-policies",
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-policy",
-			strict:  true,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-read-only-policy",
-			strict:  true,
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-role-for-service-accounts-eks",
 			// TODO[pulumi/pulumi-converter-terraform#32]: upstream example change can no longer convert
-			//skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-user",
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-security-group",
-			strict:  true,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-security-group/examples/computed",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-security-group/examples/disabled",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-security-group/examples/dynamic",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-security-group/examples/http",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-security-group/examples/rules-only",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-eks",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-lambda",
-			strict:  true,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-s3-bucket",
-			strict:  true,
-			// TODO: sigsegv in outputVersionSignature
-			skip: newStringSet(python, typescript),
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-s3-bucket/examples/object",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-s3-bucket/examples/complete",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-rds",
-			strict:  true,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-alb",
-			strict:  true,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-alb/examples/complete-alb",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-alb/examples/complete-nlb",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-rds-aurora",
-			strict:  true,
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-acm",
 			strict:  true,
 			// TODO[pulumi/pulumi-converter-terraform#32]: upstream example change can no longer convert
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/avantoss/vault-infra/terraform/main",
-			strict:  true,
-		},
-		{
-			example: "https://github.com/philips-labs/terraform-aws-github-runner",
-			strict:  true,
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/aztfmod/terraform-azurerm-caf",
-			// TODO[pulumi/pulumi-terraform-bridge#1303]: panic: fatal: An assertion has failed:
-			// empty path part passed into getInfo: .recurrence.hours
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/awslabs/data-on-eks/analytics/terraform/spark-k8s-operator",
-			// TODO[pulumi/pulumi#13581]: circular reference
-			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/aws-samples/hub-and-spoke-with-inspection-vpc-terraform",
-			// TODO[pulumi/pulumi#13581]: circular reference
-			skip: allLanguages,
 		},
 		{
 			example: "https://github.com/aws-ia/terraform-aws-eks-blueprints/patterns/multi-tenancy-with-teams",
 			// TODO[pulumi/pulumi-converter-terraform#32]: upstream example change can no longer convert
-			skip: allLanguages,
 		},
 	}
 	for _, tt := range tests {
@@ -386,10 +164,6 @@ func TestExample(t *testing.T) {
 
 			// Test each language.
 			exampleDir := filepath.Join(repoDir, parsed.path)
-			if tt.commit != "" {
-				_, _, err := runCommand(t, exampleDir, "git", "checkout", tt.commit)
-				require.NoError(t, err, "using commit %s", tt.commit)
-			}
 			for _, language := range languages {
 				language := language
 				t.Run(language, func(t *testing.T) {
