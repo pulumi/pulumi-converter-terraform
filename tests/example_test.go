@@ -213,6 +213,9 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-eks-role",
+			// TODO[pulumi/pulumi-converter-terraform#32]: upstream example change can no longer convert
+			// Was incidentally broken by https://github.com/pulumi/pulumi-converter-terraform/pull/91.
+			skip: allLanguages,
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-github-oidc",
