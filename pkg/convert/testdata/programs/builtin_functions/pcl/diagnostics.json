@@ -85,8 +85,6 @@
   "warning:builtin_functions/main.tf:757,11-50:Function not yet implemented:Function regexall not yet implemented",
   "warning:builtin_functions/main.tf:760,18-57:Function not yet implemented:Function regexall not yet implemented",
   "warning:builtin_functions/main.tf:763,18-49:Function not yet implemented:Function regexall not yet implemented",
-  "warning:builtin_functions/main.tf:769,11-41:Function not yet implemented:Function replace not yet implemented",
-  "warning:builtin_functions/main.tf:772,11-56:Function not yet implemented:Function replace not yet implemented",
   "warning:builtin_functions/main.tf:778,11-29:Function not yet implemented:Function reverse not yet implemented",
   "warning:builtin_functions/main.tf:802,11-62:Function not yet implemented:Function setintersection not yet implemented",
   "warning:builtin_functions/main.tf:808,11-67:Function not yet implemented:Function setproduct not yet implemented",

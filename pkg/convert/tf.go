@@ -633,12 +633,11 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"limit", "start", "step"},
 		output: "result",
 	},
-	// Currently missing from the std schema
-	//"replace": {
-	//	token:  "std:index:replace",
-	//	inputs: []string{"replace", "search", "text"},
-	//	output: "result",
-	//},
+	"replace": {
+		token:  "std:index:replace",
+		inputs: []string{"text", "search", "replace"},
+		output: "result",
+	},
 	"rsadecrypt": {
 		token:  "std:index:rsadecrypt",
 		inputs: []string{"cipherText", "key"},

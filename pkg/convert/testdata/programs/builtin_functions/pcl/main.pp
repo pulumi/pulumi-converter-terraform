@@ -1045,10 +1045,18 @@ output "funcRegexall2" {
 
 # Examples for replace
 output "funcReplace0" {
-  value = notImplemented("replace(\"1 + 2 + 3\",\"+\",\"-\")")
+  value = invoke("std:index:replace", {
+    text    = "1 + 2 + 3"
+    search  = "+"
+    replace = "-"
+  }).result
 }
 output "funcReplace1" {
-  value = notImplemented("replace(\"hello world\",\"/w.*d/\",\"everybody\")")
+  value = invoke("std:index:replace", {
+    text    = "hello world"
+    search  = "/w.*d/"
+    replace = "everybody"
+  }).result
 }
 
 
