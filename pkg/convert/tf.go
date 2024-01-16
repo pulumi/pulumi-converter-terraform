@@ -430,6 +430,16 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input"},
 		output: "result",
 	},
+	"alltrue": {
+		token:  "std:index:alltrue",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"anytrue": {
+		token:  "std:index:anytrue",
+		inputs: []string{"input"},
+		output: "result",
+	},
 	"base64decode": {
 		token:  "std:index:base64decode",
 		inputs: []string{"input"},
@@ -475,27 +485,37 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input"},
 		output: "result",
 	},
+	"chunklist": {
+		token:  "std:index:chunklist",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"coalesce": {
+		token:  "std:index:coalesce",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"coalescelist": {
+		token:  "std:index:coalescelist",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"compact": {
+		token:  "std:index:compact",
+		inputs: []string{"input"},
+		output: "result",
+	},
 	"concat": {
 		token:     "std:index:concat",
 		inputs:    []string{"input"},
 		output:    "result",
 		paramArgs: true,
 	},
-	/* Currently failing due to: cannot assign expression of type { input: (string, string, string, null,
-	string) } to location of type { input: list(output(string) | string) | output(list(string)) } | output({
-	input: list(string) }):
-	*/
-	//
-	//	on main.pp line 263:
-	//	264:   value = invoke("std:index:compact", {
-	//	265:     input = ["a", "", "b", null, "c"]
-	//	266:   }).result
-	//
-	//"compact": {
-	//	token:  "std:index:compact",
-	//	inputs: []string{"input"},
-	//	output: "result",
-	//},
+	"contains": {
+		token:  "std:index:contains",
+		inputs: []string{"input", "element"},
+		output: "result",
+	},
 	"cidrhost": {
 		token:  "std:index:cidrhost",
 		inputs: []string{"input", "host"},
@@ -519,6 +539,16 @@ var tfFunctionStd = map[string]struct {
 	"dirname": {
 		token:  "std:index:dirname",
 		inputs: []string{"input"},
+		output: "result",
+	},
+	"distinct": {
+		token:  "std:index:distinct",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"element": {
+		token:  "std:index:element",
+		inputs: []string{"input", "index"},
 		output: "result",
 	},
 	"endswith": {
@@ -571,6 +601,16 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input"},
 		output: "result",
 	},
+	"flatten": {
+		token:  "std:index:flatten",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"format": {
+		token:  "std:index:format",
+		inputs: []string{"input", "args"},
+		output: "result",
+	},
 	"floor": {
 		token:  "std:index:floor",
 		inputs: []string{"input"},
@@ -581,9 +621,34 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"spaces", "input"},
 		output: "result",
 	},
+	"index": {
+		token:  "std:index:index",
+		inputs: []string{"input", "element"},
+		output: "result",
+	},
 	"join": {
 		token:  "std:index:join",
 		inputs: []string{"separator", "input"},
+		output: "result",
+	},
+	"jsondecode": {
+		token:  "std:index:jsondecode",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"jsonencode": {
+		token:  "std:index:jsonencode",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"keys": {
+		token:  "std:index:keys",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"length": {
+		token:  "std:index:length",
+		inputs: []string{"input"},
 		output: "result",
 	},
 	"log": {
@@ -591,9 +656,24 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"base", "input"},
 		output: "result",
 	},
+	"lookup": {
+		token:  "std:index:lookup",
+		inputs: []string{"map", "key", "default"},
+		output: "result",
+	},
 	"lower": {
 		token:  "std:index:lower",
 		inputs: []string{"input"},
+		output: "result",
+	},
+	"map": {
+		token:  "std:index:map",
+		inputs: []string{"args"},
+		output: "result",
+	},
+	"matchkeys": {
+		token:  "std:index:matchkeys",
+		inputs: []string{"values", "keys", "searchList"},
 		output: "result",
 	},
 	"max": {
@@ -604,6 +684,11 @@ var tfFunctionStd = map[string]struct {
 	},
 	"md5": {
 		token:  "std:index:md5",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"merge": {
+		token:  "std:index:merge",
 		inputs: []string{"input"},
 		output: "result",
 	},
@@ -638,6 +723,11 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"text", "search", "replace"},
 		output: "result",
 	},
+	"reverse": {
+		token:  "std:index:reverse",
+		inputs: []string{"input"},
+		output: "result",
+	},
 	"rsadecrypt": {
 		token:  "std:index:rsadecrypt",
 		inputs: []string{"cipherText", "key"},
@@ -661,6 +751,11 @@ var tfFunctionStd = map[string]struct {
 	"signum": {
 		token:  "std:index:signum",
 		inputs: []string{"input"},
+		output: "result",
+	},
+	"slice": {
+		token:  "std:index:slice",
+		inputs: []string{"list", "from", "to"},
 		output: "result",
 	},
 	"sort": {
@@ -713,6 +808,31 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input"},
 		output: "result",
 	},
+	"tobool": {
+		token:  "std:index:tobool",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"tolist": {
+		token:  "std:index:tolist",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"tonumber": {
+		token:  "std:index:tonumber",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"toset": {
+		token:  "std:index:toset",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"tostring": {
+		token:  "std:index:tostring",
+		inputs: []string{"input"},
+		output: "result",
+	},
 	"transpose": {
 		token:  "std:index:transpose",
 		inputs: []string{"input"},
@@ -751,6 +871,16 @@ var tfFunctionStd = map[string]struct {
 	"uuid": {
 		token:  "std:index:uuid",
 		inputs: []string{},
+		output: "result",
+	},
+	"values": {
+		token:  "std:index:values",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"zipmap": {
+		token:  "std:index:zipmap",
+		inputs: []string{"keys", "values"},
 		output: "result",
 	},
 }

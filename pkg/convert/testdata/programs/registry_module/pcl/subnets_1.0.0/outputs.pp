@@ -3,7 +3,9 @@ output "networkCidrBlocks" {
 }
 
 output "networks" {
-  value = notImplemented("tolist(local.network_objs)")
+  value = invoke("std:index:tolist", {
+    input = networkObjs
+  }).result
 }
 
 output "baseCidrBlock" {
