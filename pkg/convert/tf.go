@@ -914,38 +914,38 @@ func appendPathArray(root string) string {
 	return root + "[]"
 }
 
-// matchStaticString returns a literal string if the expression is a static string or identifier, else nil
-func matchStaticString(expr hclsyntax.Expression) *string {
+// matchStaticString returns a literal string if the expression is a static string or identifier, else nil. It returns true if this was an identifier.
+func matchStaticString(expr hclsyntax.Expression) (*string, bool) {
 	switch expr := expr.(type) {
 	case *hclsyntax.ObjectConsKeyExpr:
 		return matchStaticString(expr.Wrapped)
 	case *hclsyntax.LiteralValueExpr:
 		if expr.Val.Type() != cty.String {
-			return nil
+			return nil, false
 		}
 		s := expr.Val.AsString()
-		return &s
+		return &s, false
 	case *hclsyntax.ScopeTraversalExpr:
 		if len(expr.Traversal) != 1 {
-			return nil
+			return nil, false
 		}
 		if root, ok := expr.Traversal[0].(hcl.TraverseRoot); ok {
 			s := root.Name
-			return &s
+			return &s, true
 		}
 	case *hclsyntax.TemplateExpr:
 		if len(expr.Parts) != 1 {
-			return nil
+			return nil, false
 		}
 		if lit, ok := expr.Parts[0].(*hclsyntax.LiteralValueExpr); ok {
 			if lit.Val.Type() != cty.String {
-				return nil
+				return nil, false
 			}
 			s := lit.Val.AsString()
-			return &s
+			return &s, false
 		}
 	}
-	return nil
+	return nil, false
 }
 
 func convertObjectConsExpr(state *convertState, inBlock bool, scopes *scopes,
@@ -963,12 +963,22 @@ func convertObjectConsExpr(state *convertState, inBlock bool, scopes *scopes,
 			// object if it's identifiers. Currently we just default to assuming it's an object.
 			isMap := scopes.isMap(fullyQualifiedPath)
 
-			if isMap != nil && !*isMap {
-				// We know this isn't a map type, so we should try to rename the keys
-				name := matchStaticString(item.KeyExpr)
-				if name != nil {
+			name, isIdentifier := matchStaticString(item.KeyExpr)
+			if name != nil {
+				if isMap != nil && *isMap {
+					// We know this _is_ a map type, so we should leave the keys alone. We can only do this for static
+					// strings other expressions are just going to have to be converted.
+				} else {
+					// We either don't know this type, or know it's not a map, so we should try to rename the keys.
 					subQualifiedPath = appendPath(fullyQualifiedPath, *name)
-					nameTokens = hclwrite.TokensForIdentifier(scopes.pulumiName(subQualifiedPath))
+					*name = scopes.pulumiName(subQualifiedPath)
+				}
+
+				// If this was a literal string (i.e. not an identifier) then make sure we still quote it.
+				if !isIdentifier {
+					nameTokens = hclwrite.TokensForValue(cty.StringVal(*name))
+				} else {
+					nameTokens = hclwrite.TokensForIdentifier(*name)
 				}
 			}
 		}
@@ -1697,7 +1707,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 			var tfEachVar string
 			iteratorAttr, has := dynamicBody.Attributes["iterator"]
 			if has {
-				str := matchStaticString(iteratorAttr.Expr)
+				str, _ := matchStaticString(iteratorAttr.Expr)
 				if str == nil {
 					panic("iterator must be a static string")
 				}
