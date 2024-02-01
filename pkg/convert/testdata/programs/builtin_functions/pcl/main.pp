@@ -70,26 +70,38 @@ output "funcAbspath" {
 
 # Examples for alltrue
 output "funcAlltrue0" {
-  value = notImplemented("alltrue([\"true\",true])")
+  value = invoke("std:index:alltrue", {
+    input = ["true", true]
+  }).result
 }
 output "funcAlltrue1" {
-  value = notImplemented("alltrue([true,false])")
+  value = invoke("std:index:alltrue", {
+    input = [true, false]
+  }).result
 }
 
 
 
 # Examples for anytrue
 output "funcAnytrue0" {
-  value = notImplemented("anytrue([\"true\"])")
+  value = invoke("std:index:anytrue", {
+    input = ["true"]
+  }).result
 }
 output "funcAnytrue1" {
-  value = notImplemented("anytrue([true])")
+  value = invoke("std:index:anytrue", {
+    input = [true]
+  }).result
 }
 output "funcAnytrue2" {
-  value = notImplemented("anytrue([true,false])")
+  value = invoke("std:index:anytrue", {
+    input = [true, false]
+  }).result
 }
 output "funcAnytrue3" {
-  value = notImplemented("anytrue([])")
+  value = invoke("std:index:anytrue", {
+    input = []
+  }).result
 }
 
 
@@ -208,10 +220,16 @@ output "funcChomp2" {
 
 # Examples for chunklist
 output "funcChunklist0" {
-  value = notImplemented("chunklist([\"a\",\"b\",\"c\",\"d\",\"e\"],2)")
+  value = invoke("std:index:chunklist", {
+    input = ["a", "b", "c", "d", "e"]
+    arg1  = 2
+  }).result
 }
 output "funcChunklist1" {
-  value = notImplemented("chunklist([\"a\",\"b\",\"c\",\"d\",\"e\"],1)")
+  value = invoke("std:index:chunklist", {
+    input = ["a", "b", "c", "d", "e"]
+    arg1  = 1
+  }).result
 }
 
 
@@ -299,45 +317,75 @@ output "funcCidrsubnets2" {
 
 # Examples for coalesce
 output "funcCoalesce0" {
-  value = notImplemented("coalesce(\"a\",\"b\")")
+  value = invoke("std:index:coalesce", {
+    input = "a"
+    arg1  = "b"
+  }).result
 }
 output "funcCoalesce1" {
-  value = notImplemented("coalesce(\"\",\"b\")")
+  value = invoke("std:index:coalesce", {
+    input = ""
+    arg1  = "b"
+  }).result
 }
 output "funcCoalesce2" {
-  value = notImplemented("coalesce(1,2)")
+  value = invoke("std:index:coalesce", {
+    input = 1
+    arg1  = 2
+  }).result
 }
 output "funcCoalesce3" {
-  value = notImplemented("coalesce([\"\",\"b\"]...)")
+  value = invoke("std:index:coalesce", {
+    input = ["", "b"]
+  }).result
 }
 output "funcCoalesce4" {
-  value = notImplemented("coalesce(1,\"hello\")")
+  value = invoke("std:index:coalesce", {
+    input = 1
+    arg1  = "hello"
+  }).result
 }
 output "funcCoalesce5" {
-  value = notImplemented("coalesce(true,\"hello\")")
+  value = invoke("std:index:coalesce", {
+    input = true
+    arg1  = "hello"
+  }).result
 }
 output "funcCoalesce6" {
-  value = notImplemented("coalesce({},\"hello\")")
+  value = invoke("std:index:coalesce", {
+    input = {}
+    arg1  = "hello"
+  }).result
 }
 
 
 
 # Examples for coalescelist
 output "funcCoalescelist0" {
-  value = notImplemented("coalescelist([\"a\",\"b\"],[\"c\",\"d\"])")
+  value = invoke("std:index:coalescelist", {
+    input = ["a", "b"]
+    arg1  = ["c", "d"]
+  }).result
 }
 output "funcCoalescelist1" {
-  value = notImplemented("coalescelist([],[\"c\",\"d\"])")
+  value = invoke("std:index:coalescelist", {
+    input = []
+    arg1  = ["c", "d"]
+  }).result
 }
 output "funcCoalescelist2" {
-  value = notImplemented("coalescelist([[],[\"c\",\"d\"]]...)")
+  value = invoke("std:index:coalescelist", {
+    input = [[], ["c", "d"]]
+  }).result
 }
 
 
 
 # Examples for compact
 output "funcCompact" {
-  value = notImplemented("compact([\"a\",\"\",\"b\",null,\"c\"])")
+  value = invoke("std:index:compact", {
+    input = ["a", "", "b", null, "c"]
+  }).result
 }
 
 
@@ -353,10 +401,16 @@ output "funcConcat" {
 
 # Examples for contains
 output "funcContains0" {
-  value = notImplemented("contains([\"a\",\"b\",\"c\"],\"a\")")
+  value = invoke("std:index:contains", {
+    input   = ["a", "b", "c"]
+    element = "a"
+  }).result
 }
 output "funcContains1" {
-  value = notImplemented("contains([\"a\",\"b\",\"c\"],\"d\")")
+  value = invoke("std:index:contains", {
+    input   = ["a", "b", "c"]
+    element = "d"
+  }).result
 }
 
 
@@ -381,7 +435,9 @@ output "funcDirname" {
 
 # Examples for distinct
 output "funcDistinct" {
-  value = notImplemented("distinct([\"a\",\"b\",\"a\",\"c\",\"d\",\"b\"])")
+  value = invoke("std:index:distinct", {
+    input = ["a", "b", "a", "c", "d", "b"]
+  }).result
 }
 
 
@@ -514,10 +570,14 @@ output "funcFilesha512" {
 
 # Examples for flatten
 output "funcFlatten0" {
-  value = notImplemented("flatten([[\"a\",\"b\"],[],[\"c\"]])")
+  value = invoke("std:index:flatten", {
+    input = [["a", "b"], [], ["c"]]
+  }).result
 }
 output "funcFlatten1" {
-  value = notImplemented("flatten([[[\"a\",\"b\"],[]],[\"c\"]])")
+  value = invoke("std:index:flatten", {
+    input = [[["a", "b"], []], ["c"]]
+  }).result
 }
 
 
@@ -538,34 +598,63 @@ output "funcFloor1" {
 
 # Examples for format
 output "funcFormat0" {
-  value = notImplemented("format(\"Hello, %s!\",\"Ander\")")
+  value = invoke("std:index:format", {
+    input = "Hello, %s!"
+    args  = "Ander"
+  }).result
 }
 output "funcFormat1" {
-  value = notImplemented("format(\"There are %d lights\",4)")
+  value = invoke("std:index:format", {
+    input = "There are %d lights"
+    args  = 4
+  }).result
 }
 output "funcFormat2" {
-  value = notImplemented("format(\"Hello, %s!\",var.name)")
+  value = invoke("std:index:format", {
+    input = "Hello, %s!"
+    args  = name
+  }).result
 }
 output "funcFormat3" {
   value = "Hello, ${name}!"
 }
 output "funcFormat4" {
-  value = notImplemented("format(\"%#v\",\"hello\")")
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args  = "hello"
+  }).result
 }
 output "funcFormat5" {
-  value = notImplemented("format(\"%#v\",true)")
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args  = true
+  }).result
 }
 output "funcFormat6" {
-  value = notImplemented("format(\"%#v\",1)")
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args  = 1
+  }).result
 }
 output "funcFormat7" {
-  value = notImplemented("format(\"%#v\",{a=1})")
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args = {
+      a = 1
+    }
+  }).result
 }
 output "funcFormat8" {
-  value = notImplemented("format(\"%#v\",[true])")
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args  = [true]
+  }).result
 }
 output "funcFormat9" {
-  value = notImplemented("format(\"%#v\",null)")
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args  = null
+  }).result
 }
 
 
@@ -617,7 +706,10 @@ output "funcIndent" {
 
 # Examples for index
 output "funcIndex" {
-  value = notImplemented("index([\"a\",\"b\",\"c\"],\"b\")")
+  value = invoke("std:index:index", {
+    input   = ["a", "b", "c"]
+    element = "b"
+  }).result
 }
 
 
@@ -646,10 +738,14 @@ output "funcJoin2" {
 
 # Examples for jsondecode
 output "funcJsondecode0" {
-  value = notImplemented("jsondecode(\"{\\\"hello\\\": \\\"world\\\"}\")")
+  value = invoke("std:index:jsondecode", {
+    input = "{\"hello\": \"world\"}"
+  }).result
 }
 output "funcJsondecode1" {
-  value = notImplemented("jsondecode(\"true\")")
+  value = invoke("std:index:jsondecode", {
+    input = "true"
+  }).result
 }
 
 
@@ -665,7 +761,13 @@ output "funcJsonencode" {
 
 # Examples for keys
 output "funcKeys" {
-  value = notImplemented("keys({a=1,c=2,d=3})")
+  value = invoke("std:index:keys", {
+    input = {
+      a = 1
+      c = 2
+      d = 3
+    }
+  }).result
 }
 
 
@@ -740,10 +842,24 @@ output "funcLog4" {
 
 # Examples for lookup
 output "funcLookup0" {
-  value = notImplemented("lookup({a=\"ay\",b=\"bee\"},\"a\",\"what?\")")
+  value = invoke("std:index:lookup", {
+    map = {
+      a = "ay"
+      b = "bee"
+    }
+    key     = "a"
+    default = "what?"
+  }).result
 }
 output "funcLookup1" {
-  value = notImplemented("lookup({a=\"ay\",b=\"bee\"},\"c\",\"what?\")")
+  value = invoke("std:index:lookup", {
+    map = {
+      a = "ay"
+      b = "bee"
+    }
+    key     = "c"
+    default = "what?"
+  }).result
 }
 
 
@@ -764,14 +880,23 @@ output "funcLower1" {
 
 # Examples for map
 output "funcMap" {
-  value = notImplemented("map(\"a\",\"b\",\"c\",\"d\")")
+  value = invoke("std:index:map", {
+    args = "a"
+    arg1 = "b"
+    arg2 = "c"
+    arg3 = "d"
+  }).result
 }
 
 
 
 # Examples for matchkeys
 output "funcMatchkeys0" {
-  value = notImplemented("matchkeys([\"i-123\",\"i-abc\",\"i-def\"],[\"us-west\",\"us-east\",\"us-east\"],[\"us-east\"])")
+  value = invoke("std:index:matchkeys", {
+    values     = ["i-123", "i-abc", "i-def"]
+    keys       = ["us-west", "us-east", "us-east"]
+    searchList = ["us-east"]
+  }).result
 }
 output "funcMatchkeys1" {
   value = [for i, z in {
@@ -820,13 +945,41 @@ output "funcMd5" {
 
 # Examples for merge
 output "funcMerge0" {
-  value = notImplemented("merge({a=\"b\",c=\"d\"},{e=\"f\",c=\"z\"})")
+  value = invoke("std:index:merge", {
+    input = {
+      a = "b"
+      c = "d"
+    }
+    arg1 = {
+      e = "f"
+      c = "z"
+    }
+  }).result
 }
 output "funcMerge1" {
-  value = notImplemented("merge({a=\"b\"},{a=[1,2],c=\"z\"},{d=3})")
+  value = invoke("std:index:merge", {
+    input = {
+      a = "b"
+    }
+    arg1 = {
+      a = [1, 2]
+      c = "z"
+    }
+    arg2 = {
+      d = 3
+    }
+  }).result
 }
 output "funcMerge2" {
-  value = notImplemented("merge([{a=\"b\",c=\"d\"},{},{e=\"f\",c=\"z\"}]...)")
+  value = invoke("std:index:merge", {
+    input = [{
+      a = "b"
+      c = "d"
+      }, {}, {
+      e = "f"
+      c = "z"
+    }]
+  }).result
 }
 
 
@@ -1063,7 +1216,9 @@ output "funcReplace1" {
 
 # Examples for reverse
 output "funcReverse" {
-  value = notImplemented("reverse([1,2,3])")
+  value = invoke("std:index:reverse", {
+    input = [1, 2, 3]
+  }).result
 }
 
 
@@ -1180,7 +1335,11 @@ output "funcSignum2" {
 
 # Examples for slice
 output "funcSlice" {
-  value = notImplemented("slice([\"a\",\"b\",\"c\",\"d\"],1,3)")
+  value = invoke("std:index:slice", {
+    list = ["a", "b", "c", "d"]
+    from = 1
+    to   = 3
+  }).result
 }
 
 
@@ -1377,29 +1536,43 @@ output "funcTitle" {
 
 # Examples for tobool
 output "funcTobool0" {
-  value = notImplemented("tobool(true)")
+  value = invoke("std:index:tobool", {
+    input = true
+  }).result
 }
 output "funcTobool1" {
-  value = notImplemented("tobool(\"true\")")
+  value = invoke("std:index:tobool", {
+    input = "true"
+  }).result
 }
 output "funcTobool2" {
-  value = notImplemented("tobool(null)")
+  value = invoke("std:index:tobool", {
+    input = null
+  }).result
 }
 output "funcTobool3" {
-  value = notImplemented("tobool(\"no\")")
+  value = invoke("std:index:tobool", {
+    input = "no"
+  }).result
 }
 output "funcTobool4" {
-  value = notImplemented("tobool(1)")
+  value = invoke("std:index:tobool", {
+    input = 1
+  }).result
 }
 
 
 
 # Examples for tolist
 output "funcTolist0" {
-  value = notImplemented("tolist([\"a\",\"b\",\"c\"])")
+  value = invoke("std:index:tolist", {
+    input = ["a", "b", "c"]
+  }).result
 }
 output "funcTolist1" {
-  value = notImplemented("tolist([\"a\",\"b\",3])")
+  value = invoke("std:index:tolist", {
+    input = ["a", "b", 3]
+  }).result
 }
 
 
@@ -1416,48 +1589,72 @@ output "funcTomap1" {
 
 # Examples for tonumber
 output "funcTonumber0" {
-  value = notImplemented("tonumber(1)")
+  value = invoke("std:index:tonumber", {
+    input = 1
+  }).result
 }
 output "funcTonumber1" {
-  value = notImplemented("tonumber(\"1\")")
+  value = invoke("std:index:tonumber", {
+    input = "1"
+  }).result
 }
 output "funcTonumber2" {
-  value = notImplemented("tonumber(null)")
+  value = invoke("std:index:tonumber", {
+    input = null
+  }).result
 }
 output "funcTonumber3" {
-  value = notImplemented("tonumber(\"no\")")
+  value = invoke("std:index:tonumber", {
+    input = "no"
+  }).result
 }
 
 
 
 # Examples for toset
 output "funcToset0" {
-  value = notImplemented("toset([\"a\",\"b\",\"c\"])")
+  value = invoke("std:index:toset", {
+    input = ["a", "b", "c"]
+  }).result
 }
 output "funcToset1" {
-  value = notImplemented("toset([\"a\",\"b\",3])")
+  value = invoke("std:index:toset", {
+    input = ["a", "b", 3]
+  }).result
 }
 output "funcToset2" {
-  value = notImplemented("toset([\"c\",\"b\",\"b\"])")
+  value = invoke("std:index:toset", {
+    input = ["c", "b", "b"]
+  }).result
 }
 
 
 
 # Examples for tostring
 output "funcTostring0" {
-  value = notImplemented("tostring(\"hello\")")
+  value = invoke("std:index:tostring", {
+    input = "hello"
+  }).result
 }
 output "funcTostring1" {
-  value = notImplemented("tostring(1)")
+  value = invoke("std:index:tostring", {
+    input = 1
+  }).result
 }
 output "funcTostring2" {
-  value = notImplemented("tostring(true)")
+  value = invoke("std:index:tostring", {
+    input = true
+  }).result
 }
 output "funcTostring3" {
-  value = notImplemented("tostring(null)")
+  value = invoke("std:index:tostring", {
+    input = null
+  }).result
 }
 output "funcTostring4" {
-  value = notImplemented("tostring([])")
+  value = invoke("std:index:tostring", {
+    input = []
+  }).result
 }
 
 
@@ -1621,7 +1818,13 @@ output "funcUuidv55" {
 
 # Examples for values
 output "funcValues" {
-  value = notImplemented("values({a=3,c=2,d=1})")
+  value = invoke("std:index:values", {
+    input = {
+      a = 3
+      c = 2
+      d = 1
+    }
+  }).result
 }
 
 
@@ -1660,5 +1863,8 @@ output "funcYamlencode2" {
 
 # Examples for zipmap
 output "funcZipmap" {
-  value = notImplemented("zipmap([\"a\",\"b\"],[1,2])")
+  value = invoke("std:index:zipmap", {
+    keys   = ["a", "b"]
+    values = [1, 2]
+  }).result
 }
