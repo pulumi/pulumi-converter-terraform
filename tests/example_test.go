@@ -118,6 +118,7 @@ func TestExample(t *testing.T) {
 	tests := []struct {
 		example string
 		strict  bool
+		commit  string
 		skip    stringSet
 	}{
 		{
@@ -282,7 +283,9 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-lambda",
-			strict:  true,
+			// TODO[pulumi/pulumi-converter-terraform#104]: `unsupported attribute 'timeouts'` error as of v6.7.1
+			commit: "a729331518fec8adf232e9a2ad520a5bbc815b26", // v6.7.0
+			strict: true,
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-s3-bucket",
@@ -360,6 +363,19 @@ func TestExample(t *testing.T) {
 			skip: allLanguages,
 		},
 	}
+
+	// There could be more than one example in a repo. To keep things simple for now,
+	// they all must have the same commit specified. Verify that here.
+	commits := map[string]string{}
+	for _, tt := range tests {
+		parsed := parseExample(t, tt.example)
+		if commit, ok := commits[parsed.cloneURL]; ok {
+			require.Equal(t, commit, tt.commit, "all examples in %q must use the same commit", parsed.cloneURL)
+		} else {
+			commits[parsed.cloneURL] = tt.commit
+		}
+	}
+
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.example, func(t *testing.T) {
@@ -380,6 +396,14 @@ func TestExample(t *testing.T) {
 			if _, err := os.Stat(repoDir); os.IsNotExist(err) {
 				_, _, err = runCommand(t, orgDir, "git", "clone", "--depth", "1", parsed.cloneURL)
 				require.NoError(t, err, "cloning repo")
+			}
+
+			// If we have a specific commit, use that.
+			if tt.commit != "" {
+				_, _, err := runCommand(t, repoDir, "git", "fetch", "--depth", "1", "origin", tt.commit)
+				require.NoError(t, err, "fetching commit: %s", tt.commit)
+				_, _, err = runCommand(t, repoDir, "git", "checkout", tt.commit)
+				require.NoError(t, err, "checking out commit: %s", tt.commit)
 			}
 			unlock()
 
