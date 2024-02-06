@@ -404,8 +404,6 @@ func TestExample(t *testing.T) {
 				require.NoError(t, err, "fetching commit: %s", tt.commit)
 				_, _, err = runCommand(t, repoDir, "git", "checkout", tt.commit)
 				require.NoError(t, err, "checking out commit: %s", tt.commit)
-				_, _, err = runCommand(t, repoDir, "git", "reset", "--hard")
-				require.NoError(t, err, "git reset")
 			}
 			unlock()
 
