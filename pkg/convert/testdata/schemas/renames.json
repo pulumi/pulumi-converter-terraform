@@ -18,7 +18,7 @@
   },
   "config": {},
   "types": {
-    "renames:index/data_sourceTheList:data_sourceTheList": {
+    "renames:index/dataSourceTheList:dataSourceTheList": {
       "properties": {
         "number": {
           "type": "integer"
@@ -29,7 +29,7 @@
         "number"
       ]
     },
-    "renames:index/data_sourceTheResource:data_sourceTheResource": {
+    "renames:index/dataSourceTheResource:dataSourceTheResource": {
       "properties": {
         "innerString": {
           "type": "string"
@@ -120,27 +120,27 @@
     }
   },
   "functions": {
-    "renames:index/index:data_source": {
+    "renames:index/index:dataSource": {
       "inputs": {
-        "description": "A collection of arguments for invoking data_source.\n",
+        "description": "A collection of arguments for invoking dataSource.\n",
         "properties": {
           "theList": {
             "type": "array",
             "items": {
-              "$ref": "#/types/renames:index/data_sourceTheList:data_sourceTheList"
+              "$ref": "#/types/renames:index/dataSourceTheList:dataSourceTheList"
             }
           },
           "theNumber": {
             "type": "number"
           },
           "theResource": {
-            "$ref": "#/types/renames:index/data_sourceTheResource:data_sourceTheResource"
+            "$ref": "#/types/renames:index/dataSourceTheResource:dataSourceTheResource"
           }
         },
         "type": "object"
       },
       "outputs": {
-        "description": "A collection of values returned by data_source.\n",
+        "description": "A collection of values returned by dataSource.\n",
         "properties": {
           "id": {
             "type": "string",
@@ -152,14 +152,14 @@
           "theList": {
             "type": "array",
             "items": {
-              "$ref": "#/types/renames:index/data_sourceTheList:data_sourceTheList"
+              "$ref": "#/types/renames:index/dataSourceTheList:dataSourceTheList"
             }
           },
           "theNumber": {
             "type": "number"
           },
           "theResource": {
-            "$ref": "#/types/renames:index/data_sourceTheResource:data_sourceTheResource"
+            "$ref": "#/types/renames:index/dataSourceTheResource:dataSourceTheResource"
           }
         },
         "type": "object",

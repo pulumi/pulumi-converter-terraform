@@ -1,4 +1,4 @@
-aDataSource = invoke("blocks:index/index:data_source", {
+aDataSource = invoke("blocks:index/index:dataSource", {
   aListOfResources = [{
     innerString = "hi"
     }, {

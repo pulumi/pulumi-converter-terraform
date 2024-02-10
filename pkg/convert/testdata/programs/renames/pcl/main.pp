@@ -17,7 +17,7 @@ output "someOutputA" {
 // The above doesn't convert correctly
 // Error: unknown property 'theInnerString' among [innerString]
 // Error: cannot traverse value of type union(none, object({innerString = union(none, string)}, annotated(0xc000681c40)))
-aDataSource = invoke("renames:index/index:data_source", {
+aDataSource = invoke("renames:index/index:dataSource", {
   theNumber = 2
   theResource = {
     theInnerString = "hello"

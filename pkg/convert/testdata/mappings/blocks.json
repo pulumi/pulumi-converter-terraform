@@ -44,7 +44,7 @@
     },
     "dataSources": {
         "blocks_data_source": {
-            "tok": "blocks:index/index:data_source"
+            "tok": "blocks:index/index:dataSource"
         }
     },
     "resources": {

@@ -106,7 +106,7 @@
     },
     "dataSources": {
         "complex_data_source": {
-            "tok": "complex:index/index:data_source"
+            "tok": "complex:index/index:dataSource"
         }
     },
     "resources": {

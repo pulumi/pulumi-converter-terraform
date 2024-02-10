@@ -18,7 +18,7 @@
   },
   "config": {},
   "types": {
-    "complex:index/data_sourceInnerObject:data_sourceInnerObject": {
+    "complex:index/dataSourceInnerObject:dataSourceInnerObject": {
       "properties": {
         "innerString": {
           "type": "string"
@@ -134,9 +134,9 @@
     }
   },
   "functions": {
-    "complex:index/index:data_source": {
+    "complex:index/index:dataSource": {
       "inputs": {
-        "description": "A collection of arguments for invoking data_source.\n",
+        "description": "A collection of arguments for invoking dataSource.\n",
         "properties": {
           "aBool": {
             "type": "boolean"
@@ -160,13 +160,13 @@
             "type": "string"
           },
           "innerObject": {
-            "$ref": "#/types/complex:index/data_sourceInnerObject:data_sourceInnerObject"
+            "$ref": "#/types/complex:index/dataSourceInnerObject:dataSourceInnerObject"
           }
         },
         "type": "object"
       },
       "outputs": {
-        "description": "A collection of values returned by data_source.\n",
+        "description": "A collection of values returned by dataSource.\n",
         "properties": {
           "aBool": {
             "type": "boolean"
@@ -194,7 +194,7 @@
             "description": "The provider-assigned unique ID for this managed resource.\n"
           },
           "innerObject": {
-            "$ref": "#/types/complex:index/data_sourceInnerObject:data_sourceInnerObject"
+            "$ref": "#/types/complex:index/dataSourceInnerObject:dataSourceInnerObject"
           },
           "result": {
             "type": "string"

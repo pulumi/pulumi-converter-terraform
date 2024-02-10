@@ -18,7 +18,7 @@
   },
   "config": {},
   "types": {
-    "blocks:index/data_sourceAListOfResource:data_sourceAListOfResource": {
+    "blocks:index/dataSourceAListOfResource:dataSourceAListOfResource": {
       "properties": {
         "innerString": {
           "type": "string"
@@ -80,26 +80,26 @@
     }
   },
   "functions": {
-    "blocks:index/index:data_source": {
+    "blocks:index/index:dataSource": {
       "inputs": {
-        "description": "A collection of arguments for invoking data_source.\n",
+        "description": "A collection of arguments for invoking dataSource.\n",
         "properties": {
           "aListOfResources": {
             "type": "array",
             "items": {
-              "$ref": "#/types/blocks:index/data_sourceAListOfResource:data_sourceAListOfResource"
+              "$ref": "#/types/blocks:index/dataSourceAListOfResource:dataSourceAListOfResource"
             }
           }
         },
         "type": "object"
       },
       "outputs": {
-        "description": "A collection of values returned by data_source.\n",
+        "description": "A collection of values returned by dataSource.\n",
         "properties": {
           "aListOfResources": {
             "type": "array",
             "items": {
-              "$ref": "#/types/blocks:index/data_sourceAListOfResource:data_sourceAListOfResource"
+              "$ref": "#/types/blocks:index/dataSourceAListOfResource:dataSourceAListOfResource"
             }
           },
           "id": {

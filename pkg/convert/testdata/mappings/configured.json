@@ -68,7 +68,7 @@
     },
     "dataSources": {
         "configured_data_source": {
-            "tok": "configured:index:data_source"
+            "tok": "configured:index:dataSource"
         }
     },
     "resources": {

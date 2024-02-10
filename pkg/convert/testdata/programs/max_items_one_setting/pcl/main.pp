@@ -36,18 +36,18 @@ resource "resourceVar" "maxItemsOne:index/index:resource" {
   innerResource = listInput[0]
 }
 
-datasourceBlock = invoke("maxItemsOne:index/index:datasource", {
+datasourceBlock = invoke("maxItemsOne:index/index:dataSource", {
   innerResource = {
     someInput = true
   }
 })
 
-datasourceList = invoke("maxItemsOne:index/index:datasource", {
+datasourceList = invoke("maxItemsOne:index/index:dataSource", {
   innerResource = {
     someInput = true
   }
 })
 
-datasourceVar = invoke("maxItemsOne:index/index:datasource", {
+datasourceVar = invoke("maxItemsOne:index/index:dataSource", {
   innerResource = listInput[0]
 })

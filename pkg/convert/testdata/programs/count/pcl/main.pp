@@ -15,7 +15,7 @@ output "someOutputB" {
   value = aResourceWithCount[1].result
 }
 
-aDataSourceWithCount = [for __index in range(2) : invoke("simple:index:data_source", {
+aDataSourceWithCount = [for __index in range(2) : invoke("simple:index:dataSource", {
   inputOne = "Hello ${__index}"
   inputTwo = true
 })]

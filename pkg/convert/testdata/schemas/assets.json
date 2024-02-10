@@ -44,9 +44,9 @@
     }
   },
   "functions": {
-    "assets:index:data_source": {
+    "assets:index:dataSource": {
       "inputs": {
-        "description": "A collection of arguments for invoking data_source.\n",
+        "description": "A collection of arguments for invoking dataSource.\n",
         "properties": {
           "source": {
             "$ref": "pulumi.json#/Asset"
@@ -55,7 +55,7 @@
         "type": "object"
       },
       "outputs": {
-        "description": "A collection of values returned by data_source.\n",
+        "description": "A collection of values returned by dataSource.\n",
         "properties": {
           "id": {
             "type": "string",

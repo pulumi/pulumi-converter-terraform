@@ -10,7 +10,7 @@ aBool = true
 
 
 // Check we keep data source comments
-aDataSource = invoke("complex:index/index:data_source", {
+aDataSource = invoke("complex:index/index:dataSource", {
 
   // About properties
   aBool   = aBool

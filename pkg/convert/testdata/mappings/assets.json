@@ -20,7 +20,7 @@
     },
     "dataSources": {
         "assets_data_source": {
-            "tok": "assets:index:data_source",
+            "tok": "assets:index:dataSource",
             "fields": {
                 "source": {
                     "asset": {}

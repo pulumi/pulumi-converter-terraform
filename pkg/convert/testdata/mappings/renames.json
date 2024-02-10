@@ -76,7 +76,7 @@
     },
     "dataSources": {
         "renames_data_source": {
-            "tok": "renames:index/index:data_source",
+            "tok": "renames:index/index:dataSource",
             "fields": {
                 "a_number": {
                     "name": "theNumber"

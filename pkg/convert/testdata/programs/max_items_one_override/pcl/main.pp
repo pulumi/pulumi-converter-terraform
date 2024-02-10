@@ -4,7 +4,7 @@ resource "main" "maxItemsOne:index/index:resource" {
   }]
 }
 
-unknownDatasource = invoke("maxItemsOne:index/index:datasource", {
+unknownDatasource = invoke("maxItemsOne:index/index:dataSource", {
   aliases = {
     ensureHealth = true
   }

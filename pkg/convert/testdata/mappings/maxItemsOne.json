@@ -85,7 +85,7 @@
   },
   "dataSources": {
     "maxItemsOne_datasource": {
-      "tok": "maxItemsOne:index/index:datasource"
+      "tok": "maxItemsOne:index/index:dataSource"
     }
   },
   "resources": {

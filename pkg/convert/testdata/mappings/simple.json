@@ -36,7 +36,7 @@
     },
     "dataSources": {
         "simple_data_source": {
-            "tok": "simple:index:data_source"
+            "tok": "simple:index:dataSource"
         }
     },
     "resources": {
