@@ -2491,9 +2491,9 @@ func translateModuleSourceCode(
 		if item.data != nil {
 			dataResource := item.data
 			key := "data." + dataResource.Type + "." + dataResource.Name
-			scopes.getOrAddPulumiName(key, "", "Data")
 			// Try to grab the info for this data type
 			provider := impliedProvider(dataResource.Type)
+			root := PathInfo{}
 			if provider != "template" {
 				// We rewrite uses of template because it's really common but the provider for it is
 				// deprecated. As such we don't want to try and do a mapping lookup for it.
@@ -2509,19 +2509,25 @@ func translateModuleSourceCode(
 				}
 
 				if providerInfo != nil {
-					root := scopes.roots[key]
 					root.Resource = providerInfo.P.DataSourcesMap().Get(dataResource.Type)
 					root.DataSourceInfo = providerInfo.DataSources[dataResource.Type]
-					scopes.roots[key] = root
 				}
 			}
+
+			invokeToken := impliedToken(dataResource.Type)
+			if root.DataSourceInfo != nil {
+				invokeToken = root.DataSourceInfo.Tok.String()
+			}
+			tokenParts := strings.Split(invokeToken, ":")
+			suffix := strings.Title(tokenParts[len(tokenParts)-1])
+			root.Name = scopes.getOrAddPulumiName(key, "", suffix)
+			scopes.roots[key] = root
 		}
 	}
 	for _, item := range items {
 		if item.resource != nil {
 			managedResource := item.resource
 			key := managedResource.Type + "." + managedResource.Name
-			scopes.getOrAddPulumiName(key, "", "Resource")
 			// Try to grab the info for this resource type
 			provider := impliedProvider(managedResource.Type)
 			providerInfo, err := info.GetProviderInfo("", "", provider, "")
@@ -2534,12 +2540,20 @@ func translateModuleSourceCode(
 				})
 			}
 
+			root := PathInfo{}
 			if providerInfo != nil {
-				root := scopes.roots[key]
 				root.Resource = providerInfo.P.ResourcesMap().Get(managedResource.Type)
 				root.ResourceInfo = providerInfo.Resources[managedResource.Type]
-				scopes.roots[key] = root
 			}
+
+			resourceToken := impliedToken(managedResource.Type)
+			if root.ResourceInfo != nil {
+				resourceToken = root.ResourceInfo.Tok.String()
+			}
+			tokenParts := strings.Split(resourceToken, ":")
+			suffix := strings.Title(tokenParts[len(tokenParts)-1])
+			root.Name = scopes.getOrAddPulumiName(key, "", suffix)
+			scopes.roots[key] = root
 		}
 	}
 	for _, item := range items {

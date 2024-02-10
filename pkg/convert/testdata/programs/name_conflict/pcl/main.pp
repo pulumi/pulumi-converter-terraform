@@ -8,11 +8,16 @@ resource "aThingResource" "simple:index:resource" {
   inputTwo      = myaThing
 }
 
-aThingData = invoke("simple:index:dataSource", {
+aThingDataSource = invoke("simple:index:dataSource", {
   inputOne = "Hello ${aThingResource.result}"
   inputTwo = myaThing
 })
 
+resource "aThingAnotherResource" "simple:index:anotherResource" {
+  __logicalName = "a_thing"
+  inputOne      = "Hello ${aThingResource.result}"
+}
+
 output "aThing" {
-  value = aThingData.result
+  value = aThingDataSource.result
 }
