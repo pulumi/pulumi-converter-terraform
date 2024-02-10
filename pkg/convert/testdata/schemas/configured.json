@@ -132,9 +132,9 @@
     }
   },
   "functions": {
-    "configured:index:data_source": {
+    "configured:index:dataSource": {
       "inputs": {
-        "description": "A collection of arguments for invoking data_source.\n",
+        "description": "A collection of arguments for invoking dataSource.\n",
         "properties": {
           "inputOne": {
             "type": "string"
@@ -146,7 +146,7 @@
         "type": "object"
       },
       "outputs": {
-        "description": "A collection of values returned by data_source.\n",
+        "description": "A collection of values returned by dataSource.\n",
         "properties": {
           "id": {
             "type": "string",

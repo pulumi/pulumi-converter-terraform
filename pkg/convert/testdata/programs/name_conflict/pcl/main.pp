@@ -8,7 +8,7 @@ resource "aThingResource" "simple:index:resource" {
   inputTwo      = myaThing
 }
 
-aThingData = invoke("simple:index:data_source", {
+aThingData = invoke("simple:index:dataSource", {
   inputOne = "Hello ${aThingResource.result}"
   inputTwo = myaThing
 })

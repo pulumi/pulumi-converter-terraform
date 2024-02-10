@@ -1,4 +1,4 @@
-aDataSource = invoke("complex:index/index:data_source", {
+aDataSource = invoke("complex:index/index:dataSource", {
   aBool       = true
   aNumber     = 2.3
   aString     = "hello world"

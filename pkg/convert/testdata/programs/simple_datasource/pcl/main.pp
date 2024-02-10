@@ -1,4 +1,4 @@
-aDataSource = invoke("simple:index:data_source", {
+aDataSource = invoke("simple:index:dataSource", {
   inputOne = "hello"
   inputTwo = true
 })

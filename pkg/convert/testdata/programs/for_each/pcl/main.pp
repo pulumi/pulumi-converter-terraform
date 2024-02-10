@@ -17,7 +17,7 @@ output "someOutputA" {
 aDataSourceWithForeachMap = { for __key, __value in {
   cruel = "world"
   good  = "class"
-  } : __key => invoke("simple:index:data_source", {
+  } : __key => invoke("simple:index:dataSource", {
     inputOne = "Hello ${__key} ${__value}"
     inputTwo = true
 }) }
@@ -39,7 +39,7 @@ output "someOutputC" {
   value = aResourceWithForeachArray["good"].result
 }
 
-aDataSourceWithForeachArray = { for __key, __value in ["cruel", "good"] : __key => invoke("simple:index:data_source", {
+aDataSourceWithForeachArray = { for __key, __value in ["cruel", "good"] : __key => invoke("simple:index:dataSource", {
   inputOne = "Hello ${__value} world"
   inputTwo = true
 }) }

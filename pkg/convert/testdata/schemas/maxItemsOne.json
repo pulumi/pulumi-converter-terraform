@@ -18,7 +18,7 @@
   },
   "config": {},
   "types": {
-    "maxItemsOne:index/datasourceAliases:datasourceAliases": {
+    "maxItemsOne:index/dataSourceAliases:dataSourceAliases": {
       "properties": {
         "ensureHealth": {
           "type": "boolean"
@@ -26,7 +26,7 @@
       },
       "type": "object"
     },
-    "maxItemsOne:index/datasourceInnerResource:datasourceInnerResource": {
+    "maxItemsOne:index/dataSourceInnerResource:dataSourceInnerResource": {
       "properties": {
         "someInput": {
           "type": "boolean"
@@ -120,31 +120,31 @@
     }
   },
   "functions": {
-    "maxItemsOne:index/index:datasource": {
+    "maxItemsOne:index/index:dataSource": {
       "inputs": {
-        "description": "A collection of arguments for invoking datasource.\n",
+        "description": "A collection of arguments for invoking dataSource.\n",
         "properties": {
           "aliases": {
-            "$ref": "#/types/maxItemsOne:index/datasourceAliases:datasourceAliases"
+            "$ref": "#/types/maxItemsOne:index/dataSourceAliases:dataSourceAliases"
           },
           "innerResource": {
-            "$ref": "#/types/maxItemsOne:index/datasourceInnerResource:datasourceInnerResource"
+            "$ref": "#/types/maxItemsOne:index/dataSourceInnerResource:dataSourceInnerResource"
           }
         },
         "type": "object"
       },
       "outputs": {
-        "description": "A collection of values returned by datasource.\n",
+        "description": "A collection of values returned by dataSource.\n",
         "properties": {
           "aliases": {
-            "$ref": "#/types/maxItemsOne:index/datasourceAliases:datasourceAliases"
+            "$ref": "#/types/maxItemsOne:index/dataSourceAliases:dataSourceAliases"
           },
           "id": {
             "type": "string",
             "description": "The provider-assigned unique ID for this managed resource.\n"
           },
           "innerResource": {
-            "$ref": "#/types/maxItemsOne:index/datasourceInnerResource:datasourceInnerResource"
+            "$ref": "#/types/maxItemsOne:index/dataSourceInnerResource:dataSourceInnerResource"
           },
           "result": {
             "type": "string"
