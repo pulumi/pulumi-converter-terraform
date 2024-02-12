@@ -17,11 +17,11 @@ package testing
 import (
 	"bytes"
 	"encoding/json"
-	"io"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // If zeroValue is non-nil it's used if a JSON file is missing. This saves us having to keep a load of diagnostic.json files with just "[]" in them.
@@ -31,56 +31,29 @@ func AssertEqualsJSONFile[T any](
 	actualData T,
 	zeroValue *T,
 ) {
-	var empty T
-
-	unmarshalT := func(r io.Reader) (s T, err error) {
-		err = json.NewDecoder(r).Decode(&s)
-		return
-	}
-
-	readTFromFile := func(file string) (T, error) {
-		jsonBytes, err := os.ReadFile(file)
-		if os.IsNotExist(err) && zeroValue != nil {
-			return *zeroValue, nil
-		}
-		if err != nil {
-			return empty, err
-		}
-		return unmarshalT(bytes.NewBuffer(jsonBytes))
-	}
-
-	marshalT := func(s T, w io.Writer) error {
-		enc := json.NewEncoder(w)
-		enc.SetIndent("", "  ")
-		return enc.Encode(s)
-	}
-
-	tToString := func(s T) string {
-		buf := bytes.Buffer{}
-		err := marshalT(s, &buf)
-		assert.NoError(t, err)
-		return buf.String()
-	}
-
-	assertDataMatchesFile := func(actualData T, file string) {
-		expectedData, err := readTFromFile(file)
-		assert.NoError(t, err)
-		assert.Equal(t, tToString(expectedData), tToString(actualData))
-	}
+	buf := bytes.Buffer{}
+	enc := json.NewEncoder(&buf)
+	enc.SetIndent("", "  ")
+	err := enc.Encode(actualData)
+	require.NoError(t, err)
 
 	if os.Getenv("PULUMI_ACCEPT") != "" {
-		buf := bytes.Buffer{}
-		err := marshalT(actualData, &buf)
-		assert.NoError(t, err)
-
 		// Don't write if its equal to the zero value.
 		if zeroValue != nil && assert.ObjectsAreEqual(*zeroValue, actualData) {
 			return
 		}
 
-		err = os.WriteFile(expectedJSONFile, buf.Bytes(), 0o600)
-		assert.NoError(t, err)
+		err := os.WriteFile(expectedJSONFile, buf.Bytes(), 0o600)
+		require.NoError(t, err)
 	}
 
-	assertDataMatchesFile(actualData, expectedJSONFile)
+	expectedData, err := os.ReadFile(expectedJSONFile)
+	if os.IsNotExist(err) {
+		if zeroValue != nil && assert.ObjectsAreEqual(*zeroValue, actualData) {
+			return
+		}
+	}
+	require.NoError(t, err)
+
+	assert.Equal(t, string(expectedData), buf.String())
 }
