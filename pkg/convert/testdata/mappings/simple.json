@@ -31,6 +31,16 @@
                     "type": 4,
                     "computed": true
                 }
+            },
+            "simple_another_resource": {
+                "input_one": {
+                    "type": 4,
+                    "optional": true
+                },
+                "result": {
+                    "type": 4,
+                    "computed": true
+                }
             }
         }
     },
@@ -42,6 +52,9 @@
     "resources": {
         "simple_resource": {
             "tok":  "simple:index:resource"
+        },
+        "simple_another_resource": {
+            "tok":  "simple:index:anotherResource"
         }
     }
 }

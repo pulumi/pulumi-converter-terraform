@@ -16,6 +16,10 @@ data "simple_data_source" "a_thing" {
     input_two = local.a_thing
 }
 
+resource "simple_another_resource" "a_thing" {
+    input_one = "Hello ${simple_resource.a_thing.result}"
+}
+
 output "a_thing" {
     value = data.simple_data_source.a_thing.result
 }

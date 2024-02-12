@@ -21,6 +21,36 @@
     "description": "The provider type for the simple package. By default, resources use package-wide configuration\nsettings, however an explicit `Provider` instance may be created and passed during resource\nconstruction to achieve fine-grained programmatic control over provider settings. See the\n[documentation](https://www.pulumi.com/docs/reference/programming-model/#providers) for more information.\n"
   },
   "resources": {
+    "simple:index:anotherResource": {
+      "properties": {
+        "inputOne": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "inputProperties": {
+        "inputOne": {
+          "type": "string"
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering anotherResource resources.\n",
+        "properties": {
+          "inputOne": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
     "simple:index:resource": {
       "properties": {
         "inputOne": {
