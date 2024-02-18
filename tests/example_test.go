@@ -323,7 +323,16 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-rds-aurora",
-			strict:  true,
+			// Pin to the commit associated with v9.0.2 of the module. The most recent release (v9.1.0) uses
+			// new attributes on resource/aws_rds_cluster (domain and domain_iam_role_name) which were included
+			// in v5.37.0 of the TF AWS provider, but the Pulumi AWS provider has not yet been updated to use
+			// this version of the TF AWS provider.
+			// https://github.com/terraform-aws-modules/terraform-aws-rds-aurora/releases/tag/v9.0.2
+			// https://github.com/terraform-aws-modules/terraform-aws-rds-aurora/releases/tag/v9.1.0
+			// https://github.com/hashicorp/terraform-provider-aws/releases/tag/v5.37.0
+			// https://github.com/pulumi/pulumi-aws/releases/tag/v6.22.0
+			commit: "1b34843f9ffeef885ef24edb3f87336ad9daf9d2",
+			strict: true,
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-acm",
