@@ -33,6 +33,17 @@ output "str_object_out" {
     }
 }
 
+output "sorted_object_out" {
+    value = {
+        nested: {
+            b: 4
+            a: 3
+        }
+        b: 2
+        a: 1
+    }
+}
+
 locals {
     a_key = "hello"
     a_value = -1

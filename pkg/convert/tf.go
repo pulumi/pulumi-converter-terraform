@@ -25,6 +25,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/pulumi/pulumi/pkg/v3/codegen/cgstrings"
+
 	version "github.com/hashicorp/go-version"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
@@ -952,6 +954,7 @@ func convertObjectConsExpr(state *convertState, inBlock bool, scopes *scopes,
 	fullyQualifiedPath string, expr *hclsyntax.ObjectConsExpr,
 ) hclwrite.Tokens {
 	items := []hclwrite.ObjectAttrTokens{}
+
 	for _, item := range expr.Items {
 		// Keys _might_ need renaming if we're translating for an object type, we can do this if it's
 		// statically known and we know our current path
@@ -1077,6 +1080,10 @@ func camelCaseName(name string) string {
 	return name
 }
 
+func titleCaseName(name string) string {
+	return cgstrings.UppercaseFirst(name)
+}
+
 // Returns whether the fully qualified path is being applied for a property.
 func (s *scopes) isPropertyPath(fullyQualifiedPath string) bool {
 	if fullyQualifiedPath == "" {
@@ -1193,11 +1200,21 @@ func rewriteTraversal(
 		} else if root.Name == "data" && maybeFirstAttr != nil && maybeSecondAttr != nil {
 			// This is a lookup of a data resources etc, we need to rewrite this traversal such that the root is now the
 			// pulumi invoked value instead.
-			suffix := camelCaseName(maybeFirstAttr.Name)
 			path := "data." + maybeFirstAttr.Name + "." + maybeSecondAttr.Name
-			newName := scopes.getOrAddPulumiName(path, "", "data"+suffix)
-			newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
-			newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, path, traversal[3:])...)
+			rootName := scopes.lookup(path)
+			if rootName != "" {
+				newName := scopes.getOrAddPulumiName(path, "", "data"+camelCaseName(rootName))
+				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
+				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, path, traversal[3:])...)
+			} else {
+				// unbound data source / invoke usage.
+				// turn data.{data_source_token}.{local_name}.{rest}
+				// into {localName}{DataSourceToken}.{rest}
+				suffix := camelCaseName(maybeFirstAttr.Name)
+				newRootName := scopes.getOrAddPulumiName(path, "", suffix)
+				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newRootName})
+				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[3:])...)
+			}
 		} else if root.Name == "count" && maybeFirstAttr != nil {
 			if maybeFirstAttr.Name == "index" && scopes.countIndex != nil {
 				newTraversal = append(newTraversal, scopes.countIndex...)
@@ -1299,10 +1316,13 @@ func rewriteTraversal(
 					newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
 					newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[1:])...)
 				} else {
-					// We don't know what this is, so lets assume it's an unknown resource (we shouldn't ever have unknown locals)
-					newName = scopes.getOrAddPulumiName(path, "", camelCaseName(root.Name))
-					newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
-					newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, path, traversal[2:])...)
+					// We don't know what this is, so let's assume it's an unknown resource (we shouldn't ever have unknown locals)
+					// turn {resource_type}.{resource_name}.{rest}
+					// into {resourceName}{ResourceType}.{rest}
+					suffix := camelCaseName(root.Name)
+					newRootName := scopes.getOrAddPulumiName(path, "", suffix)
+					newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newRootName})
+					newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[2:])...)
 				}
 			}
 		} else {
@@ -1799,7 +1819,17 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 		})
 	}
 
+	contentAttributes := make([]*hcl.Attribute, 0)
+
 	for _, attr := range content.Attributes {
+		contentAttributes = append(contentAttributes, attr)
+	}
+
+	sort.Slice(contentAttributes, func(i, j int) bool {
+		return contentAttributes[i].Range.Start.Line < contentAttributes[j].Range.Start.Line
+	})
+
+	for _, attr := range contentAttributes {
 		attrPath := appendPath(fullyQualifiedPath, attr.Name)
 		name := scopes.pulumiName(attrPath)
 
@@ -1841,7 +1871,9 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 			Value:  expr,
 		})
 	}
-	sort.Sort(newAttributes)
+	sort.Slice(newAttributes, func(i, j int) bool {
+		return newAttributes[i].Line < newAttributes[j].Line
+	})
 	return newAttributes
 }
 
@@ -2470,7 +2502,9 @@ func translateModuleSourceCode(
 		items = append(items, terraformItem{provider: provider})
 	}
 	// Now sort that items array by source location
-	sort.Sort(items)
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].DeclRange().Start.Line < items[j].DeclRange().Start.Line
+	})
 
 	// Now go through and generate unique names for all the things
 	for _, item := range items {

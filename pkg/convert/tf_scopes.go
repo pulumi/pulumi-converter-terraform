@@ -127,7 +127,14 @@ func (s *scopes) generateUniqueName(name, prefix, suffix string) string {
 		return name
 	}
 	// It's used, so add the prefix and suffix
-	name = prefix + name + suffix
+	if prefix != "" {
+		name = prefix + titleCaseName(name)
+	}
+
+	if suffix != "" {
+		name = name + titleCaseName(suffix)
+	}
+
 	if !s.isUsed(name) {
 		return name
 	}

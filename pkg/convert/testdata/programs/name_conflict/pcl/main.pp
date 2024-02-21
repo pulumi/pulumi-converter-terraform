@@ -1,16 +1,16 @@
 config "aThing" {
 }
-myaThing = true
+myAThing = true
 
 resource "aThingResource" "simple:index:resource" {
   __logicalName = "a_thing"
   inputOne      = "Hello ${aThing}"
-  inputTwo      = myaThing
+  inputTwo      = myAThing
 }
 
 aThingDataSource = invoke("simple:index:dataSource", {
   inputOne = "Hello ${aThingResource.result}"
-  inputTwo = myaThing
+  inputTwo = myAThing
 })
 
 resource "aThingAnotherResource" "simple:index:anotherResource" {

@@ -1,4 +1,4 @@
 [
-  "warning:main.pp:1,14-42:undefined variable exampledataunknownDataSource:",
-  "warning:main.pp:2,14-40:undefined variable exampleunknownResourceType:"
+  "warning:main.pp:1,14-38:undefined variable exampleUnknownDataSource:",
+  "warning:main.pp:2,14-40:undefined variable exampleUnknownResourceType:"
 ]
