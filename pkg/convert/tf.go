@@ -25,8 +25,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pulumi/pulumi/pkg/v3/codegen/cgstrings"
-
 	version "github.com/hashicorp/go-version"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
@@ -954,7 +952,6 @@ func convertObjectConsExpr(state *convertState, inBlock bool, scopes *scopes,
 	fullyQualifiedPath string, expr *hclsyntax.ObjectConsExpr,
 ) hclwrite.Tokens {
 	items := []hclwrite.ObjectAttrTokens{}
-
 	for _, item := range expr.Items {
 		// Keys _might_ need renaming if we're translating for an object type, we can do this if it's
 		// statically known and we know our current path
@@ -1078,10 +1075,6 @@ func camelCaseName(name string) string {
 	name = tfbridge.TerraformToPulumiNameV2(name, nil, nil)
 	name = strings.ToLower(string(rune(name[0]))) + name[1:]
 	return name
-}
-
-func titleCaseName(name string) string {
-	return cgstrings.UppercaseFirst(name)
 }
 
 // Returns whether the fully qualified path is being applied for a property.
@@ -1819,17 +1812,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 		})
 	}
 
-	contentAttributes := make([]*hcl.Attribute, 0)
-
 	for _, attr := range content.Attributes {
-		contentAttributes = append(contentAttributes, attr)
-	}
-
-	sort.Slice(contentAttributes, func(i, j int) bool {
-		return contentAttributes[i].Range.Start.Line < contentAttributes[j].Range.Start.Line
-	})
-
-	for _, attr := range contentAttributes {
 		attrPath := appendPath(fullyQualifiedPath, attr.Name)
 		name := scopes.pulumiName(attrPath)
 
@@ -1871,9 +1854,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 			Value:  expr,
 		})
 	}
-	sort.Slice(newAttributes, func(i, j int) bool {
-		return newAttributes[i].Line < newAttributes[j].Line
-	})
+	sort.Sort(newAttributes)
 	return newAttributes
 }
 
@@ -2502,9 +2483,7 @@ func translateModuleSourceCode(
 		items = append(items, terraformItem{provider: provider})
 	}
 	// Now sort that items array by source location
-	sort.Slice(items, func(i, j int) bool {
-		return items[i].DeclRange().Start.Line < items[j].DeclRange().Start.Line
-	})
+	sort.Sort(items)
 
 	// Now go through and generate unique names for all the things
 	for _, item := range items {

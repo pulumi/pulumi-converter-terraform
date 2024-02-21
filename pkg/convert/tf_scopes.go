@@ -23,6 +23,7 @@ import (
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	shim "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/schema"
+	"github.com/pulumi/pulumi/pkg/v3/codegen/cgstrings"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 	"github.com/pulumi/terraform/pkg/addrs"
 	"github.com/pulumi/terraform/pkg/lang"
@@ -128,11 +129,11 @@ func (s *scopes) generateUniqueName(name, prefix, suffix string) string {
 	}
 	// It's used, so add the prefix and suffix
 	if prefix != "" {
-		name = prefix + titleCaseName(name)
+		name = prefix + cgstrings.UppercaseFirst(name)
 	}
 
 	if suffix != "" {
-		name = name + titleCaseName(suffix)
+		name = name + cgstrings.UppercaseFirst(suffix)
 	}
 
 	if !s.isUsed(name) {
