@@ -1,4 +1,4 @@
 resource "example" "simple:index:resource" {
-  inputOne = exampledataunknownDataSource.attr
-  inputTwo = exampleunknownResourceType.list[0]
+  inputOne = exampleUnknownDataSource.attr
+  inputTwo = exampleUnknownResourceType.list[0]
 }

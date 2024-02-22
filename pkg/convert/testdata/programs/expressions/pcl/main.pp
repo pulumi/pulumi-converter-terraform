@@ -32,6 +32,17 @@ output "strObjectOut" {
     goodbye = "ha det"
   }
 }
+
+output "sortedObjectOut" {
+  value = {
+    nested = {
+      b = 4
+      a = 3
+    }
+    b = 2
+    a = 1
+  }
+}
 aKey   = "hello"
 aValue = -1
 aList  = [1, 2, 3]

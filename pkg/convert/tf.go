@@ -1193,11 +1193,21 @@ func rewriteTraversal(
 		} else if root.Name == "data" && maybeFirstAttr != nil && maybeSecondAttr != nil {
 			// This is a lookup of a data resources etc, we need to rewrite this traversal such that the root is now the
 			// pulumi invoked value instead.
-			suffix := camelCaseName(maybeFirstAttr.Name)
 			path := "data." + maybeFirstAttr.Name + "." + maybeSecondAttr.Name
-			newName := scopes.getOrAddPulumiName(path, "", "data"+suffix)
-			newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
-			newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, path, traversal[3:])...)
+			rootName := scopes.lookup(path)
+			if rootName != "" {
+				newName := scopes.getOrAddPulumiName(path, "", "data"+camelCaseName(rootName))
+				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
+				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, path, traversal[3:])...)
+			} else {
+				// unbound data source / invoke usage.
+				// turn data.{data_source_token}.{local_name}.{rest}
+				// into {localName}{DataSourceToken}.{rest}
+				suffix := camelCaseName(maybeFirstAttr.Name)
+				newRootName := scopes.getOrAddPulumiName(path, "", suffix)
+				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newRootName})
+				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[3:])...)
+			}
 		} else if root.Name == "count" && maybeFirstAttr != nil {
 			if maybeFirstAttr.Name == "index" && scopes.countIndex != nil {
 				newTraversal = append(newTraversal, scopes.countIndex...)
@@ -1299,10 +1309,13 @@ func rewriteTraversal(
 					newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
 					newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[1:])...)
 				} else {
-					// We don't know what this is, so lets assume it's an unknown resource (we shouldn't ever have unknown locals)
-					newName = scopes.getOrAddPulumiName(path, "", camelCaseName(root.Name))
-					newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
-					newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, path, traversal[2:])...)
+					// We don't know what this is, so let's assume it's an unknown resource (we shouldn't ever have unknown locals)
+					// turn {resource_type}.{resource_name}.{rest}
+					// into {resourceName}{ResourceType}.{rest}
+					suffix := camelCaseName(root.Name)
+					newRootName := scopes.getOrAddPulumiName(path, "", suffix)
+					newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newRootName})
+					newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[2:])...)
 				}
 			}
 		} else {
