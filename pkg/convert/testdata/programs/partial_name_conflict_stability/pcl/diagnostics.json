@@ -1,0 +1,4 @@
+[
+  "warning:main.pp:2,28-32:undefined variable test:",
+  "warning:main.pp:3,19-38:undefined variable testComplexResource:"
+]

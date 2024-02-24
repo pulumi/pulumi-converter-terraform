@@ -45,6 +45,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
+	"golang.org/x/exp/maps"
 
 	yaml "gopkg.in/yaml.v3"
 )
@@ -1789,7 +1790,14 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 		}
 	}
 
-	for name, items := range blockLists {
+	// Iterate the blocks we've found in sorted order, we'll resort the attributes later by line position but
+	// this ensure that any state mutation (like looking up names of undeclared resources/datasources) is
+	// consistent. We do the same for the attributes below as well.
+	names := maps.Keys(blockLists)
+	sort.Strings(names)
+	for _, name := range names {
+		items := blockLists[name]
+
 		listTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
 		first := true
 		line := math.MaxInt32
@@ -1812,7 +1820,11 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 		})
 	}
 
-	for _, attr := range content.Attributes {
+	// As above, iterate in sorted order
+	names = maps.Keys(content.Attributes)
+	sort.Strings(names)
+	for _, name := range names {
+		attr := content.Attributes[name]
 		attrPath := appendPath(fullyQualifiedPath, attr.Name)
 		name := scopes.pulumiName(attrPath)
 
