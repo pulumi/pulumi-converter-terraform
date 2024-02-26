@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+## 1.0.14
+
+### Improvements
+
+ - Sort generated properties by the position of their keys to get deterministic output.
+
 ## 1.0.13
 
 ### Improvements

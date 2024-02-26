@@ -1,5 +1,5 @@
 ### Improvements
 
- - Sort generated properties by the position of their keys to get deterministic output.
+ - Ensure block and attribute iteration is consistent.
 
 ### Bug Fixes

@@ -163,18 +163,18 @@ func (s *scopes) getOrAddOutput(name string) string {
 	return pulumiName
 }
 
-// getPulumiName takes "name" and ensures it's unique.
-// First by appending `suffix` to it, and then appending an incrementing count
-func (s *scopes) getOrAddPulumiName(name, prefix, suffix string) string {
-	root, has := s.roots[name]
+// getOrAddPulumiName takes "path" and returns the unique name for it. First by prepending `prefix` and
+// appending `suffix` to it, and then appending an incrementing count.
+func (s *scopes) getOrAddPulumiName(path, prefix, suffix string) string {
+	root, has := s.roots[path]
 	if has {
 		return root.Name
 	}
-	parts := strings.Split(name, ".")
+	parts := strings.Split(path, ".")
 	tfName := parts[len(parts)-1]
 	pulumiName := camelCaseName(tfName)
 	pulumiName = s.generateUniqueName(pulumiName, prefix, suffix)
-	s.roots[name] = PathInfo{Name: pulumiName}
+	s.roots[path] = PathInfo{Name: pulumiName}
 	return pulumiName
 }
 
