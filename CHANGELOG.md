@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+## 1.0.15
+
+### Improvements
+
+ - Ensure block and attribute iteration is consistent.
+
 ## 1.0.14
 
 ### Improvements
