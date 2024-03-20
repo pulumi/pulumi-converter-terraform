@@ -762,6 +762,16 @@ type convertState struct {
 
 	// Diagnostic messages from conversion
 	diagnostics hcl.Diagnostics
+
+	// Determines whether converting objects should rewrite keys to camelCase or keep it as is
+	rewriteObjectKeys bool
+}
+
+func (state *convertState) disableRewritingObjectKeys(f func()) {
+	previous := state.rewriteObjectKeys
+	state.rewriteObjectKeys = false
+	f()
+	state.rewriteObjectKeys = previous
 }
 
 // Adds a diagnostic to the state
@@ -790,7 +800,15 @@ func convertFunctionCallExpr(state *convertState,
 
 	args := []hclwrite.Tokens{}
 	for _, arg := range call.Args {
-		args = append(args, convertExpression(state, false, scopes, "", arg))
+		if call.Name == "jsonencode" {
+			// when encountering a jsonencode function, we need to convert the underlying content without
+			// rewriting the object keys to camelCase (for example when converting JSON policy document of an IAM role)
+			state.disableRewritingObjectKeys(func() {
+				args = append(args, convertExpression(state, false, scopes, "", arg))
+			})
+		} else {
+			args = append(args, convertExpression(state, false, scopes, "", arg))
+		}
 	}
 
 	// First see if this is `list`
@@ -958,13 +976,12 @@ func convertObjectConsExpr(state *convertState, inBlock bool, scopes *scopes,
 		// statically known and we know our current path
 		var nameTokens hclwrite.Tokens
 		var subQualifiedPath string
+		name, isIdentifier := matchStaticString(item.KeyExpr)
 		if fullyQualifiedPath != "" {
 			// We should rename the object keys if this is an object type. It's a map type we should leave it
 			// alone. TODO: If we don't know what type it is we should assume it's a map if it's strings,
 			// object if it's identifiers. Currently we just default to assuming it's an object.
 			isMap := scopes.isMap(fullyQualifiedPath)
-
-			name, isIdentifier := matchStaticString(item.KeyExpr)
 			if name != nil {
 				if isMap != nil && *isMap {
 					// We know this _is_ a map type, so we should leave the keys alone. We can only do this for static
@@ -985,7 +1002,11 @@ func convertObjectConsExpr(state *convertState, inBlock bool, scopes *scopes,
 		}
 		// If we can't statically determine the name, we can't rename it, so just convert the expression.
 		if nameTokens == nil {
-			nameTokens = convertExpression(state, false, scopes, "", item.KeyExpr)
+			if name != nil && !state.rewriteObjectKeys {
+				nameTokens = hclwrite.TokensForValue(cty.StringVal(*name))
+			} else {
+				nameTokens = convertExpression(state, false, scopes, "", item.KeyExpr)
+			}
 		}
 
 		valueTokens := convertExpression(state, false, scopes, subQualifiedPath, item.ValueExpr)
@@ -2467,8 +2488,9 @@ func translateModuleSourceCode(
 	scopes := newScopes(info)
 
 	state := &convertState{
-		sources:     sources,
-		diagnostics: hcl.Diagnostics{},
+		sources:           sources,
+		diagnostics:       hcl.Diagnostics{},
+		rewriteObjectKeys: true,
 	}
 
 	// First go through and add everything to the items list so we can sort it by source order
@@ -3114,7 +3136,6 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 				}
 
 				err = parser.ParseFile(file, fileName)
-
 				if err != nil {
 					diagnostics = diagnostics.Append(errorf(nodeRange, err.Error()))
 					return nil, diagnostics, err
