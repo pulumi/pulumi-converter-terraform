@@ -2227,20 +2227,46 @@ func convertManagedResources(state *convertState,
 		blockBody.SetAttributeRaw("__logicalName", hclwrite.TokensForValue(cty.StringVal(managedResource.Name)))
 	}
 
+	var options *hclwrite.Block
+	// Does this resource have dependencies? If so set the "dependsOn" attribute
+	if len(managedResource.DependsOn) > 0 {
+		if options == nil {
+			options = hclwrite.NewBlock("options", nil)
+		}
+		dependsOn := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
+		for idx, dep := range managedResource.DependsOn {
+			if idx > 0 {
+				dependsOn = append(dependsOn, makeToken(hclsyntax.TokenComma, ","))
+			}
+			tokens := rewriteTraversal(state, scopes, "", dep)
+			dependsOn = append(dependsOn, tokens...)
+		}
+		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenCBrack, "]"))
+		options.Body().SetAttributeRaw("dependsOn", dependsOn)
+	}
+
 	// Does this resource have a count? If so set the "range" attribute
 	if managedResource.Count != nil {
-		options := blockBody.AppendNewBlock("options", nil)
+		if options == nil {
+			options = hclwrite.NewBlock("options", nil)
+		}
 		countExpr := convertExpression(state, true, scopes, "", managedResource.Count)
 		// Set the count_index scope
 		scopes.countIndex = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
 		options.Body().SetAttributeRaw("range", countExpr)
 	}
 	if managedResource.ForEach != nil {
-		options := blockBody.AppendNewBlock("options", nil)
+		if options == nil {
+			options = hclwrite.NewBlock("options", nil)
+		}
 		forEachExpr := convertExpression(state, true, scopes, "", managedResource.ForEach)
 		scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
 		scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
 		options.Body().SetAttributeRaw("range", forEachExpr)
+	}
+
+	if options != nil {
+		blockBody.AppendBlock(options)
 	}
 
 	resourceArgs := convertBody(state, scopes, path, managedResource.Config)
