@@ -2245,6 +2245,24 @@ func convertManagedResources(state *convertState,
 		options.Body().SetAttributeRaw("dependsOn", dependsOn)
 	}
 
+	if managedResource.Managed != nil && managedResource.Managed.CreateBeforeDestroySet {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagWarning,
+			Summary:  "converting create_before_destroy lifecycle hook is not supported",
+			Subject:  managedResource.DeclRange.Ptr(),
+			Context:  managedResource.DeclRange.Ptr(),
+		})
+	}
+
+	if len(managedResource.TriggersReplacement) > 0 {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagWarning,
+			Summary:  "converting replace_triggered_by lifecycle hook is not supported",
+			Subject:  managedResource.DeclRange.Ptr(),
+			Context:  managedResource.DeclRange.Ptr(),
+		})
+	}
+
 	// Does this resource have a count? If so set the "range" attribute
 	if managedResource.Count != nil {
 		if options == nil {
