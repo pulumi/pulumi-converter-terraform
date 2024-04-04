@@ -826,6 +826,12 @@ func convertFunctionCallExpr(state *convertState,
 		return listTokens
 	}
 
+	// Translate tolist(x) as x - in TF this normalizes sets to lists, but in Pulumi everything is represented as a
+	// list anyway so a no-op is warranted.
+	if call.Name == "tolist" && len(args) == 1 {
+		return args[0]
+	}
+
 	// Next see if this is a rename
 	if newName, has := tfFunctionRenames[call.Name]; has {
 		return hclwrite.TokensForFunctionCall(newName, args...)
