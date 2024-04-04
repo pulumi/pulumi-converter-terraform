@@ -3,7 +3,7 @@ output "networkCidrBlocks" {
 }
 
 output "networks" {
-  value = notImplemented("tolist(local.network_objs)")
+  value = networkObjs
 }
 
 output "baseCidrBlock" {

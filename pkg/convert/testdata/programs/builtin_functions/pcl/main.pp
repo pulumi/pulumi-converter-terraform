@@ -1396,10 +1396,10 @@ output "funcTobool4" {
 
 # Examples for tolist
 output "funcTolist0" {
-  value = notImplemented("tolist([\"a\",\"b\",\"c\"])")
+  value = ["a", "b", "c"]
 }
 output "funcTolist1" {
-  value = notImplemented("tolist([\"a\",\"b\",3])")
+  value = ["a", "b", 3]
 }
 
 

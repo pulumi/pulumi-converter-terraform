@@ -109,8 +109,6 @@
   "warning:builtin_functions/main.tf:1006,11-23:Function not yet implemented:Function tobool not yet implemented",
   "warning:builtin_functions/main.tf:1009,11-23:Function not yet implemented:Function tobool not yet implemented",
   "warning:builtin_functions/main.tf:1012,11-20:Function not yet implemented:Function tobool not yet implemented",
-  "warning:builtin_functions/main.tf:1018,11-34:Function not yet implemented:Function tolist not yet implemented",
-  "warning:builtin_functions/main.tf:1021,11-32:Function not yet implemented:Function tolist not yet implemented",
   "warning:builtin_functions/main.tf:1027,11-36:Function not yet implemented:Function tomap not yet implemented",
   "warning:builtin_functions/main.tf:1030,11-43:Function not yet implemented:Function tomap not yet implemented",
   "warning:builtin_functions/main.tf:1036,11-22:Function not yet implemented:Function tonumber not yet implemented",
