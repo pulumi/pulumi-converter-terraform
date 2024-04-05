@@ -1,28 +1,12 @@
 package convert
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/hexops/autogold/v2"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
-
-type testAutoFiller struct {
-	byToken map[string]string
-}
-
-var _ AutoFiller = (*testAutoFiller)(nil)
-
-func (x *testAutoFiller) AutoFill(t, n string) string {
-	return strings.ReplaceAll(x.byToken[t], `"example"`, fmt.Sprintf("\"%s\"", n))
-}
-
-func (x *testAutoFiller) CanAutoFill(t string) bool {
-	_, ok := x.byToken[t]
-	return ok
-}
 
 func TestAutoFill(t *testing.T) {
 	example := `
@@ -54,14 +38,17 @@ resource "aws_route53_zone" "example" {
   name = "example.com"
 }`
 
-	taf := testAutoFiller{
-		byToken: map[string]string{
-			"aws_acm_certificate": injectAcmCert,
-			"aws_route53_zone":    injectRoute53Zone,
-		},
-	}
+	fs := afero.NewMemMapFs()
 
-	actual, err := AutoFill(&taf, example)
+	err := afero.WriteFile(fs, "aws_acm_certificate.tf", []byte(injectAcmCert), 0600)
+	require.NoError(t, err)
+
+	err = afero.WriteFile(fs, "aws_route53_zone.tf", []byte(injectRoute53Zone), 0600)
+	require.NoError(t, err)
+
+	taf := NewFolderBasedAutoFiller(fs)
+
+	actual, err := AutoFill(taf, example)
 	require.NoError(t, err)
 
 	t.Logf("ACTUAL: %s", actual)

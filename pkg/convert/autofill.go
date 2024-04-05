@@ -8,11 +8,12 @@ import (
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 	"github.com/pulumi/terraform/pkg/configs"
 	"github.com/spf13/afero"
 )
 
-// Provides data for [AutoFill]
+// Provides data for [AutoFill].
 type AutoFiller interface {
 	// Returns a suggested automatically filled example HCL code for a given resource or data source name. If this
 	// block is not supported or has no plausible examples, returns an empty string.
@@ -42,7 +43,7 @@ func AutoFill(autoFiller AutoFiller, hcl string) (string, error) {
 		return "", errors.Join(diags.Errs()...)
 	}
 
-	v := newVisitor()
+	v := newAutoFillVisitor()
 	for _, mr := range mod.ManagedResources {
 		v.visitManagedResource(mr)
 	}
@@ -61,34 +62,55 @@ func AutoFill(autoFiller AutoFiller, hcl string) (string, error) {
 	return buf.String(), nil
 }
 
-type ref string
+type folderBasedAutoFiller struct {
+	dir afero.Fs
+}
 
-func (x ref) Token() string {
+var _ AutoFiller = (*folderBasedAutoFiller)(nil)
+
+func (fba *folderBasedAutoFiller) AutoFill(token, name string) string {
+	bytes, err := afero.ReadFile(fba.dir, fmt.Sprintf("%s.tf", token))
+	contract.IgnoreError(err)
+	return string(bytes)
+}
+
+func (fba *folderBasedAutoFiller) CanAutoFill(token string) bool {
+	_, err := fba.dir.Stat(fmt.Sprintf("%s.tf", token))
+	return err == nil
+}
+
+func NewFolderBasedAutoFiller(fs afero.Fs) AutoFiller {
+	return &folderBasedAutoFiller{dir: fs}
+}
+
+type autoFillRef string
+
+func (x autoFillRef) Token() string {
 	return strings.Split(string(x), ":::")[0]
 }
 
-func (x ref) Name() string {
+func (x autoFillRef) Name() string {
 	return strings.Split(string(x), ":::")[1]
 }
 
-func newRef(token, name string) ref {
-	return ref(fmt.Sprintf("%s:::%s", token, name))
+func newAutoFillRef(token, name string) autoFillRef {
+	return autoFillRef(fmt.Sprintf("%s:::%s", token, name))
 }
 
-type visitor struct {
-	defined    map[ref]struct{}
-	referenced map[ref]struct{}
+type autoFillVisitor struct {
+	defined    map[autoFillRef]struct{}
+	referenced map[autoFillRef]struct{}
 }
 
-func newVisitor() *visitor {
-	return &visitor{
-		defined:    map[ref]struct{}{},
-		referenced: map[ref]struct{}{},
+func newAutoFillVisitor() *autoFillVisitor {
+	return &autoFillVisitor{
+		defined:    map[autoFillRef]struct{}{},
+		referenced: map[autoFillRef]struct{}{},
 	}
 }
 
-func (v *visitor) dangling() []ref {
-	d := []ref{}
+func (v *autoFillVisitor) dangling() []autoFillRef {
+	d := []autoFillRef{}
 	for x := range v.referenced {
 		_, isDef := v.defined[x]
 		if !isDef {
@@ -101,8 +123,8 @@ func (v *visitor) dangling() []ref {
 	return d
 }
 
-func (v *visitor) visitManagedResource(res *configs.Resource) {
-	v.defined[newRef(res.Type, res.Name)] = struct{}{}
+func (v *autoFillVisitor) visitManagedResource(res *configs.Resource) {
+	v.defined[newAutoFillRef(res.Type, res.Name)] = struct{}{}
 	v.visitBody(res.Config)
 	v.visitExpr(res.Count)
 	v.visitExpr(res.ForEach)
@@ -110,7 +132,7 @@ func (v *visitor) visitManagedResource(res *configs.Resource) {
 	v.visitExprs(res.TriggersReplacement)
 }
 
-func (v *visitor) visitTraversal(t hcl.Traversal) {
+func (v *autoFillVisitor) visitTraversal(t hcl.Traversal) {
 	if len(t) < 2 {
 		return
 	}
@@ -122,20 +144,20 @@ func (v *visitor) visitTraversal(t hcl.Traversal) {
 	if !ok {
 		return
 	}
-	v.referenced[newRef(root.Name, attr.Name)] = struct{}{}
+	v.referenced[newAutoFillRef(root.Name, attr.Name)] = struct{}{}
 }
 
-func (v *visitor) visitTraversals(ts []hcl.Traversal) {
+func (v *autoFillVisitor) visitTraversals(ts []hcl.Traversal) {
 	for _, t := range ts {
 		v.visitTraversal(t)
 	}
 }
 
-func (v *visitor) visitAttribute(a *hcl.Attribute) {
+func (v *autoFillVisitor) visitAttribute(a *hcl.Attribute) {
 	v.visitExpr(a.Expr)
 }
 
-func (v *visitor) visitExpr(expr hcl.Expression) {
+func (v *autoFillVisitor) visitExpr(expr hcl.Expression) {
 	if expr == nil {
 		return
 	}
@@ -144,17 +166,17 @@ func (v *visitor) visitExpr(expr hcl.Expression) {
 	}
 }
 
-func (v *visitor) visitExprs(exprs []hcl.Expression) {
+func (v *autoFillVisitor) visitExprs(exprs []hcl.Expression) {
 	for _, e := range exprs {
 		v.visitExpr(e)
 	}
 }
 
-func (v *visitor) visitBlock(b *hcl.Block) {
+func (v *autoFillVisitor) visitBlock(b *hcl.Block) {
 	v.visitBody(b.Body)
 }
 
-func (v *visitor) visitBody(b hcl.Body) {
+func (v *autoFillVisitor) visitBody(b hcl.Body) {
 	bc := bodyContent(b)
 	for _, blk := range bc.Blocks {
 		v.visitBlock(blk)
