@@ -77,7 +77,9 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
 
-	mapper = newCachingMapper(mapper)
+	if *convertExamples != "" {
+		mapper = newCachingMapper(mapper)
+	}
 
 	providerInfoSource := il.NewMapperProviderInfoSource(mapper)
 
