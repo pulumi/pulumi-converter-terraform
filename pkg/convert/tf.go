@@ -977,6 +977,16 @@ func convertObjectConsExpr(state *convertState, inBlock bool, scopes *scopes,
 	fullyQualifiedPath string, expr *hclsyntax.ObjectConsExpr,
 ) hclwrite.Tokens {
 	items := []hclwrite.ObjectAttrTokens{}
+
+	// If the object has at least one key that is not an identifier, it must be a map.
+	hasNonIdentifierKey := false
+	for _, item := range expr.Items {
+		if _, isIdentifier := matchStaticString(item.KeyExpr); !isIdentifier {
+			hasNonIdentifierKey = true
+			break
+		}
+	}
+
 	for _, item := range expr.Items {
 		// Keys _might_ need renaming if we're translating for an object type, we can do this if it's
 		// statically known and we know our current path
@@ -985,11 +995,10 @@ func convertObjectConsExpr(state *convertState, inBlock bool, scopes *scopes,
 		name, isIdentifier := matchStaticString(item.KeyExpr)
 		if fullyQualifiedPath != "" {
 			// We should rename the object keys if this is an object type. It's a map type we should leave it
-			// alone. TODO: If we don't know what type it is we should assume it's a map if it's strings,
-			// object if it's identifiers. Currently we just default to assuming it's an object.
+			// alone.
 			isMap := scopes.isMap(fullyQualifiedPath)
 			if name != nil {
-				if isMap != nil && *isMap {
+				if isMap != nil && *isMap || hasNonIdentifierKey {
 					// We know this _is_ a map type, so we should leave the keys alone. We can only do this for static
 					// strings other expressions are just going to have to be converted.
 				} else {
