@@ -313,13 +313,9 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-alb/examples/complete-alb",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-alb/examples/complete-nlb",
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-rds-aurora",
@@ -347,8 +343,6 @@ func TestExample(t *testing.T) {
 		{
 			example: "https://github.com/philips-labs/terraform-aws-github-runner",
 			strict:  true,
-			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
 		},
 		{
 			example: "https://github.com/aztfmod/terraform-azurerm-caf",
