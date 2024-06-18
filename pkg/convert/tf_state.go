@@ -140,6 +140,40 @@ func TranslateState(info il.ProviderInfoSource, path string) (*plugin.ConvertSta
 						}
 
 						id = fmt.Sprintf("%s/%s", role, policy)
+					case "aws_appautoscaling_policy":
+						serviceNamespace, err := getString(resource.Addr.Resource, obj, "service_namespace")
+						if err != nil {
+							return nil, err
+						}
+						resourceId, err := getString(resource.Addr.Resource, obj, "resource_id")
+						if err != nil {
+							return nil, err
+						}
+						scalableDimension, err := getString(resource.Addr.Resource, obj, "scalable_dimension")
+						if err != nil {
+							return nil, err
+						}
+						name, err := getString(resource.Addr.Resource, obj, "name")
+						if err != nil {
+							return nil, err
+						}
+
+						id = fmt.Sprintf("%s/%s/%s/%s", serviceNamespace, resourceId, scalableDimension, name)
+					case "aws_appautoscaling_target":
+						serviceNamespace, err := getString(resource.Addr.Resource, obj, "service_namespace")
+						if err != nil {
+							return nil, err
+						}
+						resourceId, err := getString(resource.Addr.Resource, obj, "resource_id")
+						if err != nil {
+							return nil, err
+						}
+						scalableDimension, err := getString(resource.Addr.Resource, obj, "scalable_dimension")
+						if err != nil {
+							return nil, err
+						}
+
+						id = fmt.Sprintf("%s/%s/%s", serviceNamespace, resourceId, scalableDimension)
 					default:
 						// We only care about the id value
 						id, err = getString(resource.Addr.Resource, obj, "id")
