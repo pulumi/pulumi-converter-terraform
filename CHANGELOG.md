@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+## 1.0.18
+
+### Improvements
+
+- Support custom translation of appautoscaling ids
+
 ## 1.0.17
 
 ### Improvements
