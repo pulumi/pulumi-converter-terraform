@@ -2,6 +2,12 @@ name: Lint
 
 on:
   workflow_call:
+    inputs:
+      commit-ref:
+        description: Commit ref to check out and run tests against.
+        default: ''
+        required: false
+        type: string
 
 permissions: read-all
 
@@ -36,6 +42,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.commit-ref }}
       - name: Install pulumictl
         uses: jaxxstorm/action-install-gh-release@v1.5.0
         with:
