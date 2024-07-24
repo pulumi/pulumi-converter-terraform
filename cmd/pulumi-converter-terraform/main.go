@@ -59,7 +59,7 @@ func (*tfConverter) ConvertState(_ context.Context,
 
 type translatedExample struct {
 	PCL         string          `json:"pcl"`
-	YAML        string          `json:"yaml"`
+	PulumiYAML  string          `json:"pulumiYaml"`
 	Diagnostics hcl.Diagnostics `json:"diagnostics"`
 }
 
@@ -115,7 +115,7 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 
 			return translatedExample{
 				PCL:         string(pcl),
-				YAML:        string(yml),
+				PulumiYAML:  string(yml),
 				Diagnostics: diags,
 			}, nil
 		}
