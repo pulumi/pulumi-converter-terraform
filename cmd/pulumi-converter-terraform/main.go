@@ -59,6 +59,7 @@ func (*tfConverter) ConvertState(_ context.Context,
 
 type translatedExample struct {
 	PCL         string          `json:"pcl"`
+	YAML        string          `json:"yaml"`
 	Diagnostics hcl.Diagnostics `json:"diagnostics"`
 }
 
@@ -107,8 +108,14 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 				return translatedExample{}, fmt.Errorf("read example %s from memory store: %w", name, err)
 			}
 
+			yml, err := afero.ReadFile(dst, "/Pulumi.yaml")
+			if err != nil && !os.IsNotExist(err) {
+				return translatedExample{}, fmt.Errorf("read example Pulumi.yaml %s from memory store: %w", name, err)
+			}
+
 			return translatedExample{
 				PCL:         string(pcl),
+				YAML:        string(yml),
 				Diagnostics: diags,
 			}, nil
 		}
@@ -116,6 +123,9 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 		workers := -1 // numCPU
 
 		results, err := parTransformMapWith(examples, translateExample, workers)
+		if err != nil {
+			return nil, fmt.Errorf("translate examples: %w", err)
+		}
 
 		// Now marshal the results and return them, we use the same base name as our input file but written to the
 		// target directory
