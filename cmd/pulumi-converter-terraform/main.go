@@ -67,6 +67,25 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	req *plugin.ConvertProgramRequest,
 ) (*plugin.ConvertProgramResponse, error) {
 	flags := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
+	// --convert-examples is a special flag that allows us to convert a set of examples in a single run of `pulumi
+	// convert`. This is a bit of a hack to support bulk conversion of terraform examples without needing a fresh run of
+	// `pulumi convert` (and thus a fresh instance of the converter and schema loadings) per example.
+	//
+	// The intention is to move this to a cleaner model using `plugin run` in the future
+	// (https://github.com/pulumi/pulumi-converter-terraform/issues/180), but it's not a pressing priority.
+	//
+	// The expected input is a JSON file with a map of example names to example contents. The converter will then
+	// convert each example and write all the results out in a new JSON file (with the same name, but in the target
+	// directory). That JSON file will be a map of example name to {pcl, yaml, diagnostics}, pcl being the converted
+	// pcl, and yaml being the converted Pulumi.yaml.
+	//
+	// This is then used by tfbridge like `pulumi convert --from=terraform --language=pcl --out=./out --generate-only --
+	// --convert-examples=examples.json`. The `--language=pcl` is important, as the cli would otherwise try to take
+	// non-existing PCL output it normally expects from ConvertProgram and pass it off to the language plugins to
+	// further convert. `--out` is important and must be different from the input file directory, as the converter will
+	// use the same file name as the input file for it's output file.
+	//
+	// Using this option completely ignores the source directory that ConvertProgram would normally look at to convert.
 	convertExamples := flags.String("convert-examples", "", "path to a terraform bridge example file to convert")
 	err := flags.Parse(req.Args)
 	if err != nil {
