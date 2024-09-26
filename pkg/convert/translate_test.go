@@ -221,9 +221,12 @@ func TestTranslate(t *testing.T) {
 					// change on each test run. We're ok to mutate the struct here because we aren't going to
 					// be using these diagnostic objects again after this.
 					rangeToString := func(r *hcl.Range) string {
-						path, err := filepath.Rel(tempDir, r.Filename)
-						if err == nil {
-							r.Filename = path
+						// only rewrite the filename if it's in the tempDir
+						if strings.HasPrefix(r.Filename, tempDir) {
+							path, err := filepath.Rel(tempDir, r.Filename)
+							if err == nil {
+								r.Filename = path
+							}
 						}
 						return r.String()
 					}
