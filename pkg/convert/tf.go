@@ -2756,6 +2756,7 @@ func translateModuleSourceCode(
 						destinationRoot,
 						destinationPath,
 						info)
+					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
 						return state.diagnostics
 					}
@@ -2879,7 +2880,7 @@ func translateModuleSourceCode(
 						destinationRoot,
 						destinationPath,
 						info)
-
+					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
 						return state.diagnostics
 					}
