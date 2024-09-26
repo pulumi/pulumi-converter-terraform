@@ -1,0 +1,5 @@
+[
+  "warning:/main.tf:2,19-80:Function not yet implemented:Function cidrsubnets not yet implemented",
+  "warning:/main.tf:7,59-73:Function not yet implemented:Function tostring not yet implemented",
+  "warning:/outputs.tf:2,17-43:Function not yet implemented:Function tomap not yet implemented"
+]

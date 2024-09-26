@@ -2465,7 +2465,15 @@ type moduleKey struct {
 
 func (key moduleKey) WithSource(source addrs.ModuleSource) moduleKey {
 	return moduleKey{
-		source: source,
+		source:  source,
+		version: key.version,
+	}
+}
+
+func (key moduleKey) WithVersion(version string) moduleKey {
+	return moduleKey{
+		source:  key.source,
+		version: version,
 	}
 }
 
@@ -2796,6 +2804,14 @@ func translateModuleSourceCode(
 						return state.diagnostics
 					}
 
+					// At this point we have a real version, we're going to resolve our module key to _that_ version and look it up again
+					absoluteKey := moduleKey.WithVersion(latestVersion.String())
+					if _, has := modules[absoluteKey]; has {
+						// We've seen this before, we can just use that path
+						modules[moduleKey] = modules[absoluteKey]
+						continue
+					}
+
 					realAddrRaw, err := reg.ModuleLocation(context.TODO(), regsrcAddr, latestVersion.String())
 					if err != nil {
 						state.appendDiagnostic(&hcl.Diagnostic{
@@ -2853,7 +2869,9 @@ func translateModuleSourceCode(
 							return state.diagnostics
 						}
 					}
+					// Update both our origional key, and the resolved absolute key to point to this created path
 					modules[moduleKey] = destinationPath
+					modules[absoluteKey] = destinationPath
 
 					diags := translateRemoteModule(
 						modules,
