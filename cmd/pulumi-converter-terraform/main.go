@@ -17,7 +17,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/cmdutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,7 +27,6 @@ import (
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
-	"github.com/pulumi/pulumi/sdk/v3/go/common/util/rpcutil"
 	pulumirpc "github.com/pulumi/pulumi/sdk/v3/proto/go"
 	"github.com/spf13/afero"
 	"github.com/spf13/pflag"
@@ -172,23 +171,19 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 }
 
 func main() {
-	// Fire up a gRPC server, letting the kernel choose a free port for us.
-	handle, err := rpcutil.ServeWithOptions(rpcutil.ServeOptions{
-		Init: func(srv *grpc.Server) error {
-			pulumirpc.RegisterConverterServer(srv, plugin.NewConverterServer(&tfConverter{}))
-			return nil
-		},
-		Options: rpcutil.OpenTracingServerInterceptorOptions(nil),
+
+	logging.InitLogging(false, 0, false)
+
+	rc, err := rpcCmd.NewRpcCmd(&rpcCmd.RpcCmdConfig{
+		TracingName:  "pulumi-converter-terraform",
+		RootSpanName: "pulumi-converter-terraform",
 	})
 	if err != nil {
-		log.Fatalf("fatal: %v", err)
+		cmdutil.Exit(err)
 	}
 
-	// The converter protocol requires that we now write out the port we have chosen to listen on.
-	fmt.Printf("%d\n", handle.Port)
-
-	// Finally, wait for the server to stop serving.
-	if err := <-handle.Done; err != nil {
-		log.Fatalf("fatal: %v", err)
-	}
+	rc.Run(func(srv *grpc.Server) error {
+		pulumirpc.RegisterConverterServer(srv, plugin.NewConverterServer(&tfConverter{}))
+		return nil
+	}, func() {})
 }
