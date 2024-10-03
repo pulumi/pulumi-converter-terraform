@@ -903,7 +903,7 @@ func convertFunctionCallExpr(state *convertState,
 		Subject:  &callRange,
 		Severity: hcl.DiagWarning,
 		Summary:  "Function not yet implemented",
-		Detail:   fmt.Sprintf("Function %s not yet implemented", call.Name),
+		Detail:   fmt.Sprintf("Function %s not yet implemented, see %s", call.Name, getTrackingBug(call)),
 	})
 
 	return notImplemented(state, call.Range())
@@ -3238,4 +3238,31 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 
 		return componentProgram, programDiags, err
 	}
+}
+
+var unimplementedFunctionBugs = map[string]string{
+	"coalesce":     "pulumi/pulumi-converter-terraform#65",
+	"coalescelist": "pulumi/pulumi-converter-terraform#65",
+	"compact":      "pulumi/pulumi-converter-terraform#65",
+	"distinct":     "pulumi/pulumi-converter-terraform#65",
+	"flatten":      "pulumi/pulumi-converter-terraform#138",
+	"format":       "pulumi/pulumi-converter-terraform#65",
+	"lookup":       "pulumi/pulumi-converter-terraform#65",
+	"merge":        "pulumi/pulumi-converter-terraform#65",
+	"regexall":     "pulumi/pulumi-converter-terraform#191",
+	"slice":        "pulumi/pulumi-converter-terraform#65",
+	"templatefile": "pulumi/pulumi-converter-terraform#192",
+	"toset":        "pulumi/pulumi-converter-terraform#137",
+	"try":          "pulumi/pulumi-converter-terraform#16",
+	"yamlencode":   "pulumi/pulumi-converter-terraform#190",
+}
+
+// getTrackingBug returns the tracking bug for the given function call, if any.
+func getTrackingBug(call *hclsyntax.FunctionCallExpr) string {
+	r, ok := unimplementedFunctionBugs[call.Name]
+	if !ok {
+		return "pulumi/pulumi-converter-terraform#65 (catch all bug)"
+	}
+
+	return r
 }

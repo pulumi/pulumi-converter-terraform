@@ -3,6 +3,9 @@
     "Type": "simple:index:resource",
     "Name": "a_resource-hello",
     "ID": "abc123",
+    "LogicalName": "",
+    "IsComponent": false,
+    "IsRemote": false,
     "Version": "",
     "PluginDownloadURL": ""
   },
@@ -10,6 +13,9 @@
     "Type": "simple:index:resource",
     "Name": "a_resource-goodbye",
     "ID": "def456",
+    "LogicalName": "",
+    "IsComponent": false,
+    "IsRemote": false,
     "Version": "",
     "PluginDownloadURL": ""
   }
