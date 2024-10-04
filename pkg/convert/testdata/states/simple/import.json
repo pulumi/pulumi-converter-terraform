@@ -3,6 +3,9 @@
     "Type": "simple:index:resource",
     "Name": "a_resource",
     "ID": "abc123",
+    "LogicalName": "",
+    "IsComponent": false,
+    "IsRemote": false,
     "Version": "",
     "PluginDownloadURL": ""
   }
