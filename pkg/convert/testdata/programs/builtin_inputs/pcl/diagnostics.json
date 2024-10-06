@@ -1,6 +1,6 @@
 [
-  "warning:builtin_inputs/mod/main.tf:2,17-24:builtin_inputs/mod/main.tf:2,13-24:Terraform input not yet implemented:path",
   "warning:builtin_inputs/main.tf:10,17-22:builtin_inputs/main.tf:10,13-22:Terraform input not yet implemented:path",
   "warning:builtin_inputs/main.tf:14,17-21:builtin_inputs/main.tf:14,13-21:Terraform input not yet implemented:path",
-  "warning:builtin_inputs/main.tf:18,22-32:builtin_inputs/main.tf:18,13-32:Terraform input not yet implemented:terraform"
+  "warning:builtin_inputs/main.tf:18,22-32:builtin_inputs/main.tf:18,13-32:Terraform input not yet implemented:terraform",
+  "warning:builtin_inputs/mod/main.tf:2,17-24:builtin_inputs/mod/main.tf:2,13-24:Terraform input not yet implemented:path"
 ]
