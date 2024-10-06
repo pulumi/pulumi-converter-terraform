@@ -24,6 +24,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"sort"
 	"strings"
 	"testing"
 
@@ -354,6 +355,7 @@ func TestTranslate(t *testing.T) {
 
 			// We have all the diagnostics now check they match what we expect.
 			expectedDiagnosticsPath := filepath.Join(tt.path, "pcl", "diagnostics.json")
+			sort.Strings(allDiagnostics)
 			bridgetesting.AssertEqualsJSONFile(t, expectedDiagnosticsPath, allDiagnostics, &[]string{})
 
 			// Assert every pcl file is seen
