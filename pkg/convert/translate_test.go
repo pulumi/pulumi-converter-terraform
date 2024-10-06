@@ -45,7 +45,8 @@ import (
 )
 
 type testLoader struct {
-	path string
+	path                   string
+	allowedMissingPackages []string
 }
 
 func (l *testLoader) LoadPackage(pkg string, version *semver.Version) (*schema.Package, error) {
@@ -57,6 +58,11 @@ func (l *testLoader) LoadPackage(pkg string, version *semver.Version) (*schema.P
 
 	schemaBytes, err := os.ReadFile(schemaPath)
 	if err != nil {
+		for _, allowedMissing := range l.allowedMissingPackages {
+			if allowedMissing == pkg {
+				return &schema.Package{Name: pkg, Version: version}, nil
+			}
+		}
 		return nil, err
 	}
 
@@ -115,7 +121,10 @@ func TestTranslate(t *testing.T) {
 		}
 	}
 
-	loader := &testLoader{path: filepath.Join(testDir, "schemas")}
+	loader := &testLoader{
+		path:                   filepath.Join(testDir, "schemas"),
+		allowedMissingPackages: []string{"kubernetes"},
+	}
 	mapper := &bridgetesting.TestFileMapper{Path: filepath.Join(testDir, "mappings")}
 
 	for _, tt := range tests {

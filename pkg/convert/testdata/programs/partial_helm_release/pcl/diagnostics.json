@@ -1,5 +1,4 @@
 [
-  "warning:main.pp:0,19-50:unknown package 'kubernetes':open /Users/zaid/projects/pulumi-converter-terraform/pkg/convert/testdata/schemas/kubernetes.json: no such file or directory",
   "warning:main.pp:1,3-7:unsupported attribute 'name':unsupported attribute 'name'",
   "warning:main.pp:10,3-27:unsupported attribute 'disableOpenapiValidation':unsupported attribute 'disableOpenapiValidation'",
   "warning:main.pp:11,3-18:unsupported attribute 'disableWebhooks':unsupported attribute 'disableWebhooks'",
