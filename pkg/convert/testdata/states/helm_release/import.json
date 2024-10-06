@@ -1,0 +1,12 @@
+[
+  {
+    "Type": "kubernetes:helm.sh/v3:Release",
+    "Name": "myHelmRelease",
+    "ID": "helm_release_id",
+    "LogicalName": "",
+    "IsComponent": false,
+    "IsRemote": false,
+    "Version": "",
+    "PluginDownloadURL": ""
+  }
+]

@@ -402,6 +402,21 @@ func projectListToSingleton(tokens hclwrite.Tokens) hclwrite.Tokens {
 	return newTokens
 }
 
+// resources that require special conversion handling
+var customResourceMappings = map[string]string{
+	"helm_release": "kubernetes:helm.sh/v3:Release",
+}
+
+func isCustomProviderMapping(providerName string) bool {
+	for tfResourceToken := range customResourceMappings {
+		if impliedProvider(tfResourceToken) == providerName {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Functions need to translate in one of four ways
 // 1. The `list` function just gets translated into a tuple
 // 2. Just a simple rename, e.g. "file" => "readFile"
@@ -1649,6 +1664,19 @@ func tokensForObject(ts []bodyAttrTokens) hclwrite.Tokens {
 	return hclwrite.TokensForObject(attrs)
 }
 
+// same as tokensForObject but writes the keys out as strings instead of identifiers
+func tokensForObjectAsMap(ts []bodyAttrTokens) hclwrite.Tokens {
+	attrs := make([]hclwrite.ObjectAttrTokens, 0, len(ts))
+	for _, attr := range ts {
+		name := append(attr.Trivia, hclwrite.TokensForValue(cty.StringVal(attr.Name))...)
+		attrs = append(attrs, hclwrite.ObjectAttrTokens{
+			Name:  name,
+			Value: attr.Value,
+		})
+	}
+	return hclwrite.TokensForObject(attrs)
+}
+
 type bodyAttrsTokens []bodyAttrTokens
 
 func (ts bodyAttrsTokens) Len() int      { return len(ts) }
@@ -1720,6 +1748,230 @@ func bodyContent(body hcl.Body) *hcl.BodyContent {
 	content, diagnostics := body.Content(hclSchema)
 	contract.Assertf(len(diagnostics) == 0, "diagnostics was not empty: %s", diagnostics.Error())
 	return content
+}
+
+// A specialized version of convertBody that is specific to converting the body of helm_release resources
+func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualifiedPath string, body hcl.Body) bodyAttrsTokens {
+	contract.Assertf(fullyQualifiedPath != "", "fullyQualifiedPath should not be empty")
+
+	content := bodyContent(body)
+	newAttributes := make(bodyAttrsTokens, 0)
+	valueAttributes := make([]hclwrite.ObjectAttrTokens, 0)
+	firstValueLine := 0
+
+	for _, block := range content.Blocks {
+		if block.Type == "timeouts" {
+			// Timeouts are a special resource option block, we can't currently convert that PCL so just skip
+			continue
+		}
+
+		blockPath := appendPath(fullyQualifiedPath, block.Type)
+		if block.Type == "dynamic" {
+			// For dynamic blocks the path is the first label, not "dynamic"
+			blockPath = appendPath(fullyQualifiedPath, block.Labels[0])
+		}
+		// If this is a list so add [] to the path
+		isList := !scopes.maxItemsOne(blockPath)
+		name := scopes.pulumiName(blockPath)
+		if isList {
+			blockPath = appendPathArray(blockPath)
+		}
+
+		if block.Type == "dynamic" {
+			dynamicBody, ok := block.Body.(*hclsyntax.Body)
+			contract.Assertf(ok, "%T was not a hclsyntax.Body", dynamicBody)
+
+			// This block _might_ have an "iterator" entry to set the variable name
+			var tfEachVar string
+			iteratorAttr, has := dynamicBody.Attributes["iterator"]
+			if has {
+				str, _ := matchStaticString(iteratorAttr.Expr)
+				if str == nil {
+					panic("iterator must be a static string")
+				}
+				tfEachVar = *str
+			} else {
+				tfEachVar = block.Labels[0]
+			}
+
+			pulumiEachVar := scopes.generateUniqueName("entry", "", "")
+
+			dynamicTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
+			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "for"))
+			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, pulumiEachVar))
+			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "in"))
+
+			forEachAttr, hasForEachAttr := dynamicBody.Attributes["for_each"]
+			if !hasForEachAttr {
+				continue
+			}
+
+			// wrap the collection expression into `entries(collection)` so that each entry has key and value
+			forEachExprTokens := convertExpression(state, true, scopes, fullyQualifiedPath, forEachAttr.Expr)
+			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "entries"))
+			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenOParen, "("))
+			dynamicTokens = append(dynamicTokens, forEachExprTokens...)
+			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenCParen, ")"))
+			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenColon, ":"))
+
+			bodyTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenIdent, "{}")}
+			for _, innerBlock := range dynamicBody.Blocks {
+				if innerBlock.Type == "content" {
+					scopes.push(map[string]string{
+						tfEachVar: pulumiEachVar,
+					})
+					contentBody := convertBody(state, scopes, blockPath, innerBlock.Body)
+					bodyTokens = tokensForObject(contentBody)
+					scopes.pop()
+				}
+			}
+
+			dynamicTokens = append(dynamicTokens, bodyTokens...)
+			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenCBrack, "]"))
+
+			if !isList {
+				// This is a block attribute, not a list
+				dynamicTokens = hclwrite.TokensForFunctionCall("singleOrNone", dynamicTokens)
+			}
+
+			newAttributes = append(newAttributes, bodyAttrTokens{
+				Name:  name,
+				Value: dynamicTokens,
+			})
+		} else {
+			if name == "set" || name == "setList" || name == "setSensitive" {
+				content := bodyContent(block.Body)
+				nameAttr, nameAttrExists := content.Attributes["name"]
+				valueAttr, valueAttrExists := content.Attributes["value"]
+				valueTokens := convertExpression(state, true, scopes, blockPath, valueAttr.Expr)
+				if name == "setSensitive" {
+					valueTokens = hclwrite.TokensForFunctionCall("secret", valueTokens)
+				}
+				if nameAttrExists && valueAttrExists {
+					if firstValueLine == 0 {
+						firstValueLine = valueAttr.Range.Start.Line
+					}
+					valueAttributes = append(valueAttributes, hclwrite.ObjectAttrTokens{
+						Name:  convertExpression(state, true, scopes, blockPath, nameAttr.Expr),
+						Value: valueTokens,
+					})
+				}
+			}
+		}
+	}
+
+	// based on pulumi-kubernetes v4.18.1 for Helm Release resource
+	supportedFields := []string{
+		"atomic",
+		"chart",
+		"cleanupOnFail",
+		"createNamespace",
+		"dependencyUpdate",
+		"description",
+		"devel",
+		"disableCrdHooks",
+		"disableOpenapiValidation",
+		"disableWebhooks",
+		"forceUpdate",
+		"keyring",
+		"lint",
+		"maxHistory",
+		"name",
+		"namespace",
+		"recreatePods",
+		"renderSubchartNotes",
+		"replace",
+		"resetValues",
+		"reuseValues",
+		"skipCrds",
+		"timeout",
+		"verify",
+		"version",
+		"waitForJobs",
+	}
+
+	fieldRenames := map[string]string{
+		"disableCrdHooks": "disableCRDHooks",
+	}
+
+	// map top-level repository options to a separate object
+	// so that we can create a repositoryOpts object from them
+	// with each of the fields renamed to match the pulumi-kubernetes SDK
+	repositoryOptionsMappings := map[string]string{
+		"repository":         "repo",
+		"repositoryUsername": "username",
+		"repositoryPassword": "password",
+		"repositoryCaFile":   "caFile",
+		"repositoryCertFile": "certFile",
+		"repositoryKeyFile":  "keyFile",
+	}
+
+	// As above, iterate in sorted order
+	names := maps.Keys(content.Attributes)
+	repositoryOptions := make([]bodyAttrTokens, 0)
+	sort.Strings(names)
+	for _, name := range names {
+		attr := content.Attributes[name]
+		attrPath := appendPath(fullyQualifiedPath, attr.Name)
+		attrName := scopes.pulumiName(attrPath)
+
+		supported := false
+		for _, supportedField := range supportedFields {
+			if supportedField == attrName {
+				supported = true
+				break
+			}
+		}
+		// We need the leading trivia here, but the trailing trivia will be handled by convertExpression
+		leading, _ := getTrivia(state.sources, getAttributeRange(state.sources, attr.Expr.Range()), true)
+
+		if !supported {
+			// if it is a repository option, keep it separate so that we create an object for it
+			if repoOptionAttribute, ok := repositoryOptionsMappings[attrName]; ok {
+				repoExpr := convertExpression(state, true, scopes, attrPath, attr.Expr)
+				repositoryOptions = append(repositoryOptions, bodyAttrTokens{
+					Line:   attr.Range.Start.Line,
+					Name:   repoOptionAttribute,
+					Trivia: leading,
+					Value:  repoExpr,
+				})
+			}
+		} else {
+			if renamedField, ok := fieldRenames[attrName]; ok {
+				attrName = renamedField
+			}
+
+			expr := convertExpression(state, true, scopes, attrPath, attr.Expr)
+			newAttributes = append(newAttributes, bodyAttrTokens{
+				Line:   attr.Range.Start.Line,
+				Name:   attrName,
+				Trivia: leading,
+				Value:  expr,
+			})
+		}
+	}
+
+	if len(repositoryOptions) > 0 {
+		repositoryOptionsTokens := tokensForObject(repositoryOptions)
+		newAttributes = append(newAttributes, bodyAttrTokens{
+			Line:   repositoryOptions[0].Line,
+			Name:   "repositoryOpts",
+			Trivia: make(hclwrite.Tokens, 0),
+			Value:  repositoryOptionsTokens,
+		})
+	}
+
+	if len(valueAttributes) > 0 {
+		valueAttributesTokens := hclwrite.TokensForObject(valueAttributes)
+		newAttributes = append(newAttributes, bodyAttrTokens{
+			Line:   firstValueLine,
+			Name:   "values",
+			Trivia: make(hclwrite.Tokens, 0),
+			Value:  valueAttributesTokens,
+		})
+	}
+	sort.Sort(newAttributes)
+	return newAttributes
 }
 
 // Convert a hcl.Body treating sub-bodies as attributes
@@ -2024,6 +2276,9 @@ func impliedProvider(typeName string) string {
 
 // Best guess at converting a tf type to a pulumi type
 func impliedToken(typeName string) string {
+	if customResourceToken, ok := customResourceMappings[typeName]; ok {
+		return customResourceToken
+	}
 	if under := strings.Index(typeName, "_"); under != -1 {
 		provider := typeName[:under]
 		typeName = typeName[under+1:]
@@ -2302,7 +2557,15 @@ func convertManagedResources(state *convertState,
 		blockBody.AppendBlock(options)
 	}
 
-	resourceArgs := convertBody(state, scopes, path, managedResource.Config)
+	var resourceArgs bodyAttrsTokens
+	if _, custom := customResourceMappings[managedResource.Type]; custom {
+		if managedResource.Type == "helm_release" {
+			resourceArgs = convertHelmReleaseResource(state, scopes, path, managedResource.Config)
+		}
+	} else {
+		resourceArgs = convertBody(state, scopes, path, managedResource.Config)
+	}
+
 	for _, arg := range resourceArgs {
 		blockBody.SetAttributeRaw(arg.Name, arg.Value)
 	}
@@ -2645,7 +2908,7 @@ func translateModuleSourceCode(
 			// Try to grab the info for this resource type
 			provider := impliedProvider(managedResource.Type)
 			providerInfo, err := info.GetProviderInfo("", "", provider, "")
-			if err != nil {
+			if err != nil && !isCustomProviderMapping(provider) {
 				state.appendDiagnostic(&hcl.Diagnostic{
 					Subject:  &managedResource.DeclRange,
 					Severity: hcl.DiagWarning,

@@ -1,6 +1,7 @@
 ### Improvements
 
 - Added references to issues for missing functions in output.
+- Implemented specialized conversion for `helm_release` resources.
 
 ### Bug Fixes
 
