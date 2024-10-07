@@ -1664,19 +1664,6 @@ func tokensForObject(ts []bodyAttrTokens) hclwrite.Tokens {
 	return hclwrite.TokensForObject(attrs)
 }
 
-// same as tokensForObject but writes the keys out as strings instead of identifiers
-func tokensForObjectAsMap(ts []bodyAttrTokens) hclwrite.Tokens {
-	attrs := make([]hclwrite.ObjectAttrTokens, 0, len(ts))
-	for _, attr := range ts {
-		name := append(attr.Trivia, hclwrite.TokensForValue(cty.StringVal(attr.Name))...)
-		attrs = append(attrs, hclwrite.ObjectAttrTokens{
-			Name:  name,
-			Value: attr.Value,
-		})
-	}
-	return hclwrite.TokensForObject(attrs)
-}
-
 type bodyAttrsTokens []bodyAttrTokens
 
 func (ts bodyAttrsTokens) Len() int      { return len(ts) }
