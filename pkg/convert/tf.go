@@ -1747,102 +1747,24 @@ func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualif
 	firstValueLine := 0
 
 	for _, block := range content.Blocks {
-		if block.Type == "timeouts" {
-			// Timeouts are a special resource option block, we can't currently convert that PCL so just skip
-			continue
-		}
-
 		blockPath := appendPath(fullyQualifiedPath, block.Type)
-		if block.Type == "dynamic" {
-			// For dynamic blocks the path is the first label, not "dynamic"
-			blockPath = appendPath(fullyQualifiedPath, block.Labels[0])
-		}
-		// If this is a list so add [] to the path
-		isList := !scopes.maxItemsOne(blockPath)
 		name := scopes.pulumiName(blockPath)
-		if isList {
-			blockPath = appendPathArray(blockPath)
-		}
-
-		if block.Type == "dynamic" {
-			dynamicBody, ok := block.Body.(*hclsyntax.Body)
-			contract.Assertf(ok, "%T was not a hclsyntax.Body", dynamicBody)
-
-			// This block _might_ have an "iterator" entry to set the variable name
-			var tfEachVar string
-			iteratorAttr, has := dynamicBody.Attributes["iterator"]
-			if has {
-				str, _ := matchStaticString(iteratorAttr.Expr)
-				if str == nil {
-					panic("iterator must be a static string")
-				}
-				tfEachVar = *str
-			} else {
-				tfEachVar = block.Labels[0]
+		if name == "set" || name == "setList" || name == "setSensitive" {
+			content := bodyContent(block.Body)
+			nameAttr, nameAttrExists := content.Attributes["name"]
+			valueAttr, valueAttrExists := content.Attributes["value"]
+			valueTokens := convertExpression(state, true, scopes, blockPath, valueAttr.Expr)
+			if name == "setSensitive" {
+				valueTokens = hclwrite.TokensForFunctionCall("secret", valueTokens)
 			}
-
-			pulumiEachVar := scopes.generateUniqueName("entry", "", "")
-
-			dynamicTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "for"))
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, pulumiEachVar))
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "in"))
-
-			forEachAttr, hasForEachAttr := dynamicBody.Attributes["for_each"]
-			if !hasForEachAttr {
-				continue
-			}
-
-			// wrap the collection expression into `entries(collection)` so that each entry has key and value
-			forEachExprTokens := convertExpression(state, true, scopes, fullyQualifiedPath, forEachAttr.Expr)
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "entries"))
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenOParen, "("))
-			dynamicTokens = append(dynamicTokens, forEachExprTokens...)
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenCParen, ")"))
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenColon, ":"))
-
-			bodyTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenIdent, "{}")}
-			for _, innerBlock := range dynamicBody.Blocks {
-				if innerBlock.Type == "content" {
-					scopes.push(map[string]string{
-						tfEachVar: pulumiEachVar,
-					})
-					contentBody := convertBody(state, scopes, blockPath, innerBlock.Body)
-					bodyTokens = tokensForObject(contentBody)
-					scopes.pop()
+			if nameAttrExists && valueAttrExists {
+				if firstValueLine == 0 {
+					firstValueLine = valueAttr.Range.Start.Line
 				}
-			}
-
-			dynamicTokens = append(dynamicTokens, bodyTokens...)
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenCBrack, "]"))
-
-			if !isList {
-				// This is a block attribute, not a list
-				dynamicTokens = hclwrite.TokensForFunctionCall("singleOrNone", dynamicTokens)
-			}
-
-			newAttributes = append(newAttributes, bodyAttrTokens{
-				Name:  name,
-				Value: dynamicTokens,
-			})
-		} else {
-			if name == "set" || name == "setList" || name == "setSensitive" {
-				content := bodyContent(block.Body)
-				nameAttr, nameAttrExists := content.Attributes["name"]
-				valueAttr, valueAttrExists := content.Attributes["value"]
-				valueTokens := convertExpression(state, true, scopes, blockPath, valueAttr.Expr)
-				if name == "setSensitive" {
-					valueTokens = hclwrite.TokensForFunctionCall("secret", valueTokens)
-				}
-				if nameAttrExists && valueAttrExists {
-					if firstValueLine == 0 {
-						firstValueLine = valueAttr.Range.Start.Line
-					}
-					valueAttributes = append(valueAttributes, hclwrite.ObjectAttrTokens{
-						Name:  convertExpression(state, true, scopes, blockPath, nameAttr.Expr),
-						Value: valueTokens,
-					})
-				}
+				valueAttributes = append(valueAttributes, hclwrite.ObjectAttrTokens{
+					Name:  convertExpression(state, true, scopes, blockPath, nameAttr.Expr),
+					Value: valueTokens,
+				})
 			}
 		}
 	}
