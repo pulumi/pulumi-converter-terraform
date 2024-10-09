@@ -241,6 +241,7 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-role-for-service-accounts-eks",
+			// TODO[pulumi/pulumi-converter-terraform#200]: caused by error converting aws vpc module.
 			// TODO[pulumi/pulumi-converter-terraform#32]: upstream example change can no longer convert
 			skip: allLanguages,
 		},
@@ -350,6 +351,7 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/aztfmod/terraform-azurerm-caf",
+			// TODO[pulumi/pulumi-converter-terraform#201]: Name overlap with keyword "for"
 			// TODO[pulumi/pulumi-terraform-bridge#1303]: panic: fatal: An assertion has failed:
 			// empty path part passed into getInfo: .recurrence.hours
 			skip: allLanguages,
@@ -366,7 +368,7 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/aws-ia/terraform-aws-eks-blueprints/patterns/multi-tenancy-with-teams",
-			// TODO[pulumi/pulumi-converter-terraform#32]: upstream example change can no longer convert
+			// TODO[pulumi/pulumi-converter-terraform#200]: caused by error converting aws vpc module.
 			skip: allLanguages,
 		},
 	}
