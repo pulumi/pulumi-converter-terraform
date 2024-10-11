@@ -47,7 +47,8 @@ func (l *TestFileMapper) GetMapping(_ context.Context, provider string, pulumiPr
 
 	mappingPath := filepath.Join(l.Path, pulumiProvider) + ".json"
 	mappingBytes, err := os.ReadFile(mappingPath)
-	if err != nil {
+	// don't error on missing mappings for custom providers like helm
+	if err != nil && provider != "helm" {
 		if os.IsNotExist(err) {
 			panic(fmt.Sprintf("provider %s (%s) is not known to the test system", provider, pulumiProvider))
 		}
