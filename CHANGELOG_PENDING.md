@@ -1,6 +1,7 @@
 ### Improvements
 
 - Added references to issues for missing functions in output.
+- Added code generation rename workarounds for pcl keywords.
 
 ### Bug Fixes
 
