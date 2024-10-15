@@ -773,6 +773,7 @@ type convertState struct {
 
 type pclOverlapRenames struct {
 	nameToRename map[string]string
+	renameToName map[string]string
 }
 
 func (s *convertState) disableRewritingObjectKeys(f func()) {
@@ -807,6 +808,7 @@ func (s *convertState) renamePclOverlap(kind string, hclType *string, name strin
 	if hclType != nil && isPclKeyword(*hclType) {
 		*newType = fmt.Sprintf("%s_%sType_", *hclType, kind)
 		s.typeRenames.nameToRename[name] = *newType
+		s.typeRenames.renameToName[newName] = name
 
 		s.appendDiagnostic(&hcl.Diagnostic{
 			Subject:  hclRange,
@@ -819,6 +821,7 @@ func (s *convertState) renamePclOverlap(kind string, hclType *string, name strin
 	if isPclKeyword(name) {
 		newName = fmt.Sprintf("%s_%s_", name, kind)
 		s.renames.nameToRename[name] = newName
+		s.renames.renameToName[newName] = name
 
 		s.appendDiagnostic(&hcl.Diagnostic{
 			Subject:  hclRange,
@@ -831,8 +834,15 @@ func (s *convertState) renamePclOverlap(kind string, hclType *string, name strin
 	return *newType, newName
 }
 
-func (s *convertState) getNameIfRenamed(name string) string {
+func (s *convertState) getNewNameIfRenamed(name string) string {
 	if newName, ok := s.renames.nameToRename[name]; ok {
+		return newName
+	}
+	return name
+}
+
+func (s *convertState) getOriginalNameIfRenamed(name string) string {
+	if newName, ok := s.renames.renameToName[name]; ok {
 		return newName
 	}
 	return name
@@ -1390,7 +1400,7 @@ func rewriteTraversal(
 		} else if maybeFirstAttr != nil {
 			// This is a lookup of a resource or an attribute lookup on a local variable etc, we need to
 			// rewrite this traversal such that the root is now the pulumi invoked value instead.
-			rewriteName := state.getNameIfRenamed(maybeFirstAttr.Name)
+			rewriteName := state.getNewNameIfRenamed(maybeFirstAttr.Name)
 
 			// First see if this is a resource
 			path := root.Name + "." + rewriteName
@@ -2300,7 +2310,8 @@ func convertManagedResources(state *convertState,
 	// If the pulumi name differs from the terraform name we should set __logicalName so that we don't change
 	// the name of the resource in state.
 	if pulumiName != managedResource.Name {
-		blockBody.SetAttributeRaw("__logicalName", hclwrite.TokensForValue(cty.StringVal(managedResource.Name)))
+		logicalName := state.getOriginalNameIfRenamed(managedResource.Name)
+		blockBody.SetAttributeRaw("__logicalName", hclwrite.TokensForValue(cty.StringVal(logicalName)))
 	}
 
 	var options *hclwrite.Block
@@ -2621,6 +2632,11 @@ func translateModuleSourceCode(
 		rewriteObjectKeys: true,
 		renames: pclOverlapRenames{
 			nameToRename: make(map[string]string),
+			renameToName: make(map[string]string),
+		},
+		typeRenames: pclOverlapRenames{
+			nameToRename: make(map[string]string),
+			renameToName: make(map[string]string),
 		},
 	}
 
