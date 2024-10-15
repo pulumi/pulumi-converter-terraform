@@ -1,13 +1,13 @@
-resource "forResourcePcl" "simple:index:resource" {
-  __logicalName = "for_resource_pcl"
+resource "forResource_" "simple:index:resource" {
+  __logicalName = "for"
   inputOne      = "hello"
   inputTwo      = true
 }
 
 resource "dependsOnFor" "simple:index:resource" {
   options {
-    dependsOn = [forResourcePcl]
+    dependsOn = [forResource_]
   }
-  inputOne = forResourcePcl.result
+  inputOne = forResource_.result
   inputTwo = false
 }
