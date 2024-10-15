@@ -1,0 +1,3 @@
+[
+  "warning:name_overlap/main.tf:1,1-33:resource renamed to prevent keyword overlap:Renaming resource for to of type simple_resource to for_resource_pcl to prevent overlap"
+]
