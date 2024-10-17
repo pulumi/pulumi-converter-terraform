@@ -27,8 +27,10 @@ import (
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/logging"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/rpcutil"
 	pulumirpc "github.com/pulumi/pulumi/sdk/v3/proto/go"
+	"github.com/pulumi/terraform/pkg/configs"
 	"github.com/spf13/afero"
 	"github.com/spf13/pflag"
 	"google.golang.org/grpc"
@@ -96,7 +98,13 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	if err != nil {
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
-	providerInfoSource := il.NewMapperProviderInfoSource(mapper)
+
+	terraformProviderDeps, err := readAllTerraformDependencies(afero.NewOsFs(), "./")
+	if err != nil {
+		return nil, fmt.Errorf("could not read terraform deps: %w", err)
+	}
+
+	providerInfoSource := il.NewMapperProviderInfoSourceWithDependencies(mapper, terraformProviderDeps)
 
 	if *convertExamples != "" {
 		examplesBytes, err := os.ReadFile(filepath.Join(req.SourceDirectory, *convertExamples))
@@ -191,4 +199,21 @@ func main() {
 	if err := <-handle.Done; err != nil {
 		log.Fatalf("fatal: %v", err)
 	}
+}
+
+func readAllTerraformDependencies(fs afero.Fs, dir string) (map[string]string, error) {
+	result := make(map[string]string)
+
+	p := configs.NewParser(fs)
+	mod, diags := p.LoadConfigDir(dir)
+	if len(diags.Errs()) != 0 {
+		return nil, fmt.Errorf("error parsing hcl: %s", diags.Error())
+	}
+
+	for name, provider := range mod.ProviderRequirements.RequiredProviders {
+		logging.V(4).Infof("Found dep: %s: %v", name, provider.Source)
+		result[name] = provider.Source
+	}
+
+	return result, nil
 }

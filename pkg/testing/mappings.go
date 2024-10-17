@@ -27,6 +27,20 @@ type TestFileMapper struct {
 }
 
 func (l *TestFileMapper) GetMapping(_ context.Context, provider string, pulumiProvider string) ([]byte, error) {
+	// 'unknown' is used as a known provider name that will return nothing, so return early here so we
+	// don't hit the standard unknown error below.
+	// 'error' is used as a known provider name that will cause GetMapping to error, so return early here
+	// so we don't hit the standard unknown error below.
+	return getMapping(pulumiProvider, provider, l)
+}
+
+func (l *TestFileMapper) GetTerraformMapping(
+	_ context.Context, provider string, pulumiProvider string,
+) ([]byte, error) {
+	return getMapping(pulumiProvider, provider, l)
+}
+
+func getMapping(pulumiProvider string, provider string, l *TestFileMapper) ([]byte, error) {
 	if pulumiProvider == "" {
 		pulumiProvider = provider
 	}
@@ -35,13 +49,11 @@ func (l *TestFileMapper) GetMapping(_ context.Context, provider string, pulumiPr
 	}
 
 	if pulumiProvider == "unknown" {
-		// 'unknown' is used as a known provider name that will return nothing, so return early here so we
-		// don't hit the standard unknown error below.
+
 		return nil, nil
 	}
 	if pulumiProvider == "error" {
-		// 'error' is used as a known provider name that will cause GetMapping to error, so return early here
-		// so we don't hit the standard unknown error below.
+
 		return nil, errors.New("test error")
 	}
 

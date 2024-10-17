@@ -32,6 +32,13 @@ func (m *testMapper) GetMapping(context.Context, string, string) ([]byte, error)
 	return nil, nil
 }
 
+func (m *testMapper) GetTerraformMapping(
+	ctx context.Context, provider string, pulumiProvider string,
+) ([]byte, error) {
+	// See GetMapping
+	return nil, nil
+}
+
 func TestExamplesJson(t *testing.T) {
 	t.Parallel()
 
