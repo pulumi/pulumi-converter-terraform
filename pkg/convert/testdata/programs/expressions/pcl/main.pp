@@ -66,9 +66,9 @@ output "complexObjectOut" {
   value = {
     aTuple = ["a", "b", "c"]
     anObject = {
-      literalKey                = 1
-      anotherLiteralKey         = 2
-      "yet_another_literal_key" = aValue
+      literalKey             = 1
+      anotherLiteralKey      = 2
+      "yetAnotherLiteralKey" = aValue
 
       // This only translates correctly in the new converter.
       (aKey) = 4

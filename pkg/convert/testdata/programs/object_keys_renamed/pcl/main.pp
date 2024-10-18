@@ -1,0 +1,3 @@
+obj = {
+  "snakeCaseKeyBecomesCamel" = "abc123"
+}

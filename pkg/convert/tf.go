@@ -1107,6 +1107,18 @@ func convertObjectConsKeyExpr(state *convertState, inBlock bool,
 	scopes *scopes, fullyQualifiedPath string, expr *hclsyntax.ObjectConsKeyExpr,
 ) hclwrite.Tokens {
 	// Seems we can just ignore ForceNonLiteral here
+	switch exprWrapped := expr.Wrapped.(type) {
+	case *hclsyntax.TemplateExpr:
+		// For some reason these are template expressions, not just literals,
+		// extracing the static string.
+		name, _ := matchStaticString(exprWrapped)
+		if name != nil && !state.rewriteObjectKeys {
+			return hclwrite.TokensForValue(cty.StringVal(*name))
+		} else if name != nil && state.rewriteObjectKeys {
+			return hclwrite.TokensForValue(cty.StringVal(camelCaseName(*name)))
+		}
+	}
+
 	return convertExpression(state, false, scopes, fullyQualifiedPath, expr.Wrapped)
 }
 
