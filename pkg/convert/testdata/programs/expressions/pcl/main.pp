@@ -43,10 +43,10 @@ output "sortedObjectOut" {
     a = 1
   }
 }
-aKey   = "hello"
-aValue = -1
-aList  = [1, 2, 3]
-aListOfMaps = [{
+a_key   = "hello"
+a_value = -1
+a_list  = [1, 2, 3]
+a_list_of_maps = [{
   x = [1, 2]
   y = [3, 4]
   }, {
@@ -55,11 +55,11 @@ aListOfMaps = [{
 }]
 
 output "staticIndexOut" {
-  value = aList[1]
+  value = a_list[1]
 }
 
 output "dynamicIndexOut" {
-  value = aList[aValue]
+  value = a_list[a_value]
 }
 
 output "complexObjectOut" {
@@ -68,10 +68,10 @@ output "complexObjectOut" {
     anObject = {
       literalKey                = 1
       anotherLiteralKey         = 2
-      "yet_another_literal_key" = aValue
+      "yet_another_literal_key" = a_value
 
       // This only translates correctly in the new converter.
-      (aKey) = 4
+      (a_key) = 4
     }
     ambiguousFor = {
       "for" = 1
@@ -80,23 +80,23 @@ output "complexObjectOut" {
 }
 
 output "simpleTemplate" {
-  value = "${aValue}"
+  value = "${a_value}"
 }
 
 output "quotedTemplate" {
-  value = "The key is ${aKey}"
+  value = "The key is ${a_key}"
 }
 
 output "heredoc" {
-  value = "This is also a template.\nSo we can output the key again ${aKey}\n"
+  value = "This is also a template.\nSo we can output the key again ${a_key}\n"
 }
 
 output "forTuple" {
-  value = [for key, value in ["a", "b"] : "${key}:${value}:${aValue}" if key != 0]
+  value = [for key, value in ["a", "b"] : "${key}:${value}:${a_value}" if key != 0]
 }
 
 output "forTupleValueOnly" {
-  value = [for value in ["a", "b"] : "${value}:${aValue}"]
+  value = [for value in ["a", "b"] : "${value}:${a_value}"]
 }
 
 output "forTupleValueOnlyAttr" {
@@ -110,7 +110,7 @@ output "forTupleValueOnlyAttr" {
 }
 
 output "forObject" {
-  value = { for key, value in ["a", "b"] : key => "${value}:${aValue}" if key != 0 }
+  value = { for key, value in ["a", "b"] : key => "${value}:${a_value}" if key != 0 }
 }
 
 output "forObjectGrouping" {
@@ -118,13 +118,13 @@ output "forObjectGrouping" {
 }
 
 output "relativeTraversalAttr" {
-  value = aListOfMaps[0].x
+  value = a_list_of_maps[0].x
 }
 
 output "relativeTraversalIndex" {
-  value = aListOfMaps[0]["x"]
+  value = a_list_of_maps[0]["x"]
 }
 
 output "conditionalExpr" {
-  value = aValue == 0 ? "true" : "false"
+  value = a_value == 0 ? "true" : "false"
 }

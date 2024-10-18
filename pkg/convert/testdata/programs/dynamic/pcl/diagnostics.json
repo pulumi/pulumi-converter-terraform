@@ -1,0 +1,5 @@
+[
+  "warning:dynamic/main.tf:4,20-33:dynamic/main.tf:4,20-33:unexpected expression in loop collection:expected a collection expression *hclsyntax.TupleConsExpr in the loop traversal, but found an unexpected expression",
+  "warning:dynamic/main.tf:13,20-33:dynamic/main.tf:13,20-33:unexpected expression in loop collection:expected a collection expression *hclsyntax.TupleConsExpr in the loop traversal, but found an unexpected expression",
+  "warning:dynamic/main.tf:24,20-33:dynamic/main.tf:24,20-33:unexpected expression in loop collection:expected a collection expression *hclsyntax.TupleConsExpr in the loop traversal, but found an unexpected expression"
+]

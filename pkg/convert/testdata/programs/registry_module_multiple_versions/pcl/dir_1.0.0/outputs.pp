@@ -3,7 +3,7 @@ output "files" {
 }
 
 output "filesOnDisk" {
-  value = { for p, f in files : p => f if f.sourcePath != null }
+  value = { for p, f in files : p => f if f.source_path != null }
 }
 
 output "filesInMemory" {

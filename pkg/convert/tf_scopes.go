@@ -65,6 +65,7 @@ type scopes struct {
 	countIndex hcl.Traversal
 	eachKey    hcl.Traversal
 	eachValue  hcl.Traversal
+	eachValueType string
 
 	scope *lang.Scope
 }
@@ -163,17 +164,30 @@ func (s *scopes) getOrAddOutput(name string) string {
 	return pulumiName
 }
 
+func (s *scopes) getOrAddPulumiNameCamelCase(path, prefix, suffix string) string {
+	return s.getOrAddPulumiName(path, prefix, suffix, true)
+}
+
+func (s *scopes) getOrAddPulumiNameKeepFormatting(path, prefix, suffix string) string {
+	return s.getOrAddPulumiName(path, prefix, suffix, false)
+}
+
 // getOrAddPulumiName takes "path" and returns the unique name for it. First by prepending `prefix` and
 // appending `suffix` to it, and then appending an incrementing count.
-func (s *scopes) getOrAddPulumiName(path, prefix, suffix string) string {
+func (s *scopes) getOrAddPulumiName(path, prefix, suffix string, camelCase bool) string {
 	root, has := s.roots[path]
 	if has {
 		return root.Name
 	}
 	parts := strings.Split(path, ".")
 	tfName := parts[len(parts)-1]
-	pulumiName := camelCaseName(tfName)
+
+	pulumiName := tfName
+	if camelCase {
+		pulumiName = camelCaseName(pulumiName)
+	}
 	pulumiName = s.generateUniqueName(pulumiName, prefix, suffix)
+
 	s.roots[path] = PathInfo{Name: pulumiName}
 	return pulumiName
 }

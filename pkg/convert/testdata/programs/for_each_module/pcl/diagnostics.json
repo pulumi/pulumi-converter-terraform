@@ -1,0 +1,4 @@
+[
+  "warning:for_each_module/main.tf:4,16-7,6:for_each_module/main.tf:4,16-7,6:unexpected expression in loop collection:expected a collection expression *hclsyntax.ObjectConsExpr in the loop traversal, but found an unexpected expression",
+  "warning:for_each_module/main.tf:19,16-33:for_each_module/main.tf:19,16-33:unexpected expression in loop collection:expected a collection expression *hclsyntax.TupleConsExpr in the loop traversal, but found an unexpected expression"
+]
