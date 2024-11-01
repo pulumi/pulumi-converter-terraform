@@ -22,6 +22,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
 
@@ -116,8 +117,6 @@ func convertCtyType(typ cty.Type) string {
 		attributes := []string{}
 		for _, attributeKey := range attributeKeys {
 			attributeType := attributeTypes[attributeKey]
-			// rename the attribute keys to match pulumi style (camelCase)
-			attributeKey = camelCaseName(attributeKey)
 			attributes = append(attributes, fmt.Sprintf("%s=%s", attributeKey, convertCtyType(attributeType)))
 		}
 
@@ -1087,8 +1086,11 @@ func convertObjectConsExpr(state *convertState, inBlock bool, scopes *scopes,
 		}
 		// If we can't statically determine the name, we can't rename it, so just convert the expression.
 		if nameTokens == nil {
-			if name != nil && !state.rewriteObjectKeys {
+			if name != nil && !state.rewriteObjectKeys && !isIdentifier {
 				nameTokens = hclwrite.TokensForValue(cty.StringVal(*name))
+			} else if name != nil && !state.rewriteObjectKeys && isIdentifier {
+				// Do not quote object keys accessed as identifiers in original source.
+				nameTokens = hclwrite.TokensForIdentifier(*name)
 			} else {
 				nameTokens = convertExpression(state, false, scopes, "", item.KeyExpr)
 			}
@@ -1193,7 +1195,7 @@ func (s *scopes) isPropertyPath(fullyQualifiedPath string) bool {
 	return info.Resource == nil && info.ResourceInfo == nil && info.DataSourceInfo == nil
 }
 
-func rewriteRelativeTraversal(scopes *scopes, fullyQualifiedPath string, traversal hcl.Traversal) hcl.Traversal {
+func (state convertState) rewriteRelativeTraversal(scopes *scopes, fullyQualifiedPath string, traversal hcl.Traversal) hcl.Traversal {
 	if len(traversal) == 0 {
 		return traversal
 	}
@@ -1205,21 +1207,23 @@ func rewriteRelativeTraversal(scopes *scopes, fullyQualifiedPath string, travers
 		if fullyQualifiedPath != "" {
 			fullyQualifiedPath = appendPath(fullyQualifiedPath, attr.Name)
 			name = scopes.pulumiName(fullyQualifiedPath)
+		} else if !state.rewriteObjectKeys {
+			name = attr.Name
 		} else {
 			name = tfbridge.TerraformToPulumiNameV2(attr.Name, nil, nil)
 		}
 
 		newTraversal = append(newTraversal, hcl.TraverseAttr{Name: name})
-		newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, fullyQualifiedPath, traversal[1:])...)
+		newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, fullyQualifiedPath, traversal[1:])...)
 	} else if index, ok := traversal[0].(hcl.TraverseIndex); ok {
 		if scopes.isPropertyPath(fullyQualifiedPath) && scopes.maxItemsOne(fullyQualifiedPath) {
 			// if are indexing a field which is marked with max items = 1
 			// then we skip the index altogether and return traversal as is
-			newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, fullyQualifiedPath, traversal[1:])...)
+			newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, fullyQualifiedPath, traversal[1:])...)
 		} else {
 			// Index just translates as is
 			newTraversal = append(newTraversal, hcl.TraverseIndex{Key: index.Key})
-			newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, fullyQualifiedPath, traversal[1:])...)
+			newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, fullyQualifiedPath, traversal[1:])...)
 		}
 	} else {
 		panic(fmt.Sprintf("Relative traverser %T not handled", traversal[0]))
@@ -1272,6 +1276,8 @@ func rewriteTraversal(
 			return root.Name == rootName && maybeFirstAttr != nil && maybeFirstAttr.Name == attrName
 		}
 
+		rangeKindIsUnmangled := scopes.eachValueType == "var" || scopes.eachValueType == "local"
+
 		if matches("terraform", "workspace") ||
 			matches("path", "cwd") ||
 			matches("path", "module") ||
@@ -1288,37 +1294,41 @@ func rewriteTraversal(
 		} else if root.Name == "var" && maybeFirstAttr != nil {
 			// This is a lookup of a var etc, we need to rewrite this traversal such that the root is now the
 			// pulumi config value instead.
-			newName := scopes.getOrAddPulumiName("var."+maybeFirstAttr.Name, "", "Config")
-			newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
-			newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[2:])...)
+			state.disableRewritingObjectKeys(func() {
+				newName := scopes.getOrAddPulumiNameCamelCase("var."+maybeFirstAttr.Name, "", "Config")
+				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
+				newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[2:])...)
+			})
 		} else if root.Name == "local" && maybeFirstAttr != nil {
 			// This is a lookup of a local etc, we need to rewrite this traversal such that the root is now the
 			// pulumi local value instead.
-			newName := scopes.getOrAddPulumiName("local."+maybeFirstAttr.Name, "their", "")
-			newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
-			newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[2:])...)
+			state.disableRewritingObjectKeys(func() {
+				newName := scopes.getOrAddPulumiNameCamelCase("local."+maybeFirstAttr.Name, "their", "")
+				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
+				newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[2:])...)
+			})
 		} else if root.Name == "data" && maybeFirstAttr != nil && maybeSecondAttr != nil {
 			// This is a lookup of a data resources etc, we need to rewrite this traversal such that the root is now the
 			// pulumi invoked value instead.
 			path := "data." + maybeFirstAttr.Name + "." + maybeSecondAttr.Name
 			rootName := scopes.lookup(path)
 			if rootName != "" {
-				newName := scopes.getOrAddPulumiName(path, "", "data"+camelCaseName(rootName))
+				newName := scopes.getOrAddPulumiNameCamelCase(path, "", "data"+camelCaseName(rootName))
 				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
-				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, path, traversal[3:])...)
+				newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, path, traversal[3:])...)
 			} else {
 				// unbound data source / invoke usage.
 				// turn data.{data_source_token}.{local_name}.{rest}
 				// into {localName}{DataSourceToken}.{rest}
 				suffix := camelCaseName(maybeFirstAttr.Name)
-				newRootName := scopes.getOrAddPulumiName(path, "", suffix)
+				newRootName := scopes.getOrAddPulumiNameCamelCase(path, "", suffix)
 				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newRootName})
-				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[3:])...)
+				newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[3:])...)
 			}
 		} else if root.Name == "count" && maybeFirstAttr != nil {
 			if maybeFirstAttr.Name == "index" && scopes.countIndex != nil {
 				newTraversal = append(newTraversal, scopes.countIndex...)
-				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[2:])...)
+				newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[2:])...)
 			} else if maybeFirstAttr.Name != "index" {
 				// Saw some other attribute on count, this is an error
 				state.appendDiagnostic(&hcl.Diagnostic{
@@ -1349,13 +1359,20 @@ func rewriteTraversal(
 			// This _might_ be the special "each" value or it might just be a local, check the latter first
 			localName := scopes.lookup("each")
 			if localName != "" {
-				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: localName})
-				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[1:])...)
+				if rangeKindIsUnmangled {
+					state.disableRewritingObjectKeys(func() {
+						newTraversal = append(newTraversal, hcl.TraverseRoot{Name: localName})
+						newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[1:])...)
+					})
+				} else {
+					newTraversal = append(newTraversal, hcl.TraverseRoot{Name: localName})
+					newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[1:])...)
+				}
 			} else {
 				if maybeFirstAttr.Name == "key" {
 					if scopes.eachKey != nil {
 						newTraversal = append(newTraversal, scopes.eachKey...)
-						newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[2:])...)
+						newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[2:])...)
 					} else {
 						state.appendDiagnostic(&hcl.Diagnostic{
 							Severity: hcl.DiagError,
@@ -1369,9 +1386,16 @@ func rewriteTraversal(
 					}
 				} else if maybeFirstAttr.Name == "value" {
 					if scopes.eachValue != nil {
-						newTraversal = append(newTraversal, scopes.eachValue...)
-						newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[2:])...)
-					} else {
+						if rangeKindIsUnmangled {
+							state.disableRewritingObjectKeys(func() {
+								newTraversal = append(newTraversal, scopes.eachValue...)
+								newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[2:])...)
+							}) 
+						} else {
+							newTraversal = append(newTraversal, scopes.eachValue...)
+							newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[2:])...)
+						}
+				} else {
 						state.appendDiagnostic(&hcl.Diagnostic{
 							Severity: hcl.DiagError,
 							Summary:  `each.value cannot be used in this context`,
@@ -1408,22 +1432,31 @@ func rewriteTraversal(
 			if newName != "" {
 				// Looks like this is a resource because a local variable would not be recorded in scopes with a "." in it.
 				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
-				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, path, traversal[2:])...)
+				newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, path, traversal[2:])...)
 			} else {
-				// This is either a local variable or a resource we haven't seen yet. First check if this is a local variable
+				// This is either a locally scoped variable (eg in a loop) or a resource we
+				// haven't seen yet. First check if this is a local variable
 				newName := scopes.lookup(root.Name)
 				if newName != "" {
-					// Looks like this is a local variable, just rewrite the rest of the traversal
-					newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
-					newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[1:])...)
+					// Looks like this is a locally scoped variable, lets try not to
+					// rename, just rewrite the rest of the traversal.
+					if rangeKindIsUnmangled {
+						state.disableRewritingObjectKeys(func() {
+							newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
+							newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[1:])...)
+						})
+					} else {
+						newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
+						newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[1:])...)
+					}
 				} else {
 					// We don't know what this is, so let's assume it's an unknown resource (we shouldn't ever have unknown locals)
 					// turn {resource_type}.{resource_name}.{rest}
 					// into {resourceName}{ResourceType}.{rest}
 					suffix := camelCaseName(root.Name)
-					newRootName := scopes.getOrAddPulumiName(path, "", suffix)
+					newRootName := scopes.getOrAddPulumiNameCamelCase(path, "", suffix)
 					newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newRootName})
-					newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[2:])...)
+					newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[2:])...)
 				}
 			}
 		} else {
@@ -1431,12 +1464,15 @@ func rewriteTraversal(
 			newName := scopes.lookup(root.Name)
 			if newName != "" {
 				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
-				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[1:])...)
+				newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[1:])...)
 			} else {
 				// This will be an object key or an undeclared variable, try our best to rename those to match
 				// pulumi style (i.e. camelCase)
-				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: camelCaseName(root.Name)})
-				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[1:])...)
+				if state.rewriteObjectKeys {
+					newName = camelCaseName(root.Name)
+				}
+				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
+				newTraversal = append(newTraversal, state.rewriteRelativeTraversal(scopes, "", traversal[1:])...)
 			}
 		}
 	} else {
@@ -1459,7 +1495,7 @@ func convertRelativeTraversalExpr(
 ) hclwrite.Tokens {
 	tokens := convertExpression(state, false, scopes, "", expr.Source)
 	tokens = append(tokens, hclwrite.TokensForTraversal(
-		rewriteRelativeTraversal(scopes, fullyQualifiedPath, expr.Traversal))...)
+		state.rewriteRelativeTraversal(scopes, fullyQualifiedPath, expr.Traversal))...)
 	return tokens
 }
 
@@ -1532,10 +1568,15 @@ func convertForExpr(state *convertState, inBlock bool, scopes *scopes,
 	}
 	scopes.push(locals)
 
+	var diags hcl.Diagnostics
+	scopes.eachValueType, diags = getLoopCollKind(expr.CollExpr)
+	state.diagnostics = append(state.diagnostics, diags...)
+
 	keyTokens := convertExpression(state, false, scopes, "", expr.KeyExpr)
 	valueTokens := convertExpression(state, false, scopes, "", expr.ValExpr)
 	condTokens := convertExpression(state, false, scopes, "", expr.CondExpr)
 
+	scopes.eachValueType = ""
 	scopes.pop()
 
 	// Translate to either a tuple or object expression
@@ -1815,7 +1856,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 		}
 		// If this is a list so add [] to the path
 		isList := !scopes.maxItemsOne(blockPath)
-		name := scopes.pulumiName(blockPath)
+		dynamicBlockName := scopes.pulumiName(blockPath)
 		if isList {
 			blockPath = appendPathArray(blockPath)
 		}
@@ -1858,6 +1899,10 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenColon, ":"))
 
 			bodyTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenIdent, "{}")}
+			var diags hcl.Diagnostics
+			scopes.eachValueType, diags = getLoopCollKind(forEachAttr.Expr)
+			state.diagnostics = append(state.diagnostics, diags...)
+
 			for _, innerBlock := range dynamicBody.Blocks {
 				if innerBlock.Type == "content" {
 					scopes.push(map[string]string{
@@ -1868,6 +1913,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 					scopes.pop()
 				}
 			}
+			scopes.eachValueType = ""
 
 			dynamicTokens = append(dynamicTokens, bodyTokens...)
 			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenCBrack, "]"))
@@ -1878,7 +1924,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 			}
 
 			newAttributes = append(newAttributes, bodyAttrTokens{
-				Name:  name,
+				Name:  dynamicBlockName,
 				Value: dynamicTokens,
 			})
 		} else {
@@ -1886,13 +1932,13 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 				// This is a block attribute, not a list
 				newAttributes = append(newAttributes, bodyAttrTokens{
 					Line:  block.DefRange.Start.Line,
-					Name:  name,
+					Name:  dynamicBlockName,
 					Value: tokensForObject(convertBody(state, scopes, blockPath, block.Body)),
 				})
 			} else {
-				list := blockLists[name]
+				list := blockLists[dynamicBlockName]
 				list = append(list, convertBody(state, scopes, blockPath, block.Body))
-				blockLists[name] = list
+				blockLists[dynamicBlockName] = list
 			}
 		}
 	}
@@ -1937,6 +1983,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 
 		// We need the leading trivia here, but the trailing trivia will be handled by convertExpression
 		leading, _ := getTrivia(state.sources, getAttributeRange(state.sources, attr.Expr.Range()), true)
+
 		expr := convertExpression(state, true, scopes, attrPath, attr.Expr)
 
 		// If this is a maxItemsOne property then in terraform it will be a list, but in Pulumi it will be a
@@ -2065,8 +2112,9 @@ func convertVariable(state *convertState, scopes *scopes,
 		// for example object({ first_key = string }) becomes object({ firstKey = string })
 		// so here we also rewrite the attributes of the default value to camelCase
 		// i.e. { first_key = "hello" } becomes { firstKey = "hello" }
-		modifiedDefault := camelCaseObjectAttributes(variable.Default)
-		blockBody.SetAttributeValue("default", modifiedDefault)
+
+		// modifiedDefault := camelCaseObjectAttributes(variable.Default)
+		blockBody.SetAttributeValue("default", variable.Default)
 	} else if variable.Default.Type() != cty.NilType {
 		// default is null can mean two things:
 		//  - the default attribute is not set
@@ -2107,7 +2155,13 @@ func convertLocal(state *convertState, scopes *scopes,
 	local *configs.Local,
 ) (hclwrite.Tokens, string, hclwrite.Tokens, hclwrite.Tokens) {
 	identifier := scopes.roots["local."+local.Name].Name
-	expr := convertExpression(state, true, scopes, "", local.Expr)
+
+	var expr hclwrite.Tokens
+	state.disableRewritingObjectKeys(func() {
+		// Renaming locals is not necessary and causes TF bridge issues.
+		expr = convertExpression(state, true, scopes, "", local.Expr)
+	})
+
 	// The trailing trivia will have been caught by convertExpression, but we need the leading trivia before the identifier
 	leading, _ := getTrivia(state.sources, local.DeclRange, true)
 	return leading, identifier, expr, nil
@@ -2367,6 +2421,13 @@ func convertManagedResources(state *convertState,
 		forEachExpr := convertExpression(state, true, scopes, "", managedResource.ForEach)
 		scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
 		scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
+		// TODO(pulumi/pulumi-converter-terraform#181) If it is an inline object
+		// what happens? Maybe we should set it as another literal type to not
+		// mangle.
+		var diags hcl.Diagnostics
+		scopes.eachValueType, diags = getLoopCollKind(managedResource.ForEach)
+		state.diagnostics = append(state.diagnostics, diags...)
+
 		options.Body().SetAttributeRaw("range", forEachExpr)
 	}
 
@@ -2383,6 +2444,7 @@ func convertManagedResources(state *convertState,
 	scopes.countIndex = nil
 	scopes.eachKey = nil
 	scopes.eachValue = nil
+	scopes.eachValueType = ""
 	leading, trailing := getTrivia(state.sources, managedResource.DeclRange, false)
 
 	target.AppendUnstructuredTokens(leading)
@@ -2392,6 +2454,42 @@ func convertManagedResources(state *convertState,
 	// Add "command:Command" resources to handle provisioners
 	for idx, provisioner := range managedResource.Managed.Provisioners {
 		convertProvisioner(state, info, scopes, provisioner, pulumiName, idx, managedResource.ForEach, target)
+	}
+}
+
+func getLoopCollKind(expression hcl.Expression) (string, hcl.Diagnostics) {
+	switch expr := expression.(type) {
+	case *hclsyntax.ScopeTraversalExpr:
+		if len(expr.Traversal) > 0 {
+			var ok bool
+			var root hcl.TraverseRoot
+			if root, ok = expr.Traversal[0].(hcl.TraverseRoot); !ok {
+				return "", hcl.Diagnostics { &hcl.Diagnostic{
+					Severity:    hcl.DiagError,
+					Summary:     "no scope root in loop traversal expression",
+					Detail:      "loop traversal expressions expect a collection as a scope traversal with a root, but the root is missing, this should't be possible.",
+					Expression:  expression,
+				},
+			}
+			}
+
+			return root.Name, nil
+		}
+	}
+
+	var t reflect.Type
+	if expression != nil {
+		t = reflect.TypeOf(expression)
+	}
+	return "", hcl.Diagnostics{
+		&hcl.Diagnostic{
+			Severity:    hcl.DiagWarning,
+			Summary:     "unexpected expression in loop collection",
+			Detail:      fmt.Sprintf("expected a collection expression %s in the loop traversal, but found an unexpected expression", t),
+			Subject:     expression.Range().Ptr(),
+			Context:     expression.Range().Ptr(),
+			Expression:  expression,
+		},
 	}
 }
 
@@ -2444,20 +2542,28 @@ func convertModuleCall(
 	if moduleCall.ForEach != nil {
 		options := blockBody.AppendNewBlock("options", nil)
 		forEachExpr := convertExpression(state, true, scopes, "", moduleCall.ForEach)
+
+		var diags hcl.Diagnostics
 		scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
 		scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
+		scopes.eachValueType, diags = getLoopCollKind(moduleCall.ForEach)
+		state.diagnostics = append(state.diagnostics, diags...)
 		options.Body().SetAttributeRaw("range", forEachExpr)
 	}
 
-	moduleArgs := convertBody(state, scopes, path, moduleCall.Config)
-	for _, arg := range moduleArgs {
-		blockBody.SetAttributeRaw(arg.Name, arg.Value)
-	}
+
+	state.disableRewritingObjectKeys(func() {
+		moduleArgs := convertBody(state, scopes, path, moduleCall.Config)
+		for _, arg := range moduleArgs {
+			blockBody.SetAttributeRaw(arg.Name, arg.Value)
+		}
+	})
 
 	// Clear any index we set
 	scopes.countIndex = nil
 	scopes.eachKey = nil
 	scopes.eachValue = nil
+	scopes.eachValueType = ""
 	leading, trailing := getTrivia(state.sources, moduleCall.DeclRange, false)
 	return leading, block, trailing
 }
@@ -2664,7 +2770,6 @@ func translateModuleSourceCode(
 		items = append(items, terraformItem{moduleCall: moduleCall})
 	}
 	for _, resource := range module.ManagedResources {
-		// TODO do all types and diagnostics.
 		typeName, name := state.renamePclOverlap("resource", &resource.Type, resource.Name, &resource.DeclRange)
 		resource.Type = typeName
 		resource.Name = name
@@ -2686,13 +2791,13 @@ func translateModuleSourceCode(
 	// Now go through and generate unique names for all the things
 	for _, item := range items {
 		if item.variable != nil {
-			scopes.getOrAddPulumiName("var."+item.variable.Name, "", "Config")
+			scopes.getOrAddPulumiNameCamelCase("var."+item.variable.Name, "", "Config")
 		}
 	}
 	for _, item := range items {
 		if item.local != nil {
 			key := "local." + item.local.Name
-			scopes.getOrAddPulumiName(key, "my", "")
+			scopes.getOrAddPulumiNameKeepFormatting(key, "my", "")
 			root := scopes.roots[key]
 			root.Expression = &item.local.Expr
 			scopes.roots[key] = root
@@ -2731,7 +2836,7 @@ func translateModuleSourceCode(
 			}
 			tokenParts := strings.Split(invokeToken, ":")
 			suffix := strings.Title(tokenParts[len(tokenParts)-1])
-			root.Name = scopes.getOrAddPulumiName(key, "", suffix)
+			root.Name = scopes.getOrAddPulumiNameCamelCase(key, "", suffix)
 			scopes.roots[key] = root
 		}
 	}
@@ -2763,14 +2868,14 @@ func translateModuleSourceCode(
 			}
 			tokenParts := strings.Split(resourceToken, ":")
 			suffix := strings.Title(tokenParts[len(tokenParts)-1])
-			root.Name = scopes.getOrAddPulumiName(key, "", suffix)
+			root.Name = scopes.getOrAddPulumiNameCamelCase(key, "", suffix)
 			scopes.roots[key] = root
 		}
 	}
 	for _, item := range items {
 		if item.moduleCall != nil {
 			moduleCall := item.moduleCall
-			scopes.getOrAddPulumiName("module."+moduleCall.Name, "", "Component")
+			scopes.getOrAddPulumiNameCamelCase("module."+moduleCall.Name, "", "Component")
 
 			// First things first, check if this module has been seen before. If it has, we don't need to
 			// translate it again.

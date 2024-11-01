@@ -4,7 +4,7 @@ config "optStrIn" "string" {
 }
 
 // About the bool local
-aBool = true
+a_bool = true
 // Trailing bool comment
 
 
@@ -13,7 +13,7 @@ aBool = true
 aDataSource = invoke("complex:index/index:dataSource", {
 
   // About properties
-  aBool   = aBool
+  aBool   = a_bool
   aNumber = 2.3 // Trailing comments on properties
 
   // Trailing comments on properties

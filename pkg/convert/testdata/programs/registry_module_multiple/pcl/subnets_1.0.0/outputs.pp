@@ -3,7 +3,7 @@ output "networkCidrBlocks" {
 }
 
 output "networks" {
-  value = networkObjs
+  value = network_objs
 }
 
 output "baseCidrBlock" {

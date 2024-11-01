@@ -1,0 +1,7 @@
+[
+  "warning:expressions/main.tf:103,32-42:expressions/main.tf:103,32-42:unexpected expression in loop collection:expected a collection expression *hclsyntax.TupleConsExpr in the loop traversal, but found an unexpected expression",
+  "warning:expressions/main.tf:107,27-37:expressions/main.tf:107,27-37:unexpected expression in loop collection:expected a collection expression *hclsyntax.TupleConsExpr in the loop traversal, but found an unexpected expression",
+  "warning:expressions/main.tf:111,23-80:expressions/main.tf:111,23-80:unexpected expression in loop collection:expected a collection expression *hclsyntax.TupleConsExpr in the loop traversal, but found an unexpected expression",
+  "warning:expressions/main.tf:115,32-42:expressions/main.tf:115,32-42:unexpected expression in loop collection:expected a collection expression *hclsyntax.TupleConsExpr in the loop traversal, but found an unexpected expression",
+  "warning:expressions/main.tf:119,32-47:expressions/main.tf:119,32-47:unexpected expression in loop collection:expected a collection expression *hclsyntax.TupleConsExpr in the loop traversal, but found an unexpected expression"
+]

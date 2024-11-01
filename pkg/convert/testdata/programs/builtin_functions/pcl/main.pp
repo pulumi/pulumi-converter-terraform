@@ -1,11 +1,11 @@
 
 # A load of the examples in the docs use `path.module` which _should_ resolve to the file system path of #
 # the current module, but tf2pulumi doesn't support that so we replace it with local.path_module.
-pathModule = "some/path"
+path_module = "some/path"
 
 # Some of the examples in the docs use `path.root` which _should_ resolve to the file system path of the
 # root module of the configuration, but tf2pulumi doesn't support that so we replace it with local.path_root.
-pathRoot = "root/path"
+path_root = "root/path"
 
 # The `can` examples make use of a local `foo`.
 foo = {
@@ -14,7 +14,7 @@ foo = {
 
 # The `nonsensitive` examples make use of a local `mixed_content`.
 # We don't use jsondecode(var.mixed_content_json) here because we don't want to depend on the jsondecode function working.
-mixedContent = {
+mixed_content = {
   "password" = "hunter2"
 }
 
@@ -62,7 +62,7 @@ output "funcAbs2" {
 # Examples for abspath
 output "funcAbspath" {
   value = invoke("std:index:abspath", {
-    input = pathRoot
+    input = path_root
   }).result
 }
 
@@ -418,7 +418,7 @@ output "funcEndswith1" {
 # Examples for file
 output "funcFile" {
   value = invoke("std:index:file", {
-    input = "${pathModule}/hello.txt"
+    input = "${path_module}/hello.txt"
   }).result
 }
 
@@ -427,7 +427,7 @@ output "funcFile" {
 # Examples for filebase64
 output "funcFilebase64" {
   value = invoke("std:index:filebase64", {
-    input = "${pathModule}/hello.txt"
+    input = "${path_module}/hello.txt"
   }).result
 }
 
@@ -454,7 +454,7 @@ output "funcFilebase64sha512" {
 # Examples for fileexists
 output "funcFileexists" {
   value = invoke("std:index:fileexists", {
-    input = "${pathModule}/hello.txt"
+    input = "${path_module}/hello.txt"
   }).result
 }
 
@@ -850,10 +850,10 @@ output "funcNonsensitive0" {
   value = mixedContentJson
 }
 output "funcNonsensitive1" {
-  value = mixedContent
+  value = mixed_content
 }
 output "funcNonsensitive2" {
-  value = mixedContent["password"]
+  value = mixed_content["password"]
 }
 output "funcNonsensitive3" {
   value = notImplemented("nonsensitive(local.mixed_content[\"username\"])")
@@ -1072,7 +1072,7 @@ output "funcReverse" {
 output "funcRsadecrypt" {
   value = invoke("std:index:rsadecrypt", {
     cipherText = invoke("std:index:filebase64", {
-      input = "${pathModule}/ciphertext"
+      input = "${path_module}/ciphertext"
     }).result
     key = invoke("std:index:file", {
       input = "privatekey.pem"

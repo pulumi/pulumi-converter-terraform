@@ -1,0 +1,3 @@
+[
+  "warning:rename_lists/main.tf:19,20-28:rename_lists/main.tf:19,20-28:unexpected expression in loop collection:expected a collection expression *hclsyntax.TupleConsExpr in the loop traversal, but found an unexpected expression"
+]
