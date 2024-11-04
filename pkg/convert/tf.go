@@ -22,6 +22,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -1141,18 +1142,20 @@ func convertTemplateWrapExpr(state *convertState,
 	return tokens
 }
 
+// convertTemplateJoinExpr writes "template joins" back out as they are.  These
+// are for expressions in the HCL template syntax like so:
+// "%{for foo in local.bars~}foo%{endfor~}
 func convertTemplateJoinExpr(state *convertState, inBlock bool, scopes *scopes,
 	fullyQualifiedPath string, expr *hclsyntax.TemplateJoinExpr,
 ) hclwrite.Tokens {
-	forExpr := expr.Tuple.(*hclsyntax.ForExpr)
-	if forExpr == nil {
+	forExpr, ok := expr.Tuple.(*hclsyntax.ForExpr)
+	if !ok {
 		contract.Failf("Template Join Expression must contain for expression, but contains %T", expr.Tuple)
 	}
 
 	// The collection doesn't yet have access to the key/value scopes
 	collTokens := convertExpression(state, false, scopes, "", forExpr.CollExpr)
 
-	// TODO: We should ensure key and value vars are unique
 	locals := map[string]string{
 		forExpr.ValVar: camelCaseName(forExpr.ValVar),
 	}
@@ -1167,9 +1170,9 @@ func convertTemplateJoinExpr(state *convertState, inBlock bool, scopes *scopes,
 	scopes.pop()
 
 	var tokens hclwrite.Tokens
-	tokens = append(tokens, makeToken(hclsyntax.TokenTemplateControl, "%{"))
 
-	// Write the for template control section.
+	// Write the opening of the for template
+	tokens = append(tokens, makeToken(hclsyntax.TokenTemplateControl, "%{"))
 	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, "for"))
 	if locals[forExpr.KeyVar] != "" {
 		tokens = append(tokens, makeToken(hclsyntax.TokenIdent, locals[forExpr.KeyVar]))
@@ -1178,19 +1181,12 @@ func convertTemplateJoinExpr(state *convertState, inBlock bool, scopes *scopes,
 	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, locals[forExpr.ValVar]))
 	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, "in"))
 	tokens = append(tokens, collTokens...)
-
 	tokens = append(tokens, makeToken(hclsyntax.TokenTemplateControl, "~}"))
 
-	// There is no key expr in template join expressions.
-
-	// Write the value part
+	// Write the inside of the for template
 	tokens = append(tokens, valueTokens...)
 
-	// There is no ellipsis in template join expressions.
-
-	// There is no conditional part in template join expressions.
-
-	// Write the endfor control section.
+	// Write the %{endfor~}
 	tokens = append(tokens, makeToken(hclsyntax.TokenTemplateControl, "%{"))
 	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, "endfor"))
 	tokens = append(tokens, makeToken(hclsyntax.TokenTemplateControl, "~}"))
@@ -1202,11 +1198,15 @@ func convertTemplateExpr(state *convertState,
 	scopes *scopes, fullyQualifiedPath string, expr *hclsyntax.TemplateExpr,
 ) hclwrite.Tokens {
 	tokens := []*hclwrite.Token{}
-	// TODO(#219) handle <<EOF EOF string expressions.
-	tokens = append(tokens, makeToken(hclsyntax.TokenOQuote, "\""))
-	for _, part := range expr.Parts {
+	oDelim, cDelim, isHereDoc := detectHeredocDelim(state, expr.Range())
+	if isHereDoc {
+		tokens = append(tokens, makeToken(hclsyntax.TokenOHeredoc, oDelim))
+	} else {
+		tokens = append(tokens, makeToken(hclsyntax.TokenOQuote, "\""))
+	}
+	for partIndex, part := range expr.Parts {
 		// If it's a literal then we can just write it to the string directly, else we need to wrap it in a
-		// ${} block.
+		// ${} block, or template controls.
 		if lit, ok := part.(*hclsyntax.LiteralValueExpr); ok {
 			if lit.Val.Type() == cty.String {
 				// Strings get written directly without their surrounding quotes
@@ -1216,7 +1216,26 @@ func convertTemplateExpr(state *convertState,
 					strtoks = strtoks[1 : len(strtoks)-1]
 				}
 
-				tokens = append(tokens, strtoks...)
+				var strtoksWithNewlines hclwrite.Tokens
+				// Newlines should remain newlines in heredocs
+				for _, tok := range strtoks {
+					if tok.Type == hclsyntax.TokenQuotedLit && isHereDoc {
+						splitStrings := strings.Split(string(tok.Bytes), "\\n")
+						for i, splitString := range splitStrings {
+							strtoksWithNewlines = append(strtoksWithNewlines, makeToken(hclsyntax.TokenStringLit, splitString))
+							if i < len(splitStrings) - 1 && partIndex != len(expr.Parts) - 1 {
+								// Insert only true newlines.  This is when not the last newline
+								// of the expression unless it is the end of the expression
+								// (which must end in a newline)
+								strtoksWithNewlines = append(strtoksWithNewlines, makeToken(hclsyntax.TokenStringLit, "\n"))
+							}
+						}
+					} else {
+						strtoksWithNewlines = append(strtoksWithNewlines, tok)
+					}
+				}
+
+				tokens = append(tokens, strtoksWithNewlines...)
 			} else {
 				// Other values can be written as is
 				tokens = append(tokens, hclwrite.TokensForValue(lit.Val)...)
@@ -1231,8 +1250,30 @@ func convertTemplateExpr(state *convertState,
 			tokens = append(tokens, makeToken(hclsyntax.TokenTemplateSeqEnd, "}"))
 		}
 	}
-	tokens = append(tokens, makeToken(hclsyntax.TokenCQuote, "\""))
+	if isHereDoc {
+		tokens = append(tokens, makeToken(hclsyntax.TokenCHeredoc, fmt.Sprintf("\n%s", cDelim)))
+	} else {
+		tokens = append(tokens, makeToken(hclsyntax.TokenCQuote, "\""))
+	}
 	return tokens
+}
+
+// detectHeredocDelim detects if the range contains a heredoc token and returns
+// the open and close delimiters.
+func detectHeredocDelim(state *convertState, r hcl.Range) (string, string, bool) {
+	hereDocRegex := regexp.MustCompile(`^<<-?([[:alpha:]]+)\n`)
+
+	file := state.sources[r.Filename]
+	start := r.Start.Byte
+	hereDocStr := hereDocRegex.FindSubmatch(file[start:])
+	if hereDocStr != nil {
+		// Return token without newline
+		o := string(hereDocStr[0])
+		clo := string(hereDocStr[1])
+		return o, clo, true
+	}
+
+	return "", "", false
 }
 
 func camelCaseName(name string) string {
