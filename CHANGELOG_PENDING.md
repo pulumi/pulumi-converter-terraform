@@ -1,5 +1,6 @@
 ### Improvements
 
+- Add generation of pcl "package" blocks
 - Add references to issues for missing functions in output
 - Add code generation rename workarounds for pcl keywords
 
