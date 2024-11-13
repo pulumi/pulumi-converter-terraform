@@ -1141,10 +1141,68 @@ func convertTemplateWrapExpr(state *convertState,
 	return tokens
 }
 
+func convertTemplateJoinExpr(state *convertState, inBlock bool, scopes *scopes,
+	fullyQualifiedPath string, expr *hclsyntax.TemplateJoinExpr,
+) hclwrite.Tokens {
+	forExpr := expr.Tuple.(*hclsyntax.ForExpr)
+	if forExpr == nil {
+		contract.Failf("Template Join Expression must contain for expression, but contains %T", expr.Tuple)
+	}
+
+	// The collection doesn't yet have access to the key/value scopes
+	collTokens := convertExpression(state, false, scopes, "", forExpr.CollExpr)
+
+	// TODO: We should ensure key and value vars are unique
+	locals := map[string]string{
+		forExpr.ValVar: camelCaseName(forExpr.ValVar),
+	}
+	if forExpr.KeyVar != "" {
+		locals[forExpr.KeyVar] = camelCaseName(forExpr.KeyVar)
+	}
+	scopes.push(locals)
+
+	valueTokens := convertExpression(state, false, scopes, "", forExpr.ValExpr)
+	valueTokens = valueTokens[1 : len(valueTokens)-1] // strip the outer quote tokens
+
+	scopes.pop()
+
+	var tokens hclwrite.Tokens
+	tokens = append(tokens, makeToken(hclsyntax.TokenTemplateControl, "%{"))
+
+	// Write the for template control section.
+	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, "for"))
+	if locals[forExpr.KeyVar] != "" {
+		tokens = append(tokens, makeToken(hclsyntax.TokenIdent, locals[forExpr.KeyVar]))
+		tokens = append(tokens, makeToken(hclsyntax.TokenComma, ","))
+	}
+	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, locals[forExpr.ValVar]))
+	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, "in"))
+	tokens = append(tokens, collTokens...)
+
+	tokens = append(tokens, makeToken(hclsyntax.TokenTemplateControl, "~}"))
+
+	// There is no key expr in template join expressions.
+
+	// Write the value part
+	tokens = append(tokens, valueTokens...)
+
+	// There is no ellipsis in template join expressions.
+
+	// There is no conditional part in template join expressions.
+
+	// Write the endfor control section.
+	tokens = append(tokens, makeToken(hclsyntax.TokenTemplateControl, "%{"))
+	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, "endfor"))
+	tokens = append(tokens, makeToken(hclsyntax.TokenTemplateControl, "~}"))
+
+	return tokens
+}
+
 func convertTemplateExpr(state *convertState,
 	scopes *scopes, fullyQualifiedPath string, expr *hclsyntax.TemplateExpr,
 ) hclwrite.Tokens {
 	tokens := []*hclwrite.Token{}
+	// TODO(#219) handle <<EOF EOF string expressions.
 	tokens = append(tokens, makeToken(hclsyntax.TokenOQuote, "\""))
 	for _, part := range expr.Parts {
 		// If it's a literal then we can just write it to the string directly, else we need to wrap it in a
@@ -1163,6 +1221,10 @@ func convertTemplateExpr(state *convertState,
 				// Other values can be written as is
 				tokens = append(tokens, hclwrite.TokensForValue(lit.Val)...)
 			}
+		}  else if forToken, ok := part.(*hclsyntax.TemplateJoinExpr); ok{
+			// A template join is more complex and contains template control
+			// sections, so delegate to the inner expression.
+			tokens = append(tokens, convertTemplateJoinExpr(state, false, scopes, "", forToken)...)
 		} else {
 			tokens = append(tokens, makeToken(hclsyntax.TokenTemplateInterp, "${"))
 			tokens = append(tokens, convertExpression(state, false, scopes, "", part)...)
@@ -1674,6 +1736,8 @@ func convertExpression(state *convertState, inBlock bool, scopes *scopes,
 		return convertLiteralValueExpr(state, inBlock, expr)
 	case *hclsyntax.TemplateExpr:
 		return convertTemplateExpr(state, scopes, fullyQualifiedPath, expr)
+	case *hclsyntax.TemplateJoinExpr:
+		return convertTemplateJoinExpr(state, inBlock, scopes, fullyQualifiedPath, expr)
 	case *hclsyntax.ScopeTraversalExpr:
 		return convertScopeTraversalExpr(state, inBlock, scopes, fullyQualifiedPath, expr)
 	case *hclsyntax.BinaryOpExpr:
@@ -1697,7 +1761,7 @@ func convertExpression(state *convertState, inBlock bool, scopes *scopes,
 	case *hclsyntax.ParenthesesExpr:
 		return convertParenthesesExpr(state, inBlock, scopes, fullyQualifiedPath, expr)
 	}
-	contract.Failf("Couldn't convert expression: %T", expr)
+	contract.Failf("Couldn't convert expression: %T, %v", expr, expr.Range())
 	return nil
 }
 
