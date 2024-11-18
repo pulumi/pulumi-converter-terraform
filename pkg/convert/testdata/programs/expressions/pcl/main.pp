@@ -88,7 +88,17 @@ output "quotedTemplate" {
 }
 
 output "heredoc" {
-  value = "This is also a template.\nSo we can output the key again ${aKey}\n"
+  value = <<END
+This is also a template.
+So we can output the key again ${aKey}
+END
+}
+
+output "heredocWithHyphen" {
+  value = <<-END
+This is also a template.
+So we can output the key again ${aKey}
+END
 }
 
 output "forTuple" {

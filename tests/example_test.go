@@ -122,6 +122,11 @@ func TestExample(t *testing.T) {
 		skip    stringSet
 	}{
 		{
+			example: "https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner",
+			// TODO[pulumi/pulumi-converter-terraform#212]: Hetzner cloud has various conversion issues.
+			skip: allLanguages,
+		},
+		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-security-group/examples/complete",
 			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
 			skip: allLanguages,

@@ -99,6 +99,13 @@ So we can output the key again ${local.a_key}
 END
 }
 
+output "heredoc_with_hyphen" {
+    value = <<-END
+This is also a template.
+So we can output the key again ${local.a_key}
+END
+}
+
 output "for_tuple" {
     value = [for key, value in ["a", "b"] : "${key}:${value}:${local.a_value}" if key != 0]
 }
