@@ -1,20 +1,20 @@
 package "null" {
   baseProviderName    = "terraform-provider"
   baseProviderVersion = "0.3.0"
-  parameterization = {
+  parameterization "name" "version" "value" {
+    version = "3.2.3"
     name    = "hashicorp/null"
-    value   = "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkub3BlbnRvZnUub3JnL2hhc2hpY29ycC9udWxsIiwidmVyc2lvbiI6IjMuMi4zIn19"
-    version = ""
+    value   = "eyJyZW1vdGUiOnsidXJsIjoiaGFzaGljb3JwL251bGwiLCJ2ZXJzaW9uIjoiMy4yLjMifX0="
   }
 }
 
 package "random" {
   baseProviderName    = "terraform-provider"
   baseProviderVersion = "0.3.0"
-  parameterization = {
+  parameterization "name" "version" "value" {
+    version = "3.5.1"
     name    = "hashicorp/random"
-    value   = "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkub3BlbnRvZnUub3JnL2hhc2hpY29ycC9yYW5kb20iLCJ2ZXJzaW9uIjoiMy41LjEifX0="
-    version = "~> 3.5.1"
+    value   = "eyJyZW1vdGUiOnsidXJsIjoiaGFzaGljb3JwL3JhbmRvbSIsInZlcnNpb24iOiIzLjUuMSJ9fQ=="
   }
 }
 

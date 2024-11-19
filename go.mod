@@ -1,6 +1,6 @@
 module github.com/pulumi/pulumi-converter-terraform
 
-go 1.21
+go 1.22.0
 
 replace github.com/opentofu/opentofu/shim => ./pkg/internal/shim
 
@@ -11,9 +11,8 @@ require (
 	github.com/hashicorp/hcl/v2 v2.22.0
 	github.com/hashicorp/terraform-svchost v0.1.1
 	github.com/opentofu/opentofu/shim v0.0.0-00010101000000-000000000000
-	github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a
-	github.com/pulumi/pulumi-terraform-bridge/v3 v3.84.0
-	github.com/pulumi/pulumi/pkg/v3 v3.136.1
+	github.com/pulumi/pulumi-terraform-bridge/v3 v3.95.1-0.20241118013201-2c774cdf6141
+	github.com/pulumi/pulumi/pkg/v3 v3.137.0
 	github.com/pulumi/pulumi/sdk/v3 v3.137.0
 	github.com/pulumi/terraform v1.4.0
 	github.com/spf13/afero v1.11.0
@@ -125,6 +124,8 @@ require (
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/natefinch/atomic v1.0.1 // indirect
+	github.com/olekukonko/tablewriter v0.0.5 // indirect
+	github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a // indirect
 	github.com/opentracing/basictracer-go v1.1.0 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pgavlin/fx v0.1.6 // indirect
@@ -138,7 +139,6 @@ require (
 	github.com/pulumi/esc v0.10.0 // indirect
 	github.com/pulumi/inflector v0.1.1 // indirect
 	github.com/pulumi/pulumi-java/pkg v0.16.1 // indirect
-	github.com/pulumi/pulumi-terraform-bridge/x/muxer v0.0.8 // indirect
 	github.com/pulumi/pulumi-yaml v1.11.2 // indirect
 	github.com/pulumi/schema-tools v0.1.2 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
