@@ -15,6 +15,18 @@
                         }
                     }
                 },
+                "a_map_of_resources": {
+                    "type": 6,
+                    "optional": true,
+                    "element": {
+                        "resource": {
+                            "inner_string": {
+                                "type": 4,
+                                "optional": true
+                            }
+                        }
+                    }
+                },
                 "result": {
                     "type": 4,
                     "computed": true
@@ -25,6 +37,18 @@
             "blocks_resource": {
                 "a_list_of_resources": {
                     "type": 5,
+                    "optional": true,
+                    "element": {
+                        "resource": {
+                            "inner_string": {
+                                "type": 4,
+                                "optional": true
+                            }
+                        }
+                    }
+                },
+                "a_map_of_resources": {
+                    "type": 6,
                     "optional": true,
                     "element": {
                         "resource": {

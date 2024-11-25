@@ -26,7 +26,23 @@
       },
       "type": "object"
     },
+    "blocks:index/dataSourceAMapOfResources:dataSourceAMapOfResources": {
+      "properties": {
+        "innerString": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "blocks:index/resourceAListOfResource:resourceAListOfResource": {
+      "properties": {
+        "innerString": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "blocks:index/resourceAMapOfResources:resourceAMapOfResources": {
       "properties": {
         "innerString": {
           "type": "string"
@@ -47,6 +63,9 @@
             "$ref": "#/types/blocks:index/resourceAListOfResource:resourceAListOfResource"
           }
         },
+        "aMapOfResources": {
+          "$ref": "#/types/blocks:index/resourceAMapOfResources:resourceAMapOfResources"
+        },
         "result": {
           "type": "string"
         }
@@ -60,6 +79,9 @@
           "items": {
             "$ref": "#/types/blocks:index/resourceAListOfResource:resourceAListOfResource"
           }
+        },
+        "aMapOfResources": {
+          "$ref": "#/types/blocks:index/resourceAMapOfResources:resourceAMapOfResources"
         }
       },
       "stateInputs": {
@@ -70,6 +92,9 @@
             "items": {
               "$ref": "#/types/blocks:index/resourceAListOfResource:resourceAListOfResource"
             }
+          },
+          "aMapOfResources": {
+            "$ref": "#/types/blocks:index/resourceAMapOfResources:resourceAMapOfResources"
           },
           "result": {
             "type": "string"
@@ -89,6 +114,9 @@
             "items": {
               "$ref": "#/types/blocks:index/dataSourceAListOfResource:dataSourceAListOfResource"
             }
+          },
+          "aMapOfResources": {
+            "$ref": "#/types/blocks:index/dataSourceAMapOfResources:dataSourceAMapOfResources"
           }
         },
         "type": "object"
@@ -101,6 +129,9 @@
             "items": {
               "$ref": "#/types/blocks:index/dataSourceAListOfResource:dataSourceAListOfResource"
             }
+          },
+          "aMapOfResources": {
+            "$ref": "#/types/blocks:index/dataSourceAMapOfResources:dataSourceAMapOfResources"
           },
           "id": {
             "type": "string",
