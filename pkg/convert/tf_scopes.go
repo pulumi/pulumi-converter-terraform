@@ -375,10 +375,18 @@ func (s *scopes) maxItemsOne(fullyQualifiedPath string) bool {
 		return *schemaInfo.MaxItemsOne
 	}
 
-	// If we have a shim schema use it's MaxItems
+	// If we have a shim schema use it's MaxItems and Type
 	sch := info.Schema
 	if sch != nil {
-		return sch.MaxItems() == 1
+		// If this is a list or set, check if it has a maxItems of 1.
+		if sch.Type() == shim.TypeList || sch.Type() == shim.TypeSet {
+			return sch.MaxItems() == 1
+		}
+		// If it's a map of resources then it's maxItems is 1
+		elem := sch.Elem()
+		if _, isResource := elem.(shim.Resource); sch.Type() == shim.TypeMap && isResource {
+			return true
+		}
 	}
 
 	// Else assume false
