@@ -3411,6 +3411,9 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 	body := block.Body()
 
 	diags := hcl.Diagnostics{}
+<<<<<<< HEAD
+	body.SetAttributeValue("baseProviderName", cty.StringVal(name))
+=======
 
 	if isTerraformProvider(name) {
 		body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-provider"))
@@ -3428,11 +3431,12 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 		body.AppendBlock(paramBlock)
 		paramBlockBody := paramBlock.Body()
 		paramBlockBody.SetAttributeValue("version", cty.StringVal(desiredVersion.String()))
-		paramBlockBody.SetAttributeValue("name", cty.StringVal(name))
+		paramBlockBody.SetAttributeValue("name", cty.StringVal(prov.Source))
 		paramBlockBody.SetAttributeValue("value", cty.StringVal(encoded))
 	} else {
 		body.SetAttributeValue("baseProviderName", cty.StringVal(name))
 	}
+>>>>>>> f0b77fd (Add parameterization to pulumi package blocks.)
 
 	return block, diags
 }
