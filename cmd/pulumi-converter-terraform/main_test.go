@@ -62,6 +62,7 @@ func TestExamplesJson(t *testing.T) {
 		TargetDirectory: dst,
 		MapperTarget:    grpcServer.Addr(),
 		LoaderTarget:    "", // unused by the converter
+		Args:            []string{"--convert-examples", "examples.json"},
 	})
 	require.NoError(t, err)
 	// Check that response didn't return any diagnostics
@@ -76,20 +77,22 @@ func TestExamplesJson(t *testing.T) {
 
 	expectedJSON := map[string]interface{}{
 		"empty": map[string]interface{}{
+			"pulumiYaml":  "",
 			"pcl":         "",
-			"diagnostics": []map[string]interface{}{},
+			"diagnostics": []interface{}{},
 		},
 		"aws": map[string]interface{}{
-			"pcl": "resource \"foo\" \"aws:index:bucket\" {}\n",
-			"diagnostics": []map[string]interface{}{
-				{
-					"Severity": 2,
+			"pulumiYaml": "",
+			"pcl":        "resource \"foo\" \"aws:index:bucket\" {\n}\n",
+			"diagnostics": []interface{}{
+				map[string]interface{}{
+					"Severity": 2.0,
 					"Summary":  "Failed to get provider info",
 					"Detail":   "Failed to get provider info for \"aws_bucket\": could not find mapping information for provider aws; try installing a pulumi plugin that supports this terraform provider",
 					"Subject": map[string]interface{}{
 						"Filename": "/aws.tf",
-						"Start":    map[string]interface{}{"Line": 1, "Column": 1, "Byte": 0},
-						"End":      map[string]interface{}{"Line": 1, "Column": 24, "Byte": 23},
+						"Start":    map[string]interface{}{"Line": 1.0, "Column": 1.0, "Byte": 0.0},
+						"End":      map[string]interface{}{"Line": 1.0, "Column": 24.0, "Byte": 23.0},
 					},
 					"Context":     nil,
 					"Expression":  nil,
