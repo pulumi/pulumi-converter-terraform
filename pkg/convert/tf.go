@@ -17,20 +17,24 @@ package convert
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"math"
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
+	"github.com/apparentlymart/go-versions/versions"
 	version "github.com/hashicorp/go-version"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-svchost/disco"
+	"github.com/opentofu/opentofu/shim"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/hcl2/syntax"
@@ -2668,6 +2672,7 @@ func translateRemoteModule(
 	destinationRoot afero.Fs, // The root of the destination filesystem to write PCL to.
 	destinationDirectory string, // A path in destination to write the translated code to.
 	info il.ProviderInfoSource,
+	requiredProviders map[string]*configs.RequiredProvider,
 ) hcl.Diagnostics {
 	fetcher := getmodules.NewPackageFetcher()
 	tempPath, err := os.MkdirTemp("", "pulumi-tf-registry")
@@ -2711,6 +2716,8 @@ func translateRemoteModule(
 		sourceRoot, "/",
 		destinationRoot, destinationDirectory,
 		info,
+		requiredProviders,
+		/*topLevelModule*/false,
 	)
 }
 
@@ -2721,12 +2728,18 @@ func translateModuleSourceCode(
 	destinationRoot afero.Fs, // The root of the destination filesystem to write PCL to.
 	destinationDirectory string, // A path in destination to write the translated code to.
 	info il.ProviderInfoSource,
+	requiredProviders map[string]*configs.RequiredProvider,
+	topLevelModule bool,
 ) hcl.Diagnostics {
 	sources, module, moduleDiagnostics := loadConfigDir(sourceRoot, sourceDirectory)
 	if moduleDiagnostics.HasErrors() {
 		// No syntax.Files to return here because we're relying on terraform to load and parse, means no
 		// source context gets printed with warnings/errors here.
 		return moduleDiagnostics
+	}
+
+	for name, provider := range module.ProviderRequirements.RequiredProviders {
+		requiredProviders[name] = provider
 	}
 
 	scopes := newScopes(info)
@@ -2926,7 +2939,10 @@ func translateModuleSourceCode(
 						sourcePath,
 						destinationRoot,
 						destinationPath,
-						info)
+						info,
+						requiredProviders,
+						/*topLevelModule*/false,
+					)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
 						return state.diagnostics
@@ -2957,7 +2973,8 @@ func translateModuleSourceCode(
 						addr.Subdir,
 						destinationRoot,
 						destinationPath,
-						info)
+						info,
+						requiredProviders)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
 						return state.diagnostics
@@ -3081,7 +3098,8 @@ func translateModuleSourceCode(
 						remoteAddr.Subdir,
 						destinationRoot,
 						destinationPath,
-						info)
+						info,
+						requiredProviders)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
 						return state.diagnostics
@@ -3236,6 +3254,22 @@ func translateModuleSourceCode(
 
 		body := file.Body()
 
+		// Add package metadata to only the top level module.
+		// This should be true for only the entry point into the conversion, all
+		// recursive module translations should set this false.
+		// This guarantees that the package blocks are only written in one place (eg main.pp)
+		if topLevelModule {
+			for name, provider := range requiredProviders {
+				block, d := getPackageBlock(name, provider)
+				state.diagnostics = append(state.diagnostics, d...)
+				body.AppendBlock(block)
+				body.AppendUnstructuredTokens(hclwrite.TokensForIdentifier("\n"))
+			}
+
+			// Only write the package block once
+			topLevelModule = false
+		}
+
 		// First handle any inputs, these will be picked up by the "vars" scope
 		if item.variable != nil {
 			leading, block, trailing := convertVariable(state, scopes, item.variable)
@@ -3356,12 +3390,47 @@ func translateModuleSourceCode(
 	return state.diagnostics
 }
 
+
+// getPackageBlock returns package block in the following form:
+//
+// package <name> {
+//   baseProviderName = <name>
+//   baseProviderVersion = <version>
+//   baseProviderDownloadUrl = <url>
+//   parameterization {
+//     name = <name>
+//     version = <version>
+//     value = <base64-encoded-value>
+//   }
+// }
+func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Block, hcl.Diagnostics) {
+	// if the name is one of our known providers just write it, if it is not it
+	// must be tf so write a paramaterized package.
+
+	block := hclwrite.NewBlock("package", []string{name})
+	body := block.Body()
+
+	diags := hcl.Diagnostics{}
+	body.SetAttributeValue("baseProviderName", cty.StringVal(name))
+
+	return block, diags
+}
+
+
 func TranslateModule(
 	source afero.Fs, sourceDirectory string,
 	destination afero.Fs, info il.ProviderInfoSource,
 ) hcl.Diagnostics {
 	modules := make(map[moduleKey]string)
-	return translateModuleSourceCode(modules, source, sourceDirectory, destination, "/", info)
+	return translateModuleSourceCode(modules,
+		source,
+		sourceDirectory,
+		destination,
+		"/",
+		info,
+		/*requiredProviders*/map[string]*configs.RequiredProvider{},
+		/*topLevelModule*/true,
+	)
 }
 
 func errorf(subject hcl.Range, f string, args ...interface{}) *hcl.Diagnostic {
