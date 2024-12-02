@@ -12,3 +12,5 @@
 - Fix using a module multiple times via different constraints
 
 - Fix conversion of object blocks
+
+- Fix conversion of object attributes

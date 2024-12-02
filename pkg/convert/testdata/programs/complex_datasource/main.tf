@@ -7,8 +7,11 @@ data "complex_data_source" "a_data_source" {
         a: true
         b: false
     }
-    inner_object {
+    inner_list_object = [{
         inner_string = "hello again"
+    }]
+    inner_map_object = {
+        inner_string = "hello thrice"
     }
 }
 

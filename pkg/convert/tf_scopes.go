@@ -348,7 +348,9 @@ func (s *scopes) isMap(fullyQualifiedPath string) *bool {
 	// If we have a shim schema use the type from that
 	sch := info.Schema
 	if sch != nil {
-		isMap := sch.Type() == shim.TypeMap
+		// This is only an actual _map_ if the elem isn't a resource
+		_, resource := sch.Elem().(shim.Resource)
+		isMap := sch.Type() == shim.TypeMap && !resource
 		return &isMap
 	}
 
@@ -359,6 +361,26 @@ func (s *scopes) isMap(fullyQualifiedPath string) *bool {
 	}
 
 	return nil
+}
+
+// Given a fully typed path (e.g. data.simple_data_source.a_field) returns whether a_field is a resource object.
+func (s *scopes) isResource(fullyQualifiedPath string) bool {
+	info := s.getInfo(fullyQualifiedPath)
+
+	// This should only be called for attribute paths, so panic if this returned a resource
+	contract.Assertf(info.ResourceInfo == nil, "maxItemsOne called on a resource or data source")
+	contract.Assertf(info.DataSourceInfo == nil, "maxItemsOne called on a resource or data source")
+
+	// If we have a shim schema use it's MaxItems and Type
+	sch := info.Schema
+	if sch != nil {
+		// If it's a map of resources then return true
+		elem := sch.Elem()
+		if _, isResource := elem.(shim.Resource); sch.Type() == shim.TypeMap && isResource {
+			return true
+		}
+	}
+	return false
 }
 
 // Given a fully typed path (e.g. data.simple_data_source.a_field) returns whether a_field has maxItemsOne set
@@ -381,11 +403,6 @@ func (s *scopes) maxItemsOne(fullyQualifiedPath string) bool {
 		// If this is a list or set, check if it has a maxItems of 1.
 		if sch.Type() == shim.TypeList || sch.Type() == shim.TypeSet {
 			return sch.MaxItems() == 1
-		}
-		// If it's a map of resources then it's maxItems is 1
-		elem := sch.Elem()
-		if _, isResource := elem.(shim.Resource); sch.Type() == shim.TypeMap && isResource {
-			return true
 		}
 	}
 

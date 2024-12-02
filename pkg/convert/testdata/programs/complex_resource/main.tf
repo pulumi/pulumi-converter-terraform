@@ -7,8 +7,11 @@ resource "complex_resource" "a_resource" {
         a: true
         b: false
     }
-    inner_object {
+    inner_list_object = [{
         inner_string = "hello again"
+    }]
+    inner_map_object = {
+        inner_string = "hello thrice"
     }
 }
 

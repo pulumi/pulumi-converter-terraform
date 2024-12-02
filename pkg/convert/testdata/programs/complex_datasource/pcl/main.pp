@@ -7,8 +7,11 @@ aDataSource = invoke("complex:index/index:dataSource", {
     a = true
     b = false
   }
-  innerObject = {
+  innerListObject = {
     innerString = "hello again"
+  }
+  innerMapObject = {
+    innerString = "hello thrice"
   }
 })
 

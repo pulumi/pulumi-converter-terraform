@@ -23,7 +23,7 @@ aDataSource = invoke("complex:index/index:dataSource", {
     a = true
     b = false
   }
-  innerObject = {
+  innerMapObject = {
 
     // In objects
     innerString = "hello again"
@@ -43,7 +43,7 @@ resource "aResource" "complex:index/index:resource" {
     a = true
     b = false
   }
-  innerObject = {
+  innerMapObject = {
 
     // In objects
     innerString = "hello again"
