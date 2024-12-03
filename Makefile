@@ -21,10 +21,11 @@ build::
 
 test::
 	cd pkg && go test -short -v -count=1 -cover -timeout 2h -parallel ${TESTPARALLELISM} ./...
+	cd cmd && go test -short -v -count=1 -cover -timeout 2h -parallel ${TESTPARALLELISM} ./...
 
 install:: build
 	cp $(WORKING_DIR)/bin/${BINARY} ${GOPATH}/bin
-	
+
 generate_builtins_test::
 	if [ ! -d ./scripts/venv ]; then python -m venv ./scripts/venv; fi
 	. ./scripts/venv/*/activate && python -m pip install -r ./scripts/requirements.txt
