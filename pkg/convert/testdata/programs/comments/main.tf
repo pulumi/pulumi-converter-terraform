@@ -25,7 +25,7 @@ data "complex_data_source" "a_data_source" {
         a: true
         b: false
     }
-    inner_object {
+    inner_map_object {
         // In objects
         inner_string = "hello again"
     }
@@ -43,7 +43,7 @@ resource "complex_resource" "a_resource" {
         a: true
         b: false
     }
-    inner_object {
+    inner_map_object {
         // In objects
         inner_string = "hello again"
     }

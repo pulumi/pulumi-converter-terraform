@@ -18,7 +18,7 @@
   },
   "config": {},
   "types": {
-    "complex:index/dataSourceInnerObject:dataSourceInnerObject": {
+    "complex:index/dataSourceInnerListObject:dataSourceInnerListObject": {
       "properties": {
         "innerString": {
           "type": "string"
@@ -26,7 +26,23 @@
       },
       "type": "object"
     },
-    "complex:index/resourceInnerObject:resourceInnerObject": {
+    "complex:index/dataSourceInnerMapObject:dataSourceInnerMapObject": {
+      "properties": {
+        "innerString": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "complex:index/resourceInnerListObject:resourceInnerListObject": {
+      "properties": {
+        "innerString": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "complex:index/resourceInnerMapObject:resourceInnerMapObject": {
       "properties": {
         "innerString": {
           "type": "string"
@@ -62,8 +78,11 @@
         "aString": {
           "type": "string"
         },
-        "innerObject": {
-          "$ref": "#/types/complex:index/resourceInnerObject:resourceInnerObject"
+        "innerListObject": {
+          "$ref": "#/types/complex:index/resourceInnerListObject:resourceInnerListObject"
+        },
+        "innerMapObject": {
+          "$ref": "#/types/complex:index/resourceInnerMapObject:resourceInnerMapObject"
         },
         "result": {
           "type": "string"
@@ -94,8 +113,11 @@
         "aString": {
           "type": "string"
         },
-        "innerObject": {
-          "$ref": "#/types/complex:index/resourceInnerObject:resourceInnerObject"
+        "innerListObject": {
+          "$ref": "#/types/complex:index/resourceInnerListObject:resourceInnerListObject"
+        },
+        "innerMapObject": {
+          "$ref": "#/types/complex:index/resourceInnerMapObject:resourceInnerMapObject"
         }
       },
       "stateInputs": {
@@ -122,8 +144,11 @@
           "aString": {
             "type": "string"
           },
-          "innerObject": {
-            "$ref": "#/types/complex:index/resourceInnerObject:resourceInnerObject"
+          "innerListObject": {
+            "$ref": "#/types/complex:index/resourceInnerListObject:resourceInnerListObject"
+          },
+          "innerMapObject": {
+            "$ref": "#/types/complex:index/resourceInnerMapObject:resourceInnerMapObject"
           },
           "result": {
             "type": "string"
@@ -159,8 +184,11 @@
           "aString": {
             "type": "string"
           },
-          "innerObject": {
-            "$ref": "#/types/complex:index/dataSourceInnerObject:dataSourceInnerObject"
+          "innerListObject": {
+            "$ref": "#/types/complex:index/dataSourceInnerListObject:dataSourceInnerListObject"
+          },
+          "innerMapObject": {
+            "$ref": "#/types/complex:index/dataSourceInnerMapObject:dataSourceInnerMapObject"
           }
         },
         "type": "object"
@@ -193,8 +221,11 @@
             "type": "string",
             "description": "The provider-assigned unique ID for this managed resource.\n"
           },
-          "innerObject": {
-            "$ref": "#/types/complex:index/dataSourceInnerObject:dataSourceInnerObject"
+          "innerListObject": {
+            "$ref": "#/types/complex:index/dataSourceInnerListObject:dataSourceInnerListObject"
+          },
+          "innerMapObject": {
+            "$ref": "#/types/complex:index/dataSourceInnerMapObject:dataSourceInnerMapObject"
           },
           "result": {
             "type": "string"

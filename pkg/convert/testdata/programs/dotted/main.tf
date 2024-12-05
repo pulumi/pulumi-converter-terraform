@@ -1,5 +1,5 @@
 resource "complex_resource" "example" {
-    innerObject = {
+    innerMapObject = {
         noDots          = true
         ".dotted"       = true
         "dot.in.middle" = true

@@ -1919,7 +1919,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 			blockPath = appendPath(fullyQualifiedPath, block.Labels[0])
 		}
 		// If this is a list so add [] to the path
-		isList := !scopes.maxItemsOne(blockPath)
+		isList := !scopes.maxItemsOne(blockPath) && !scopes.isResource(blockPath)
 		name := scopes.pulumiName(blockPath)
 		if isList {
 			blockPath = appendPathArray(blockPath)

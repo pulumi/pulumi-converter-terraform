@@ -8,8 +8,11 @@ resource "aResource" "complex:index/index:resource" {
     a = true
     b = false
   }
-  innerObject = {
+  innerListObject = {
     innerString = "hello again"
+  }
+  innerMapObject = {
+    innerString = "hello thrice"
   }
 }
 
