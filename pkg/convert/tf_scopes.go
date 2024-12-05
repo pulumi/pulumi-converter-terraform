@@ -345,21 +345,18 @@ func (s *scopes) isMap(fullyQualifiedPath string) *bool {
 	contract.Assertf(info.ResourceInfo == nil, "isMap called on a resource or data source")
 	contract.Assertf(info.DataSourceInfo == nil, "isMap called on a resource or data source")
 
-	// If we have a shim schema use the type from that
-	sch := info.Schema
-	if sch != nil {
-		// This is only an actual _map_ if the elem isn't a resource
-		_, resource := sch.Elem().(shim.Resource)
-		isMap := sch.Type() == shim.TypeMap && !resource
-		return &isMap
-	}
-
-	// If we have a Resource schema this must be an object
-	if info.Resource != nil {
+	// If this is a resource it's not a map
+	if s.isResource(fullyQualifiedPath) {
 		isMap := false
 		return &isMap
 	}
 
+	// If we have a shim schema use the type from that
+	sch := info.Schema
+	if sch != nil {
+		isMap := sch.Type() == shim.TypeMap
+		return &isMap
+	}
 	return nil
 }
 
@@ -380,6 +377,12 @@ func (s *scopes) isResource(fullyQualifiedPath string) bool {
 			return true
 		}
 	}
+
+	// If we have a Resource schema this must be an object
+	if info.Resource != nil {
+		return true
+	}
+
 	return false
 }
 
