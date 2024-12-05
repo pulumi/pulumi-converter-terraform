@@ -316,8 +316,8 @@ func (s *scopes) pulumiName(fullyQualifiedPath string) string {
 	info := s.getInfo(fullyQualifiedPath)
 
 	// This should only be called for attribute paths, so panic if this returned a resource
-	contract.Assertf(info.ResourceInfo == nil, "pulumiName called on a resource or data source")
-	contract.Assertf(info.DataSourceInfo == nil, "pulumiName called on a resource or data source")
+	contract.Assertf(info.ResourceInfo == nil, "pulumiName must not be called on a resource or data source")
+	contract.Assertf(info.DataSourceInfo == nil, "pulumiName must not be called on a resource or data source")
 
 	// If we have a SchemaInfo and name use it
 	schemaInfo := info.SchemaInfo
@@ -342,8 +342,8 @@ func (s *scopes) isMap(fullyQualifiedPath string) *bool {
 	info := s.getInfo(fullyQualifiedPath)
 
 	// This should only be called for attribute paths, so panic if this returned a resource
-	contract.Assertf(info.ResourceInfo == nil, "isMap called on a resource or data source")
-	contract.Assertf(info.DataSourceInfo == nil, "isMap called on a resource or data source")
+	contract.Assertf(info.ResourceInfo == nil, "isMap must not be called on a resource or data source")
+	contract.Assertf(info.DataSourceInfo == nil, "isMap must not be called on a resource or data source")
 
 	// If this is a resource it's not a map
 	if s.isResource(fullyQualifiedPath) {
@@ -365,13 +365,14 @@ func (s *scopes) isResource(fullyQualifiedPath string) bool {
 	info := s.getInfo(fullyQualifiedPath)
 
 	// This should only be called for attribute paths, so panic if this returned a resource
-	contract.Assertf(info.ResourceInfo == nil, "maxItemsOne called on a resource or data source")
-	contract.Assertf(info.DataSourceInfo == nil, "maxItemsOne called on a resource or data source")
+	contract.Assertf(info.ResourceInfo == nil, "isResource must not be called on a resource or data source")
+	contract.Assertf(info.DataSourceInfo == nil, "isResource must not be called on a resource or data source")
 
-	// If we have a shim schema use it's MaxItems and Type
+	// If we have a shim schema use its MaxItems and Type
 	sch := info.Schema
 	if sch != nil {
-		// If it's a map of resources then return true
+		// If it's a map of resources then return true. Map of resource is used in TF schema to represent a
+		// sub-object, rather than a map of objects.
 		elem := sch.Elem()
 		if _, isResource := elem.(shim.Resource); sch.Type() == shim.TypeMap && isResource {
 			return true
@@ -391,8 +392,8 @@ func (s *scopes) maxItemsOne(fullyQualifiedPath string) bool {
 	info := s.getInfo(fullyQualifiedPath)
 
 	// This should only be called for attribute paths, so panic if this returned a resource
-	contract.Assertf(info.ResourceInfo == nil, "maxItemsOne called on a resource or data source")
-	contract.Assertf(info.DataSourceInfo == nil, "maxItemsOne called on a resource or data source")
+	contract.Assertf(info.ResourceInfo == nil, "maxItemsOne must not be called on a resource or data source")
+	contract.Assertf(info.DataSourceInfo == nil, "maxItemsOne must not be called on a resource or data source")
 
 	// If we have a SchemaInfo and a MaxItems override use it
 	schemaInfo := info.SchemaInfo
@@ -418,8 +419,8 @@ func (s *scopes) isAsset(fullyQualifiedPath string) *tfbridge.AssetTranslation {
 	info := s.getInfo(fullyQualifiedPath)
 
 	// This should only be called for attribute paths, so panic if this returned a resource
-	contract.Assertf(info.ResourceInfo == nil, "isAsset called on a resource or data source")
-	contract.Assertf(info.DataSourceInfo == nil, "isAsset called on a resource or data source")
+	contract.Assertf(info.ResourceInfo == nil, "isAsset must not be called on a resource or data source")
+	contract.Assertf(info.DataSourceInfo == nil, "isAsset must not be called on a resource or data source")
 
 	// If we have a SchemaInfo and a asset info return that
 	schemaInfo := info.SchemaInfo
