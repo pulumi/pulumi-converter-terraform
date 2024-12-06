@@ -15,6 +15,7 @@
 package convert
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -74,6 +75,10 @@ func (l *testLoader) LoadPackage(pkg string, version *semver.Version) (*schema.P
 	}
 
 	return schemaPackage, nil
+}
+
+func (l *testLoader) LoadPackageV2(ctx context.Context, descriptor *schema.PackageDescriptor) (*schema.Package, error) {
+	return l.LoadPackage(descriptor.Name, descriptor.Version)
 }
 
 func (l *testLoader) LoadPackageReference(pkg string, version *semver.Version) (schema.PackageReference, error) {
