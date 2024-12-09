@@ -17,6 +17,7 @@ package convert
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -27,11 +28,13 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/apparentlymart/go-versions/versions"
 	version "github.com/hashicorp/go-version"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-svchost/disco"
+	"github.com/opentofu/opentofu/shim"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/hcl2/syntax"
@@ -3409,6 +3412,9 @@ func translateModuleSourceCode(
 //   }
 // }
 func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Block, hcl.Diagnostics) {
+	// if the name is one of our known providers just write it, if it is not it
+	// must be tf so write a paramaterized package.
+
 	packageNameParts := strings.Split(prov.Source, "/")
 	packageName := packageNameParts[len(packageNameParts)-1]
 
@@ -3420,11 +3426,43 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 	body := block.Body()
 
 	diags := hcl.Diagnostics{}
-	body.SetAttributeValue("baseProviderName", cty.StringVal(packageName))
+
+	if isTerraformProvider(packageName) {
+		body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-provider"))
+		body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.3.0"))
+
+		// Right now we use the shim  of the opentofu implementation of getting the
+		// TF Package version to access an internal API.
+		// This is a bit of a hack and a future option may be to depend on the TF
+		// bridge to provide this functionality.
+		var desiredVersion versions.Version
+		desiredVersion, diags = shim.FindTfPackageVersion(prov)
+
+		// Right now this json string is just a remote source with url and version,
+		// but it could be more complex in the future.
+		// Once it becomes more complex it may be worthwhile to export a function
+		// from pulumi-terraform-bridge that encodes this value and use it here.
+		innerValue := fmt.Sprintf(`{"remote":{"url":"%s","version":"%s"}}`, 
+															prov.Source,
+															desiredVersion.String())
+		encoded := base64.StdEncoding.EncodeToString([]byte(innerValue))
+
+		paramBlock := hclwrite.NewBlock("parameterization", []string{})
+		body.AppendBlock(paramBlock)
+		paramBlockBody := paramBlock.Body()
+		paramBlockBody.SetAttributeValue("version", cty.StringVal(desiredVersion.String()))
+		paramBlockBody.SetAttributeValue("name", cty.StringVal(packageName))
+		paramBlockBody.SetAttributeValue("value", cty.StringVal(encoded))
+	} else {
+		body.SetAttributeValue("baseProviderName", cty.StringVal(packageName))
+	}
 
 	return block, diags
 }
 
+func isTerraformProvider(name string) bool {
+	return !slices.Contains(pulumiSupportedProviders, name)
+}
 
 func TranslateModule(
 	source afero.Fs, sourceDirectory string,
