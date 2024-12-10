@@ -1291,6 +1291,15 @@ func camelCaseName(name string) string {
 	return name
 }
 
+func pascalCaseName(name string) string {
+	if name == "" {
+		return ""
+	}
+
+	ccName := camelCaseName(name)
+	return strings.ToUpper(string(rune(ccName[0]))) + ccName[1:]
+}
+
 // Returns whether the fully qualified path is being applied for a property.
 func (s *scopes) isPropertyPath(fullyQualifiedPath string) bool {
 	if fullyQualifiedPath == "" {
@@ -2207,8 +2216,9 @@ func impliedToken(typeName string) string {
 	if under := strings.Index(typeName, "_"); under != -1 {
 		provider := typeName[:under]
 		typeName = typeName[under+1:]
-		return fmt.Sprintf("%s:index:%s", provider, camelCaseName(typeName))
+		return fmt.Sprintf("%s:index:%s", provider, pascalCaseName(typeName))
 	}
+
 	return camelCaseName(typeName)
 }
 
