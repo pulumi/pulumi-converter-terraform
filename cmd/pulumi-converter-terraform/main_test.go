@@ -83,7 +83,7 @@ func TestExamplesJson(t *testing.T) {
 		},
 		"aws": map[string]interface{}{
 			"pulumiYaml": "",
-			"pcl":        "resource \"foo\" \"aws:index:bucket\" {\n}\n",
+			"pcl":        "resource \"foo\" \"aws:index:Bucket\" {\n}\n",
 			"diagnostics": []interface{}{
 				map[string]interface{}{
 					"Severity": 2.0,

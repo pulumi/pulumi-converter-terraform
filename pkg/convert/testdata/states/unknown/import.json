@@ -1,6 +1,6 @@
 [
   {
-    "Type": "unknown:index:resource",
+    "Type": "unknown:index:Resource",
     "Name": "a_resource",
     "ID": "abc123",
     "LogicalName": "",
