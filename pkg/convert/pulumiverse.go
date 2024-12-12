@@ -56,6 +56,7 @@ var pulumiSupportedProviders = []string{
 	"kafka",
 	"keycloak",
 	"kong",
+	"kubernetes",
 	"libvirt",
 	"linode",
 	"local",
