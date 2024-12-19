@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+## 1.0.21
+
+### Improvements
+
+- Change inferred resource names to pascal case
+- Add parameterization block to "package" blocks
+- Add generation of pcl "package" blocks
+
 ## 1.0.20
 
 ### Improvements
