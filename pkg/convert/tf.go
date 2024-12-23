@@ -3439,7 +3439,7 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 
 	if isTerraformProvider(packageName) {
 		body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-provider"))
-		body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.3.0"))
+		body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.5.4"))
 
 		// Right now we use the shim  of the opentofu implementation of getting the
 		// TF Package version to access an internal API.
