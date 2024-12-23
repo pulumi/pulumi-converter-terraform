@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+## 1.0.22
+
+- Bump generated provider-terraform version
+
 ## 1.0.21
 
 ### Improvements
