@@ -832,7 +832,7 @@ func (s *convertState) renamePclOverlap(kind string, hclType *string, name strin
 			Subject:  hclRange,
 			Severity: hcl.DiagWarning,
 			Summary:  kind + " renamed to prevent keyword overlap",
-			Detail:   fmt.Sprintf("Renaming %s %s of type %s to %s to prevent overlap",kind,name, *hclType, newName),
+			Detail:   fmt.Sprintf("Renaming %s %s of type %s to %s to prevent overlap", kind, name, *hclType, newName),
 		})
 	}
 
@@ -1227,7 +1227,7 @@ func convertTemplateExpr(state *convertState,
 						splitStrings := strings.Split(string(tok.Bytes), "\\n")
 						for i, splitString := range splitStrings {
 							strtoksWithNewlines = append(strtoksWithNewlines, makeToken(hclsyntax.TokenStringLit, splitString))
-							if i < len(splitStrings) - 1 && partIndex != len(expr.Parts) - 1 {
+							if i < len(splitStrings)-1 && partIndex != len(expr.Parts)-1 {
 								// Insert only true newlines.  This is when not the last newline
 								// of the expression unless it is the end of the expression
 								// (which must end in a newline)
@@ -1244,7 +1244,7 @@ func convertTemplateExpr(state *convertState,
 				// Other values can be written as is
 				tokens = append(tokens, hclwrite.TokensForValue(lit.Val)...)
 			}
-		}  else if forToken, ok := part.(*hclsyntax.TemplateJoinExpr); ok{
+		} else if forToken, ok := part.(*hclsyntax.TemplateJoinExpr); ok {
 			// A template join is more complex and contains template control
 			// sections, so delegate to the inner expression.
 			tokens = append(tokens, convertTemplateJoinExpr(state, false, scopes, "", forToken)...)
@@ -2727,7 +2727,7 @@ func translateRemoteModule(
 		destinationRoot, destinationDirectory,
 		info,
 		requiredProviders,
-		/*topLevelModule*/false,
+		/*topLevelModule*/ false,
 	)
 }
 
@@ -2951,7 +2951,7 @@ func translateModuleSourceCode(
 						destinationPath,
 						info,
 						requiredProviders,
-						/*topLevelModule*/false,
+						/*topLevelModule*/ false,
 					)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
@@ -3408,19 +3408,18 @@ func translateModuleSourceCode(
 	return state.diagnostics
 }
 
-
 // getPackageBlock returns package block in the following form:
 //
-// package <name> {
-//   baseProviderName = <name>
-//   baseProviderVersion = <version>
-//   baseProviderDownloadUrl = <url>
-//   parameterization {
-//     name = <name>
-//     version = <version>
-//     value = <base64-encoded-value>
-//   }
-// }
+//	package <name> {
+//	  baseProviderName = <name>
+//	  baseProviderVersion = <version>
+//	  baseProviderDownloadUrl = <url>
+//	  parameterization {
+//	    name = <name>
+//	    version = <version>
+//	    value = <base64-encoded-value>
+//	  }
+//	}
 func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Block, hcl.Diagnostics) {
 	// if the name is one of our known providers just write it, if it is not it
 	// must be tf so write a paramaterized package.
@@ -3439,7 +3438,7 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 
 	if isTerraformProvider(packageName) {
 		body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-provider"))
-		body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.5.4"))
+		body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.6.0"))
 
 		// Right now we use the shim  of the opentofu implementation of getting the
 		// TF Package version to access an internal API.
@@ -3452,9 +3451,9 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 		// but it could be more complex in the future.
 		// Once it becomes more complex it may be worthwhile to export a function
 		// from pulumi-terraform-bridge that encodes this value and use it here.
-		innerValue := fmt.Sprintf(`{"remote":{"url":"%s","version":"%s"}}`, 
-															prov.Source,
-															desiredVersion.String())
+		innerValue := fmt.Sprintf(`{"remote":{"url":"%s","version":"%s"}}`,
+			prov.Source,
+			desiredVersion.String())
 		encoded := base64.StdEncoding.EncodeToString([]byte(innerValue))
 
 		paramBlock := hclwrite.NewBlock("parameterization", []string{})
@@ -3485,8 +3484,8 @@ func TranslateModule(
 		destination,
 		"/",
 		info,
-		/*requiredProviders*/map[string]*configs.RequiredProvider{},
-		/*topLevelModule*/true,
+		/*requiredProviders*/ map[string]*configs.RequiredProvider{},
+		/*topLevelModule*/ true,
 	)
 }
 
