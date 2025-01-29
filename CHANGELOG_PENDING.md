@@ -5,6 +5,7 @@
 - Enable lookup which is already in pulumi-std
 - Enable merge which is already in pulumi-std
 - Enable flatten which is already in pulumi-std
+- Reenable "compact" since it is required for many providers.
 
 ### Bug Fixes
 

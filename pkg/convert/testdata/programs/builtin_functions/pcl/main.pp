@@ -337,7 +337,9 @@ output "funcCoalescelist2" {
 
 # Examples for compact
 output "funcCompact" {
-  value = notImplemented("compact([\"a\",\"\",\"b\",null,\"c\"])")
+  value = invoke("std:index:compact", {
+    input = ["a", "", "b", null, "c"]
+  }).result
 }
 
 

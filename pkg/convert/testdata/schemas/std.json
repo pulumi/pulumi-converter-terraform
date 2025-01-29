@@ -546,13 +546,13 @@
       }
     },
     "std:index:compact": {
-      "description": "Removes empty string elements from a list.",
+      "description": "Removes empty and nil string elements from a list.",
       "inputs": {
         "properties": {
           "input": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "pulumi.json#/Any"
             }
           }
         },
@@ -564,16 +564,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:concat": {
