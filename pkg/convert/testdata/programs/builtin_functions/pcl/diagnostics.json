@@ -53,8 +53,6 @@
   "warning:builtin_functions/main.tf:457,11-76:Function not yet implemented:Function formatlist not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:460,11-88:Function not yet implemented:Function formatlist not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:472,11-38:Function not yet implemented:Function index not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
-  "warning:builtin_functions/main.tf:490,11-47:Function not yet implemented:Function jsondecode not yet implemented, see pulumi/pulumi-converter-terraform#65",
-  "warning:builtin_functions/main.tf:493,11-29:Function not yet implemented:Function jsondecode not yet implemented, see pulumi/pulumi-converter-terraform#65",
   "warning:builtin_functions/main.tf:505,11-32:Function not yet implemented:Function keys not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:553,11-50:Function not yet implemented:Function lookup not yet implemented, see pulumi/pulumi-converter-terraform#65",
   "warning:builtin_functions/main.tf:556,11-50:Function not yet implemented:Function lookup not yet implemented, see pulumi/pulumi-converter-terraform#65",

@@ -592,6 +592,11 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"separator", "input"},
 		output: "result",
 	},
+	"jsondecode": {
+		token:  "std:index:jsondecode",
+		inputs: []string{"input"},
+		output: "result",
+	},
 	"log": {
 		token:  "std:index:log",
 		inputs: []string{"base", "input"},
@@ -3580,7 +3585,6 @@ var unimplementedFunctionBugs = map[string]string{
 	"flatten":      "pulumi/pulumi-converter-terraform#138",
 	"format":       "pulumi/pulumi-converter-terraform#65",
 	"formatdate":   "pulumi/pulumi-converter-terraform#196",
-	"jsondecode":   "pulumi/pulumi-converter-terraform#65",
 	"lookup":       "pulumi/pulumi-converter-terraform#65",
 	"merge":        "pulumi/pulumi-converter-terraform#65",
 	"regexall":     "pulumi/pulumi-converter-terraform#191",
