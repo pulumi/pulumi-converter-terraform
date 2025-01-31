@@ -1377,19 +1377,29 @@ output "funcTitle" {
 
 # Examples for tobool
 output "funcTobool0" {
-  value = notImplemented("tobool(true)")
+  value = invoke("std:index:tobool", {
+    input = true
+  }).result
 }
 output "funcTobool1" {
-  value = notImplemented("tobool(\"true\")")
+  value = invoke("std:index:tobool", {
+    input = "true"
+  }).result
 }
 output "funcTobool2" {
-  value = notImplemented("tobool(null)")
+  value = invoke("std:index:tobool", {
+    input = null
+  }).result
 }
 output "funcTobool3" {
-  value = notImplemented("tobool(\"no\")")
+  value = invoke("std:index:tobool", {
+    input = "no"
+  }).result
 }
 output "funcTobool4" {
-  value = notImplemented("tobool(1)")
+  value = invoke("std:index:tobool", {
+    input = 1
+  }).result
 }
 
 
