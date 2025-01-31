@@ -838,13 +838,38 @@ output "funcMd5" {
 
 # Examples for merge
 output "funcMerge0" {
-  value = notImplemented("merge({a=\"b\",c=\"d\"},{e=\"f\",c=\"z\"})")
+  value = invoke("std:index:merge", {
+    input = [{
+      a = "b"
+      c = "d"
+      }, {
+      e = "f"
+      c = "z"
+    }]
+  }).result
 }
 output "funcMerge1" {
-  value = notImplemented("merge({a=\"b\"},{a=[1,2],c=\"z\"},{d=3})")
+  value = invoke("std:index:merge", {
+    input = [{
+      a = "b"
+      }, {
+      a = [1, 2]
+      c = "z"
+      }, {
+      d = 3
+    }]
+  }).result
 }
 output "funcMerge2" {
-  value = notImplemented("merge([{a=\"b\",c=\"d\"},{},{e=\"f\",c=\"z\"}]...)")
+  value = invoke("std:index:merge", {
+    input = [{
+      a = "b"
+      c = "d"
+      }, {}, {
+      e = "f"
+      c = "z"
+    }]
+  }).result
 }
 
 
