@@ -719,6 +719,11 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input"},
 		output: "result",
 	},
+	"tobool": {
+		token:  "std:index:tobool",
+		inputs: []string{"input"},
+		output: "result",
+	},
 	"transpose": {
 		token:  "std:index:transpose",
 		inputs: []string{"input"},
@@ -3581,7 +3586,6 @@ var unimplementedFunctionBugs = map[string]string{
 	"regexall":     "pulumi/pulumi-converter-terraform#191",
 	"slice":        "pulumi/pulumi-converter-terraform#65",
 	"templatefile": "pulumi/pulumi-converter-terraform#192",
-	"tobool":       "pulumi/pulumi-converter-terraform#65",
 	"toset":        "pulumi/pulumi-converter-terraform#137",
 	"try":          "pulumi/pulumi-converter-terraform#16",
 	"yamlencode":   "pulumi/pulumi-converter-terraform#190",
