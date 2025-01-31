@@ -514,10 +514,14 @@ output "funcFilesha512" {
 
 # Examples for flatten
 output "funcFlatten0" {
-  value = notImplemented("flatten([[\"a\",\"b\"],[],[\"c\"]])")
+  value = invoke("std:index:flatten", {
+    input = [["a", "b"], [], ["c"]]
+  }).result
 }
 output "funcFlatten1" {
-  value = notImplemented("flatten([[[\"a\",\"b\"],[]],[\"c\"]])")
+  value = invoke("std:index:flatten", {
+    input = [[["a", "b"], []], ["c"]]
+  }).result
 }
 
 

@@ -577,6 +577,11 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input"},
 		output: "result",
 	},
+	"flatten": {
+		token:  "std:index:flatten",
+		inputs: []string{"input"},
+		output: "result",
+	},
 	"floor": {
 		token:  "std:index:floor",
 		inputs: []string{"input"},
@@ -3592,7 +3597,6 @@ var unimplementedFunctionBugs = map[string]string{
 	"coalescelist": "pulumi/pulumi-converter-terraform#65",
 	"compact":      "pulumi/pulumi-converter-terraform#65",
 	"distinct":     "pulumi/pulumi-converter-terraform#65",
-	"flatten":      "pulumi/pulumi-converter-terraform#138",
 	"format":       "pulumi/pulumi-converter-terraform#65",
 	"formatdate":   "pulumi/pulumi-converter-terraform#196",
 	"regexall":     "pulumi/pulumi-converter-terraform#191",

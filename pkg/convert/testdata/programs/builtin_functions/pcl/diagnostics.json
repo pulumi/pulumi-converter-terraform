@@ -32,8 +32,6 @@
   "warning:builtin_functions/main.tf:352,11-64:Function not yet implemented:Function fileset not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:355,11-53:Function not yet implemented:Function fileset not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:358,11-54:Function not yet implemented:Function fileset not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
-  "warning:builtin_functions/main.tf:382,11-43:Function not yet implemented:Function flatten not yet implemented, see pulumi/pulumi-converter-terraform#138",
-  "warning:builtin_functions/main.tf:385,11-45:Function not yet implemented:Function flatten not yet implemented, see pulumi/pulumi-converter-terraform#138",
   "warning:builtin_functions/main.tf:400,11-40:Function not yet implemented:Function format not yet implemented, see pulumi/pulumi-converter-terraform#65",
   "warning:builtin_functions/main.tf:403,11-43:Function not yet implemented:Function format not yet implemented, see pulumi/pulumi-converter-terraform#65",
   "warning:builtin_functions/main.tf:406,11-41:Function not yet implemented:Function format not yet implemented, see pulumi/pulumi-converter-terraform#65",
