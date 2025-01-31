@@ -646,10 +646,14 @@ output "funcJoin2" {
 
 # Examples for jsondecode
 output "funcJsondecode0" {
-  value = notImplemented("jsondecode(\"{\\\"hello\\\": \\\"world\\\"}\")")
+  value = invoke("std:index:jsondecode", {
+    input = "{\"hello\": \"world\"}"
+  }).result
 }
 output "funcJsondecode1" {
-  value = notImplemented("jsondecode(\"true\")")
+  value = invoke("std:index:jsondecode", {
+    input = "true"
+  }).result
 }
 
 
