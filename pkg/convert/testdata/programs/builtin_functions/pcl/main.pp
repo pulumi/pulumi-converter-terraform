@@ -299,25 +299,39 @@ output "funcCidrsubnets2" {
 
 # Examples for coalesce
 output "funcCoalesce0" {
-  value = notImplemented("coalesce(\"a\",\"b\")")
+  value = invoke("std:index:coalesce", {
+    input = ["a", "b"]
+  }).result
 }
 output "funcCoalesce1" {
-  value = notImplemented("coalesce(\"\",\"b\")")
+  value = invoke("std:index:coalesce", {
+    input = ["", "b"]
+  }).result
 }
 output "funcCoalesce2" {
-  value = notImplemented("coalesce(1,2)")
+  value = invoke("std:index:coalesce", {
+    input = [1, 2]
+  }).result
 }
 output "funcCoalesce3" {
-  value = notImplemented("coalesce([\"\",\"b\"]...)")
+  value = invoke("std:index:coalesce", {
+    input = ["", "b"]
+  }).result
 }
 output "funcCoalesce4" {
-  value = notImplemented("coalesce(1,\"hello\")")
+  value = invoke("std:index:coalesce", {
+    input = [1, "hello"]
+  }).result
 }
 output "funcCoalesce5" {
-  value = notImplemented("coalesce(true,\"hello\")")
+  value = invoke("std:index:coalesce", {
+    input = [true, "hello"]
+  }).result
 }
 output "funcCoalesce6" {
-  value = notImplemented("coalesce({},\"hello\")")
+  value = invoke("std:index:coalesce", {
+    input = [{}, "hello"]
+  }).result
 }
 
 

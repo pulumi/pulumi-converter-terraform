@@ -509,6 +509,12 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input", "newbits", "netnum"},
 		output: "result",
 	},
+	"coalesce": {
+		token:  "std:index:coalesce",
+		inputs: []string{"input"},
+		output: "result",
+		paramArgs: true,
+	},
 	"csvdecode": {
 		token:  "std:index:csvdecode",
 		inputs: []string{"input"},
@@ -3585,7 +3591,6 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 }
 
 var unimplementedFunctionBugs = map[string]string{
-	"coalesce":     "pulumi/pulumi-converter-terraform#65",
 	"coalescelist": "pulumi/pulumi-converter-terraform#65",
 	"distinct":     "pulumi/pulumi-converter-terraform#65",
 	"format":       "pulumi/pulumi-converter-terraform#65",

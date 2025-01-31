@@ -5,7 +5,11 @@
 - Enable lookup which is already in pulumi-std
 - Enable merge which is already in pulumi-std
 - Enable flatten which is already in pulumi-std
+<<<<<<< HEAD
 - Reenable "compact" since it is required for many providers.
+=======
+- Enable coalesce which is already in pulumi-std
+>>>>>>> affaaa5 (enable coalesce now that it is in pulumi-std)
 
 ### Bug Fixes
 
