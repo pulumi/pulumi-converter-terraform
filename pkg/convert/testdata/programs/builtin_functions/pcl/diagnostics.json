@@ -54,8 +54,6 @@
   "warning:builtin_functions/main.tf:460,11-88:Function not yet implemented:Function formatlist not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:472,11-38:Function not yet implemented:Function index not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:505,11-32:Function not yet implemented:Function keys not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
-  "warning:builtin_functions/main.tf:553,11-50:Function not yet implemented:Function lookup not yet implemented, see pulumi/pulumi-converter-terraform#65",
-  "warning:builtin_functions/main.tf:556,11-50:Function not yet implemented:Function lookup not yet implemented, see pulumi/pulumi-converter-terraform#65",
   "warning:builtin_functions/main.tf:571,11-34:Function not yet implemented:Function map not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:577,11-97:Function not yet implemented:Function matchkeys not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:607,11-48:Function not yet implemented:Function merge not yet implemented, see pulumi/pulumi-converter-terraform#65",
