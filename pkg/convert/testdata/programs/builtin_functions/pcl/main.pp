@@ -744,10 +744,24 @@ output "funcLog4" {
 
 # Examples for lookup
 output "funcLookup0" {
-  value = notImplemented("lookup({a=\"ay\",b=\"bee\"},\"a\",\"what?\")")
+  value = invoke("std:index:lookup", {
+    map = {
+      a = "ay"
+      b = "bee"
+    }
+    key     = "a"
+    default = "what?"
+  }).result
 }
 output "funcLookup1" {
-  value = notImplemented("lookup({a=\"ay\",b=\"bee\"},\"c\",\"what?\")")
+  value = invoke("std:index:lookup", {
+    map = {
+      a = "ay"
+      b = "bee"
+    }
+    key     = "c"
+    default = "what?"
+  }).result
 }
 
 

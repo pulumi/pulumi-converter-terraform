@@ -2,6 +2,7 @@
 
 - Allow generating of tobool invocation.
 - Enable jsondecode which is already in pulumi-std
+- Enable lookup which is already in pulumi-std
 
 ### Bug Fixes
 
