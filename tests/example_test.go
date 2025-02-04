@@ -313,7 +313,10 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-rds",
-			strict:  true,
+			// TODO[pulumi/pulumi#18446 strict should work if the plugin is available (std in this case).
+			// strict:  true,
+			// TODO[pulumi/pulumi#18448 when std is required for go conversion fails.
+			skip: newStringSet(golang) ,
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-alb",

@@ -623,6 +623,12 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input"},
 		output: "result",
 	},
+	"merge": {
+		token:  "std:index:merge",
+		inputs: []string{"input"},
+		output: "result",
+		paramArgs: true,
+	},
 	"min": {
 		token:     "std:index:min",
 		inputs:    []string{"input"},
@@ -950,7 +956,6 @@ func convertFunctionCallExpr(state *convertState,
 				Name:  hclwrite.TokensForIdentifier(invoke.inputs[0]),
 				Value: listTokens,
 			})
-
 		} else {
 			if len(args) > len(invoke.inputs) {
 				state.appendDiagnostic(&hcl.Diagnostic{
@@ -3590,7 +3595,6 @@ var unimplementedFunctionBugs = map[string]string{
 	"flatten":      "pulumi/pulumi-converter-terraform#138",
 	"format":       "pulumi/pulumi-converter-terraform#65",
 	"formatdate":   "pulumi/pulumi-converter-terraform#196",
-	"merge":        "pulumi/pulumi-converter-terraform#65",
 	"regexall":     "pulumi/pulumi-converter-terraform#191",
 	"slice":        "pulumi/pulumi-converter-terraform#65",
 	"templatefile": "pulumi/pulumi-converter-terraform#192",

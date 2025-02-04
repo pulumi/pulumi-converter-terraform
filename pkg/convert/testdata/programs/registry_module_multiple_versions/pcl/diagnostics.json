@@ -11,7 +11,6 @@
   "warning:/files.tf:38,19-45,11:Function not yet implemented:Function tomap not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:/files.tf:52,24-38:Function not yet implemented:Function tostring not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:/files.tf:53,19-60,11:Function not yet implemented:Function tomap not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
-  "warning:/files.tf:32,11-63,4:Function not yet implemented:Function merge not yet implemented, see pulumi/pulumi-converter-terraform#65",
   "warning:/files.tf:2,20-47:Function not yet implemented:Function fileset not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:/files.tf:3,23-6,5:Function not yet implemented:Function toset not yet implemented, see pulumi/pulumi-converter-terraform#137",
   "warning:/files.tf:10,10-46:Function not yet implemented:Function contains not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
@@ -23,6 +22,5 @@
   "warning:/files.tf:36,24-38:Function not yet implemented:Function tostring not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:/files.tf:38,19-45,11:Function not yet implemented:Function tomap not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:/files.tf:52,24-38:Function not yet implemented:Function tostring not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
-  "warning:/files.tf:53,19-60,11:Function not yet implemented:Function tomap not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
-  "warning:/files.tf:32,11-63,4:Function not yet implemented:Function merge not yet implemented, see pulumi/pulumi-converter-terraform#65"
+  "warning:/files.tf:53,19-60,11:Function not yet implemented:Function tomap not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)"
 ]
