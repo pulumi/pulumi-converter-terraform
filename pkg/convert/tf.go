@@ -417,6 +417,7 @@ var tfFunctionRenames = map[string]string{
 	"jsonencode": "toJSON",
 	"length":     "length",
 	"element":    "element",
+	"try":        "try",
 }
 
 var tfFunctionStd = map[string]struct {
@@ -716,7 +717,7 @@ var tfFunctionStd = map[string]struct {
 	},
 	"regex": {
 		token:  "std:index:regex",
-		inputs: []string{"pattern", "string"},
+		inputs: []string{"regex", "string"},
 		output: "result",
 	},
 	"regexall": {
@@ -1010,6 +1011,24 @@ func convertFunctionCallExpr(state *convertState,
 		}
 		listTokens = append(listTokens, makeToken(hclsyntax.TokenCBrack, "]"))
 		return listTokens
+	}
+
+	// Try is a special function that must pass the arguments as a list, since
+	// PCL doesn't have variadic functions
+	if call.Name == "try" {
+		var tryCallTokens hclwrite.Tokens
+		tryCallTokens = append(tryCallTokens, hclwrite.TokensForIdentifier(call.Name)...)
+		tryCallTokens = append(tryCallTokens, makeToken(hclsyntax.TokenOParen, "("), makeToken(hclsyntax.TokenOBrack, "["))
+		first := true
+		for _, arg := range args {
+			if !first {
+				tryCallTokens = append(tryCallTokens, makeToken(hclsyntax.TokenComma, ", "))
+			}
+			first = false
+			tryCallTokens = append(tryCallTokens, arg...)
+		}
+		tryCallTokens = append(tryCallTokens, makeToken(hclsyntax.TokenCBrack, "]"), makeToken(hclsyntax.TokenCParen, ")"))
+		return tryCallTokens
 	}
 
 	// Translate tolist(x) as x - in TF this normalizes sets to lists, but in Pulumi everything is represented as a
@@ -3715,7 +3734,6 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 var unimplementedFunctionBugs = map[string]string{
 	"formatdate":   "pulumi/pulumi-converter-terraform#196",
 	"templatefile": "pulumi/pulumi-converter-terraform#192",
-	"try":          "pulumi/pulumi-converter-terraform#16",
 	"yamlencode":   "pulumi/pulumi-converter-terraform#190",
 }
 
