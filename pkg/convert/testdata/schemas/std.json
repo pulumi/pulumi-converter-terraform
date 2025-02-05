@@ -1762,67 +1762,6 @@
         "type": "object"
       }
     },
-    "std:index:regex": {
-      "description": "Returns the first match of a regular expression in a string (including named or indexed groups).",
-      "inputs": {
-        "properties": {
-          "pattern": {
-            "type": "string"
-          },
-          "string": {
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "pattern",
-          "string"
-        ]
-      },
-      "outputs": {
-        "properties": {
-          "result": {
-            "$ref": "pulumi.json#/Any"
-          }
-        },
-        "required": [
-          "result"
-        ],
-        "type": "object"
-      }
-    },
-    "std:index:regexall": {
-      "description": "Returns a list of all matches of a regular expression in a string (including named or indexed groups).",
-      "inputs": {
-        "properties": {
-          "pattern": {
-            "type": "string"
-          },
-          "string": {
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "pattern",
-          "string"
-        ]
-      },
-      "outputs": {
-        "properties": {
-          "result": {
-            "items": {
-              "$ref": "pulumi.json#/Any"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "result"
-        ],
-        "type": "object"
-      }
-    },
     "std:index:replace": {
       "description": "Does a search and replace on the given string.\nAll instances of search are replaced with the value of replace.\nIf search is wrapped in forward slashes, it is treated as a regular expression.\nIf using a regular expression, replace can reference subcaptures in the regular expression by\nusing $n where n is the index or name of the subcapture. If using a regular expression,\nthe syntax conforms to the re2 regular expression syntax.",
       "inputs": {
@@ -1908,40 +1847,6 @@
         "properties": {
           "result": {
             "type": "string"
-          }
-        },
-        "required": [
-          "result"
-        ],
-        "type": "object"
-      }
-    },
-    "std:index:setintersection": {
-      "description": "Returns the set of elements that all the input sets have in common.",
-      "inputs": {
-        "properties": {
-          "input": {
-            "type": "array",
-            "items": {
-              "type": "array",
-              "items": {
-                "$ref": "pulumi.json#/Any"
-              }
-            }
-          }
-        },
-        "type": "object",
-        "required": [
-          "input"
-        ]
-      },
-      "outputs": {
-        "properties": {
-          "result": {
-            "items": {
-              "$ref": "pulumi.json#/Any"
-            },
-            "type": "array"
           }
         },
         "required": [
