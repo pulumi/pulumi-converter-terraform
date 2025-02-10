@@ -70,26 +70,43 @@ output "funcAbspath" {
 
 # Examples for alltrue
 output "funcAlltrue0" {
-  value = notImplemented("alltrue([\"true\",true])")
+  value = invoke("std:index:alltrue", {
+    input = ["true", true]
+  }).result
 }
 output "funcAlltrue1" {
-  value = notImplemented("alltrue([true,false])")
+  value = invoke("std:index:alltrue", {
+    input = [true, false]
+  }).result
+}
+output "funcAlltrue2" {
+  value = invoke("std:index:alltrue", {
+    input = []
+  }).result
 }
 
 
 
 # Examples for anytrue
 output "funcAnytrue0" {
-  value = notImplemented("anytrue([\"true\"])")
+  value = invoke("std:index:anytrue", {
+    input = ["true"]
+  }).result
 }
 output "funcAnytrue1" {
-  value = notImplemented("anytrue([true])")
+  value = invoke("std:index:anytrue", {
+    input = [true]
+  }).result
 }
 output "funcAnytrue2" {
-  value = notImplemented("anytrue([true,false])")
+  value = invoke("std:index:anytrue", {
+    input = [true, false]
+  }).result
 }
 output "funcAnytrue3" {
-  value = notImplemented("anytrue([])")
+  value = invoke("std:index:anytrue", {
+    input = []
+  }).result
 }
 
 

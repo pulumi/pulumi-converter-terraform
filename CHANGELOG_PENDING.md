@@ -10,5 +10,7 @@
 - Implement `coalescelist` through the `pulumi-std` invoke of the same name
 - Implement `distinct` through the `pulumi-std` invoke of the same name
 - Implement `format` through the `pulumi-std` invoke of the same name
+- Implement `alltrue` through the `pulumi-std` invoke of the same name
+- Implement `anytrue` through the `pulumi-std` invoke of the same name
 
 ### Bug Fixes
