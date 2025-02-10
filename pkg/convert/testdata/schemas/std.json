@@ -1,7 +1,7 @@
 {
   "name": "std",
   "displayName": "StandardLibrary",
-  "version": "0.1.0",
+  "version": "2.1.0",
   "description": "Standard library functions",
   "homepage": "https://github.com/pulumi/pulumi-std",
   "repository": "https://github.com/pulumi/pulumi-std",
@@ -15,11 +15,12 @@
         "Pulumi": "3.*"
       }
     },
-    "nodejs": {
-      "dependencies": {
-        "@pulumi/pulumi": "^3.0.0"
-      },
-      "respectSchemaVersion": true
+    "go": {
+      "importBasePath": "github.com/pulumi/pulumi-std/sdk/go/std"
+    },
+    "java": {
+      "buildFiles": "gradle",
+      "gradleNexusPublishPluginVersion": "2.0.0"
     }
   },
   "config": {},
@@ -28,7 +29,7 @@
   },
   "functions": {
     "std:index:abs": {
-      "description": "Returns the absolute value of a given float. \nExample: abs(1) returns 1, and abs(-1) would also return 1, whereas abs(-3.14) would return 3.14.",
+      "description": "Returns the absolute value of a given float.\nExample: abs(1) returns 1, and abs(-1) would also return 1, whereas abs(-3.14) would return 3.14.",
       "inputs": {
         "properties": {
           "input": {
@@ -46,10 +47,10 @@
             "type": "number"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:abspath": {
@@ -71,14 +72,14 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:alltrue": {
-      "description": "Returns true if all elements in a given collection are true or \\\"true\\\". \nIt also returns true if the collection is empty.",
+      "description": "Returns true if all elements in a given collection are true or \\\"true\\\".\nIt also returns true if the collection is empty.",
       "inputs": {
         "properties": {
           "input": {
@@ -99,14 +100,14 @@
             "type": "boolean"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:anytrue": {
-      "description": "Returns true if any of the elements in a given collection are true or \\\"true\\\". \nIt also returns false if the collection is empty.",
+      "description": "Returns true if any of the elements in a given collection are true or \\\"true\\\".\nIt also returns false if the collection is empty.",
       "inputs": {
         "properties": {
           "input": {
@@ -127,10 +128,10 @@
             "type": "boolean"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:base64decode": {
@@ -152,10 +153,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:base64encode": {
@@ -177,10 +178,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:base64gzip": {
@@ -202,14 +203,14 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:base64sha256": {
-      "description": "Returns a base64-encoded representation of raw SHA-256 sum of the given string. \nThis is not equivalent of base64encode(sha256(string)) since sha256() returns hexadecimal representation.",
+      "description": "Returns a base64-encoded representation of raw SHA-256 sum of the given string.\nThis is not equivalent of base64encode(sha256(string)) since sha256() returns hexadecimal representation.",
       "inputs": {
         "properties": {
           "input": {
@@ -227,14 +228,14 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:base64sha512": {
-      "description": "Returns a base64-encoded representation of raw SHA-512 sum of the given string. \nThis is not equivalent of base64encode(sha512(string)) since sha512() returns hexadecimal representation.",
+      "description": "Returns a base64-encoded representation of raw SHA-512 sum of the given string.\nThis is not equivalent of base64encode(sha512(string)) since sha512() returns hexadecimal representation.",
       "inputs": {
         "properties": {
           "input": {
@@ -252,10 +253,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:basename": {
@@ -277,14 +278,14 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:bcrypt": {
-      "description": "Returns the Blowfish encrypted hash of the string at the given cost. \nA default cost of 10 will be used if not provided.",
+      "description": "Returns the Blowfish encrypted hash of the string at the given cost.\nA default cost of 10 will be used if not provided.",
       "inputs": {
         "properties": {
           "cost": {
@@ -305,10 +306,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:ceil": {
@@ -330,10 +331,10 @@
             "type": "number"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:chomp": {
@@ -355,10 +356,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:chunklist": {
@@ -384,20 +385,20 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:cidrhost": {
-      "description": "Takes an IP address range in CIDR notation as input \nand creates an IP address with the given host number. \nIf given host number is negative, the count starts from the end of the range. \nFor example, cidrhost(\"10.0.0.0/8\", 2) returns 10.0.0.2 and cidrhost(\"10.0.0.0/8\", -2) returns 10.255.255.254.",
+      "description": "Takes an IP address range in CIDR notation as input\nand creates an IP address with the given host number.\nIf given host number is negative, the count starts from the end of the range.\nFor example, cidrhost(\"10.0.0.0/8\", 2) returns 10.0.0.2 and cidrhost(\"10.0.0.0/8\", -2) returns 10.255.255.254.",
       "inputs": {
         "properties": {
           "host": {
@@ -419,14 +420,14 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:cidrnetmask": {
-      "description": "Takes an IP address range in CIDR notation and returns the address-formatted subnet mask format \nthat some systems expect for IPv4 interfaces. \nFor example, cidrnetmask(\"10.0.0.0/8\") returns 255.0.0.0. \nNot applicable to IPv6 networks since CIDR notation is the only valid notation for IPv6.",
+      "description": "Takes an IP address range in CIDR notation and returns the address-formatted subnet mask format\nthat some systems expect for IPv4 interfaces.\nFor example, cidrnetmask(\"10.0.0.0/8\") returns 255.0.0.0.\nNot applicable to IPv6 networks since CIDR notation is the only valid notation for IPv6.",
       "inputs": {
         "properties": {
           "input": {
@@ -444,14 +445,14 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:cidrsubnet": {
-      "description": "Takes an IP address range in CIDR notation (like 10.0.0.0/8) and extends its prefix \nto include an additional subnet number. For example, cidrsubnet(\"10.0.0.0/8\", 8, 2) returns 10.2.0.0/16; \ncidrsubnet(\"2607:f298:6051:516c::/64\", 8, 2) returns 2607:f298:6051:516c:200::/72.",
+      "description": "Takes an IP address range in CIDR notation (like 10.0.0.0/8) and extends its prefix\nto include an additional subnet number. For example, cidrsubnet(\"10.0.0.0/8\", netnum: 2, newbits: 8)\nreturns 10.2.0.0/16; cidrsubnet(\"2607:f298:6051:516c::/64\", netnum: 2, newbits: 8) returns\n2607:f298:6051:516c:200::/72.",
       "inputs": {
         "properties": {
           "input": {
@@ -477,20 +478,20 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:coalesce": {
-      "description": "Returns the first non-empty value from the given arguments.",
+      "description": "Returns the first non-nil or non-empty value from the given arguments. All arguments must be of the same type, or convertible to a common type.",
       "inputs": {
         "properties": {
           "input": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "pulumi.json#/Any"
             }
           }
         },
@@ -502,13 +503,13 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "string"
+            "$ref": "pulumi.json#/Any"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:coalescelist": {
@@ -533,26 +534,26 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:compact": {
-      "description": "Removes empty string elements from a list.",
+      "description": "Removes empty and nil string elements from a list.",
       "inputs": {
         "properties": {
           "input": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "pulumi.json#/Any"
             }
           }
         },
@@ -564,16 +565,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:concat": {
@@ -598,16 +599,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:contains": {
@@ -636,14 +637,14 @@
             "type": "boolean"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:csvdecode": {
-      "description": "Decodes a string containing CSV-formatted data and produces a list of maps representing that data.\n\tThe first line of the CSV data is interpreted as a \"header\" row: the values given \n\tare used as the keys in the resulting maps. \n\tEach subsequent line becomes a single map in the resulting list, \n\tmatching the keys from the header row with the given values by index. \n\tAll lines in the file must contain the same number of fields, \n\tor this function will produce an error.\n\tFollows the format defined in RFC 4180.",
+      "description": "Decodes a string containing CSV-formatted data and produces a list of maps representing that data.\n\tThe first line of the CSV data is interpreted as a \"header\" row: the values given\n\tare used as the keys in the resulting maps.\n\tEach subsequent line becomes a single map in the resulting list,\n\tmatching the keys from the header row with the given values by index.\n\tAll lines in the file must contain the same number of fields,\n\tor this function will produce an error.\n\tFollows the format defined in RFC 4180.",
       "inputs": {
         "properties": {
           "input": {
@@ -658,19 +659,19 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
-              "type": "object",
               "additionalProperties": {
                 "type": "string"
-              }
-            }
+              },
+              "type": "object"
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:dirname": {
@@ -692,10 +693,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:distinct": {
@@ -717,16 +718,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:element": {
@@ -755,10 +756,10 @@
             "$ref": "pulumi.json#/Any"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:endswith": {
@@ -784,10 +785,10 @@
             "type": "boolean"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:file": {
@@ -809,10 +810,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:filebase64": {
@@ -834,10 +835,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:filebase64sha256": {
@@ -859,10 +860,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:filebase64sha512": {
@@ -884,10 +885,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:fileexists": {
@@ -909,10 +910,10 @@
             "type": "boolean"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:filemd5": {
@@ -934,10 +935,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:filesha1": {
@@ -959,10 +960,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:filesha256": {
@@ -984,10 +985,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:filesha512": {
@@ -1009,14 +1010,14 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:flatten": {
-      "description": "Flattens lists of lists down to a flat list of primitive values, \neliminating any nested lists recursively.",
+      "description": "Flattens lists of lists down to a flat list of primitive values,\neliminating any nested lists recursively.",
       "inputs": {
         "properties": {
           "input": {
@@ -1034,16 +1035,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:floor": {
@@ -1065,10 +1066,10 @@
             "type": "number"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:format": {
@@ -1097,10 +1098,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:indent": {
@@ -1126,10 +1127,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:index": {
@@ -1158,10 +1159,10 @@
             "type": "integer"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:join": {
@@ -1190,10 +1191,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:jsondecode": {
@@ -1215,14 +1216,14 @@
             "$ref": "pulumi.json#/Any"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:jsonencode": {
-      "description": "Returns a JSON-encoded representation of the given value, \nwhich can contain arbitrarily-nested lists and maps. \nNote that if the value is a string then its value will be placed in quotes.",
+      "description": "Returns a JSON-encoded representation of the given value,\nwhich can contain arbitrarily-nested lists and maps.\nNote that if the value is a string then its value will be placed in quotes.",
       "inputs": {
         "properties": {
           "input": {
@@ -1240,10 +1241,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:keys": {
@@ -1265,16 +1266,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:length": {
@@ -1296,10 +1297,10 @@
             "type": "integer"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:log": {
@@ -1325,10 +1326,10 @@
             "type": "number"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:lookup": {
@@ -1360,10 +1361,10 @@
             "$ref": "pulumi.json#/Any"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:lower": {
@@ -1385,10 +1386,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:map": {
@@ -1410,20 +1411,20 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "object",
             "additionalProperties": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "object"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:matchkeys": {
-      "description": "For two lists values and keys of equal length, \nreturns all elements from values where the corresponding element from keys exists in the searchset list.",
+      "description": "For two lists values and keys of equal length,\nreturns all elements from values where the corresponding element from keys exists in the searchset list.",
       "inputs": {
         "properties": {
           "searchList": {
@@ -1448,16 +1449,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:max": {
@@ -1482,10 +1483,10 @@
             "type": "number"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:md5": {
@@ -1507,14 +1508,14 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:merge": {
-      "description": "Returns the union of 2 or more maps. The maps are consumed in the order provided, \nand duplicate keys overwrite previous entries.",
+      "description": "Returns the union of 2 or more maps. The maps are consumed in the order provided,\nand duplicate keys overwrite previous entries.",
       "inputs": {
         "properties": {
           "input": {
@@ -1535,16 +1536,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "object",
             "additionalProperties": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "object"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:min": {
@@ -1569,14 +1570,14 @@
             "type": "number"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:parseint": {
-      "description": "Parses the given string as a representation of an integer in the specified base \nand returns the resulting number. The base must be between 2 and 62 inclusive.\n\t.",
+      "description": "Parses the given string as a representation of an integer in the specified base\nand returns the resulting number. The base must be between 2 and 62 inclusive.\n\t.",
       "inputs": {
         "properties": {
           "base": {
@@ -1597,10 +1598,10 @@
             "type": "integer"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:pathexpand": {
@@ -1622,10 +1623,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:pow": {
@@ -1651,14 +1652,14 @@
             "type": "number"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:range": {
-      "description": "Generates a list of numbers using a start value, a limit value, and a step value. \nStart and step may be omitted, in which case start defaults to zero and step defaults to either one or negative one \ndepending on whether limit is greater than or less than start.",
+      "description": "Generates a list of numbers using a start value, a limit value, and a step value.\nStart and step may be omitted, in which case start defaults to zero and step defaults to either one or negative one\ndepending on whether limit is greater than or less than start.",
       "inputs": {
         "properties": {
           "limit": {
@@ -1679,20 +1680,20 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "type": "number"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:replace": {
-      "description": "Does a search and replace on the given string. \nAll instances of search are replaced with the value of replace. \nIf search is wrapped in forward slashes, it is treated as a regular expression. \nIf using a regular expression, replace can reference subcaptures in the regular expression by \nusing $n where n is the index or name of the subcapture. If using a regular expression, \nthe syntax conforms to the re2 regular expression syntax.",
+      "description": "Does a search and replace on the given string.\nAll instances of search are replaced with the value of replace.\nIf search is wrapped in forward slashes, it is treated as a regular expression.\nIf using a regular expression, replace can reference subcaptures in the regular expression by\nusing $n where n is the index or name of the subcapture. If using a regular expression,\nthe syntax conforms to the re2 regular expression syntax.",
       "inputs": {
         "properties": {
           "replace": {
@@ -1718,10 +1719,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:reverse": {
@@ -1743,20 +1744,20 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:rsadecrypt": {
-      "description": "Decrypts an RSA-encrypted ciphertext. \nThe cipher text must be base64-encoded and the key must be in PEM format.",
+      "description": "Decrypts an RSA-encrypted ciphertext.\nThe cipher text must be base64-encoded and the key must be in PEM format.",
       "inputs": {
         "properties": {
           "cipherText": {
@@ -1778,10 +1779,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:sha1": {
@@ -1803,10 +1804,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:sha256": {
@@ -1828,10 +1829,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:sha512": {
@@ -1853,10 +1854,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:signum": {
@@ -1878,10 +1879,10 @@
             "type": "number"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:slice": {
@@ -1909,16 +1910,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:sort": {
@@ -1940,16 +1941,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:split": {
@@ -1972,16 +1973,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:startswith": {
@@ -2007,10 +2008,10 @@
             "type": "boolean"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:strrev": {
@@ -2032,10 +2033,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:substr": {
@@ -2065,10 +2066,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:sum": {
@@ -2093,10 +2094,10 @@
             "type": "number"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:timeadd": {
@@ -2122,10 +2123,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:timecmp": {
@@ -2151,10 +2152,10 @@
             "type": "integer"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:timestamp": {
@@ -2168,10 +2169,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:title": {
@@ -2193,10 +2194,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:tobool": {
@@ -2240,16 +2241,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:tonumber": {
@@ -2293,16 +2294,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:tostring": {
@@ -2349,19 +2350,19 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "object",
             "additionalProperties": {
-              "type": "array",
               "items": {
                 "type": "string"
-              }
-            }
+              },
+              "type": "array"
+            },
+            "type": "object"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:trim": {
@@ -2387,10 +2388,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:trimprefix": {
@@ -2416,10 +2417,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:trimspace": {
@@ -2441,10 +2442,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:trimsuffix": {
@@ -2470,10 +2471,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:upper": {
@@ -2495,10 +2496,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:urlencode": {
@@ -2520,10 +2521,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:uuid": {
@@ -2537,10 +2538,10 @@
             "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:values": {
@@ -2562,16 +2563,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "array",
             "items": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     },
     "std:index:zipmap": {
@@ -2600,16 +2601,16 @@
       "outputs": {
         "properties": {
           "result": {
-            "type": "object",
             "additionalProperties": {
               "$ref": "pulumi.json#/Any"
-            }
+            },
+            "type": "object"
           }
         },
-        "type": "object",
         "required": [
           "result"
-        ]
+        ],
+        "type": "object"
       }
     }
   }

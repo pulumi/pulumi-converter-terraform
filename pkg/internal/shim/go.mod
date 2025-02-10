@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/terraform-registry-address v0.2.3
 	github.com/hashicorp/terraform-svchost v0.1.1
 	github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a
-	github.com/pulumi/terraform v1.4.0
+	github.com/pulumi/terraform v0.12.1-0.20230322133416-a268cd0892c9
 )
 
 require (
