@@ -514,6 +514,11 @@ var tfFunctionStd = map[string]struct {
 		output:    "result",
 		paramArgs: true,
 	},
+	"contains": {
+		token:  "std:index:contains",
+		inputs: []string{"input", "element"},
+		output: "result",
+	},
 	"compact": {
 		token:  "std:index:compact",
 		inputs: []string{"input"},

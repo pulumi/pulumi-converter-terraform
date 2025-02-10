@@ -1,7 +1,6 @@
 [
   "warning:/files.tf:2,20-47:Function not yet implemented:Function fileset not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:/files.tf:3,23-6,5:Function not yet implemented:Function toset not yet implemented, see pulumi/pulumi-converter-terraform#137",
-  "warning:/files.tf:10,10-46:Function not yet implemented:Function contains not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:/files.tf:14,51-107:Function not yet implemented:Function templatefile not yet implemented, see pulumi/pulumi-converter-terraform#192",
   "warning:/files.tf:20,32-63:Function not yet implemented:Function keys not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:/files.tf:20,23-89:Function not yet implemented:Function setunion not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
@@ -13,7 +12,6 @@
   "warning:/files.tf:53,19-60,11:Function not yet implemented:Function tomap not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:/files.tf:2,20-47:Function not yet implemented:Function fileset not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:/files.tf:3,23-6,5:Function not yet implemented:Function toset not yet implemented, see pulumi/pulumi-converter-terraform#137",
-  "warning:/files.tf:10,10-46:Function not yet implemented:Function contains not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:/files.tf:14,51-107:Function not yet implemented:Function templatefile not yet implemented, see pulumi/pulumi-converter-terraform#192",
   "warning:/files.tf:20,32-63:Function not yet implemented:Function keys not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:/files.tf:20,23-89:Function not yet implemented:Function setunion not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",

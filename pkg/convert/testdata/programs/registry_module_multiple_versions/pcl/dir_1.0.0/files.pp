@@ -4,7 +4,10 @@ templateFilePaths = { for p in allFilePaths : invoke("std:index:substr", {
   input  = p
   length = 0
   offset = length(p) - length(templateFileSuffix)
-}).result => p if !notImplemented("contains(local.static_file_paths,p)") }
+  }).result => p if !invoke("std:index:contains", {
+  input   = staticFilePaths
+  element = p
+}).result }
 templateFileContents = { for p, sp in templateFilePaths : p => notImplemented("templatefile(\"$${var.base_dir}/$${sp}\",var.template_vars)") }
 staticFileLocalPaths = { for p in staticFilePaths : p => "${baseDir}/${p}" }
 outputFilePaths      = notImplemented("setunion(keys(local.template_file_paths),local.static_file_paths)")

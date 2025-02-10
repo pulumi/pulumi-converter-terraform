@@ -392,10 +392,16 @@ output "funcConcat" {
 
 # Examples for contains
 output "funcContains0" {
-  value = notImplemented("contains([\"a\",\"b\",\"c\"],\"a\")")
+  value = invoke("std:index:contains", {
+    input   = ["a", "b", "c"]
+    element = "a"
+  }).result
 }
 output "funcContains1" {
-  value = notImplemented("contains([\"a\",\"b\",\"c\"],\"d\")")
+  value = invoke("std:index:contains", {
+    input   = ["a", "b", "c"]
+    element = "d"
+  }).result
 }
 
 
