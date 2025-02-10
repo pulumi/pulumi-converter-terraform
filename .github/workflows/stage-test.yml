@@ -45,12 +45,6 @@ jobs:
           go-version: ${{ matrix.go-version }}
           stable: ${{ matrix.go-stable }}
 
-      - name: Set up gotestfmt
-        uses: gotesttools/gotestfmt-action@v2
-        with:
-          # Optional: pass GITHUB_TOKEN to avoid rate limiting.
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install pulumi
         uses: pulumi/actions@v4
         with:
@@ -76,7 +70,7 @@ jobs:
       - name: Test examples
         run: |
           set -euo pipefail
-          cd tests && go test -json -v -timeout 2h -parallel 10 ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
+          cd tests && go test -timeout 2h -parallel 10 ./...
 
       # Upload the original go test log as an artifact for later review
       - name: Upload test log
