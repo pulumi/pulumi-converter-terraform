@@ -1590,6 +1590,10 @@ func convertScopeTraversalExpr(
 ) hclwrite.Tokens {
 	if moduleRef, ok := isModuleRef(expr); ok {
 		if name, ok := state.sandboxedModuleNames[moduleRef]; ok {
+			// sandboxed modules should not rewrite its traversal parts
+			// because the outputs maintain their casing
+			// so we only rewrite the module name
+			// i.e. module.my_vpc.something_else (tf) becomes myVpc.something_else (PCL)
 			var traversal hcl.Traversal
 			newRoot := hcl.TraverseRoot{Name: name}
 			traversal = append(traversal, newRoot)
