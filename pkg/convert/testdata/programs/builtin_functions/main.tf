@@ -60,6 +60,9 @@ output "funcAlltrue0" {
 output "funcAlltrue1" {
   value = alltrue([true, false])
 }
+output "funcAlltrue2" {
+  value = alltrue([])
+}
 
 
 # Examples for anytrue

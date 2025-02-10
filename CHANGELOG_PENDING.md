@@ -12,5 +12,7 @@
 - Implement `format` through the `pulumi-std` invoke of the same name
 - Implement `keys` through the `pulumi-std` invoke of the same name
 - Implement `setintersection` through the `pulumi-std` invoke of the same name
+- Implement `alltrue` through the `pulumi-std` invoke of the same name
+- Implement `anytrue` through the `pulumi-std` invoke of the same name
 
 ### Bug Fixes
