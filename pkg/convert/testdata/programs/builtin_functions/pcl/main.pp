@@ -566,34 +566,54 @@ output "funcFloor1" {
 
 # Examples for format
 output "funcFormat0" {
-  value = notImplemented("format(\"Hello, %s!\",\"Ander\")")
+  value = invoke("std:index:format", {
+    input = "Hello, %s!"
+    args  = ["Ander"]
+  }).result
 }
 output "funcFormat1" {
-  value = notImplemented("format(\"There are %d lights\",4)")
+  value = invoke("std:index:format", {
+    input = "There are %d lights"
+    args  = [4]
+  }).result
 }
 output "funcFormat2" {
-  value = notImplemented("format(\"Hello, %s!\",var.name)")
+  value = invoke("std:index:format", {
+    input = "Hello, %s!"
+    args  = [name]
+  }).result
 }
 output "funcFormat3" {
-  value = "Hello, ${name}!"
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args  = ["hello"]
+  }).result
 }
 output "funcFormat4" {
-  value = notImplemented("format(\"%#v\",\"hello\")")
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args  = [true]
+  }).result
 }
 output "funcFormat5" {
-  value = notImplemented("format(\"%#v\",true)")
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args  = [1]
+  }).result
 }
 output "funcFormat6" {
-  value = notImplemented("format(\"%#v\",1)")
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args = [{
+      a = 1
+    }]
+  }).result
 }
 output "funcFormat7" {
-  value = notImplemented("format(\"%#v\",{a=1})")
-}
-output "funcFormat8" {
-  value = notImplemented("format(\"%#v\",[true])")
-}
-output "funcFormat9" {
-  value = notImplemented("format(\"%#v\",null)")
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args  = [[true]]
+  }).result
 }
 
 

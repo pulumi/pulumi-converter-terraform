@@ -9,5 +9,6 @@
 - Implement `compact` through the `pulumi-std` invoke of the same name
 - Implement `coalescelist` through the `pulumi-std` invoke of the same name
 - Implement `distinct` through the `pulumi-std` invoke of the same name
+- Implement `format` through the `pulumi-std` invoke of the same name
 
 ### Bug Fixes

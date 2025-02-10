@@ -424,6 +424,11 @@ var tfFunctionStd = map[string]struct {
 	token     string
 	inputs    []string
 	output    string
+
+	// True if and only if the function has a variable number of arguments. If this is the case, these arguments will be
+	// packed into a single list in order to be passed to the relevant `pulumi-std` invoke, since invokes do not support
+	// variadic arguments. If the function accepts more than one argument, the last argument is assumed to be the one that
+	// requires packing.
 	paramArgs bool
 }{
 	"abs": {
@@ -593,6 +598,12 @@ var tfFunctionStd = map[string]struct {
 		token:  "std:index:floor",
 		inputs: []string{"input"},
 		output: "result",
+	},
+	"format": {
+		token:	"std:index:format",
+		inputs: []string{"input", "args"},
+		output: "result",
+		paramArgs: true,
 	},
 	"indent": {
 		token:  "std:index:indent",
@@ -948,24 +959,41 @@ func convertFunctionCallExpr(state *convertState,
 	// Next see if it's mapped to a PCL invoke
 	if invoke, has := tfFunctionStd[call.Name]; has {
 		invokeArgs := make([]hclwrite.ObjectAttrTokens, 0)
-		if invoke.paramArgs && len(args) != 1 {
-			if len(invoke.inputs) != 1 {
-				panic(fmt.Sprintf("Got %d inputs to params style function %s", len(invoke.inputs), invoke.token))
+
+		// If paramArgs has been set, we've been asked to pack all arguments after the first into a list. However, if the
+		// call has the `ExpandFinal` attribute set to true, that means that it is of the form `f(x, y, zs...)` where `zs`
+		// is an _already packed_ list of arguments that is to be spread into a variable number of arguments. Consequently,
+		// in this case, we actually don't need to do anything, as using that last (unspread) value as-is will just work.
+		// So, for example:
+		//
+		// f(1, 2, [3, 4]...) -> { x = 1, y = 2, zs = [3, 4] }
+		//   The last argument was already packed; use it as-is
+		//
+		// f(1, 2, 3, 4)   -> { x = 1, y = 2, zs = [3, 4] }
+		//   Last arguments were not packed; pack them into a list
+		if invoke.paramArgs && !call.ExpandFinal {
+			// We only want to pack values into the last formal argument. Everything up until then we can treat as positional.
+			// So e.g. if the function's formal inputs are [a, b], and we are given [1, 2, 3, 4], we want to pass 1 for a and
+			// pack up [2, 3, 4] into a list for b.
+			i := 0
+			for ; i < len(invoke.inputs)-1; i++ {
+				invokeArgs = append(invokeArgs, hclwrite.ObjectAttrTokens{
+					Name:  hclwrite.TokensForIdentifier(invoke.inputs[i]),
+					Value: args[i],
+				})
 			}
 
 			listTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
-			first := true
-			for _, arg := range args {
-				if !first {
+			for j := i; j < len(args); j++ {
+				if j > i {
 					listTokens = append(listTokens, makeToken(hclsyntax.TokenComma, ","))
 				}
-				first = false
-				listTokens = append(listTokens, arg...)
+				listTokens = append(listTokens, args[j]...)
 			}
 			listTokens = append(listTokens, makeToken(hclsyntax.TokenCBrack, "]"))
 
 			invokeArgs = append(invokeArgs, hclwrite.ObjectAttrTokens{
-				Name:  hclwrite.TokensForIdentifier(invoke.inputs[0]),
+				Name:  hclwrite.TokensForIdentifier(invoke.inputs[i]),
 				Value: listTokens,
 			})
 		} else {
@@ -3600,7 +3628,6 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 }
 
 var unimplementedFunctionBugs = map[string]string{
-	"format":       "pulumi/pulumi-converter-terraform#65",
 	"formatdate":   "pulumi/pulumi-converter-terraform#196",
 	"regexall":     "pulumi/pulumi-converter-terraform#191",
 	"slice":        "pulumi/pulumi-converter-terraform#65",
