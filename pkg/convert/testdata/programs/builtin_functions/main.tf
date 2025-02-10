@@ -406,25 +406,22 @@ output "funcFormat2" {
   value = format("Hello, %s!", var.name)
 }
 output "funcFormat3" {
-  value = "Hello, ${var.name}!"
-}
-output "funcFormat4" {
   value = format("%#v", "hello")
 }
-output "funcFormat5" {
+output "funcFormat4" {
   value = format("%#v", true)
 }
-output "funcFormat6" {
+output "funcFormat5" {
   value = format("%#v", 1)
 }
-output "funcFormat7" {
+output "funcFormat6" {
   value = format("%#v", {a = 1})
 }
-output "funcFormat8" {
+output "funcFormat7" {
   value = format("%#v", [true])
 }
-output "funcFormat9" {
-  value = format("%#v", null)
+output "funcFormat8" {
+  value = format("%s-%v-%#v-%d", "hello", true, {a = 1}, 1)
 }
 
 
