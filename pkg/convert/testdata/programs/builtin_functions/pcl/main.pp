@@ -403,7 +403,9 @@ output "funcDirname" {
 
 # Examples for distinct
 output "funcDistinct" {
-  value = notImplemented("distinct([\"a\",\"b\",\"a\",\"c\",\"d\",\"b\"])")
+  value = invoke("std:index:distinct", {
+    input = ["a", "b", "a", "c", "d", "b"]
+  }).result
 }
 
 

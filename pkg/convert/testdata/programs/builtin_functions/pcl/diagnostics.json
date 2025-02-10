@@ -16,7 +16,6 @@
   "warning:builtin_functions/main.tf:211,70-99:Function not yet implemented:Function cidrsubnets not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:265,11-41:Function not yet implemented:Function contains not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:268,11-41:Function not yet implemented:Function contains not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
-  "warning:builtin_functions/main.tf:286,11-51:Function not yet implemented:Function distinct not yet implemented, see pulumi/pulumi-converter-terraform#65",
   "warning:builtin_functions/main.tf:349,11-52:Function not yet implemented:Function fileset not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:352,11-64:Function not yet implemented:Function fileset not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:355,11-53:Function not yet implemented:Function fileset not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",

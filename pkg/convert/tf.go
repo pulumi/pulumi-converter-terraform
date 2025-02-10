@@ -529,6 +529,11 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input"},
 		output: "result",
 	},
+	"distinct": {
+		token:  "std:index:distinct",
+		inputs: []string{"input"},
+		output: "result",
+	},
 	"endswith": {
 		token:  "std:index:endswith",
 		inputs: []string{"input", "suffix"},
@@ -3595,7 +3600,6 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 }
 
 var unimplementedFunctionBugs = map[string]string{
-	"distinct":     "pulumi/pulumi-converter-terraform#65",
 	"format":       "pulumi/pulumi-converter-terraform#65",
 	"formatdate":   "pulumi/pulumi-converter-terraform#196",
 	"regexall":     "pulumi/pulumi-converter-terraform#191",
