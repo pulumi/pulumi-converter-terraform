@@ -6,6 +6,7 @@
 - Enable merge which is already in pulumi-std
 - Enable flatten which is already in pulumi-std
 - Implement `coalesce` through the `pulumi-std` invoke of the same name
+- Implement `compact` through the `pulumi-std` invoke of the same name
 
 ### Bug Fixes
 

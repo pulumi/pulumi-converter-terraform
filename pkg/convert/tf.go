@@ -493,21 +493,11 @@ var tfFunctionStd = map[string]struct {
 		output:    "result",
 		paramArgs: true,
 	},
-	/* Currently failing due to: cannot assign expression of type { input: (string, string, string, null,
-	string) } to location of type { input: list(output(string) | string) | output(list(string)) } | output({
-	input: list(string) }):
-	*/
-	//
-	//	on main.pp line 263:
-	//	264:   value = invoke("std:index:compact", {
-	//	265:     input = ["a", "", "b", null, "c"]
-	//	266:   }).result
-	//
-	//"compact": {
-	//	token:  "std:index:compact",
-	//	inputs: []string{"input"},
-	//	output: "result",
-	//},
+	"compact": {
+		token:  "std:index:compact",
+		inputs: []string{"input"},
+		output: "result",
+	},
 	"cidrhost": {
 		token:  "std:index:cidrhost",
 		inputs: []string{"input", "host"},
@@ -3600,7 +3590,6 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 
 var unimplementedFunctionBugs = map[string]string{
 	"coalescelist": "pulumi/pulumi-converter-terraform#65",
-	"compact":      "pulumi/pulumi-converter-terraform#65",
 	"distinct":     "pulumi/pulumi-converter-terraform#65",
 	"format":       "pulumi/pulumi-converter-terraform#65",
 	"formatdate":   "pulumi/pulumi-converter-terraform#196",
