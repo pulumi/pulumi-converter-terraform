@@ -620,6 +620,11 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input"},
 		output: "result",
 	},
+	"keys": {
+		token: "std:index:keys",
+		inputs: []string{"input"},
+		output: "result",
+	},
 	"log": {
 		token:  "std:index:log",
 		inputs: []string{"base", "input"},
