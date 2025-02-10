@@ -1,4 +1,4 @@
-// Copyright 2016-2023, Pulumi Corporation.
+// Copyright 2016-2025, Pulumi Corporation.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -483,6 +483,12 @@ var tfFunctionStd = map[string]struct {
 	},
 	"coalesce": {
 		token:     "std:index:coalesce",
+		inputs:    []string{"input"},
+		output:    "result",
+		paramArgs: true,
+	},
+	"coalescelist": {
+		token:     "std:index:coalescelist",
 		inputs:    []string{"input"},
 		output:    "result",
 		paramArgs: true,
@@ -3589,7 +3595,6 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 }
 
 var unimplementedFunctionBugs = map[string]string{
-	"coalescelist": "pulumi/pulumi-converter-terraform#65",
 	"distinct":     "pulumi/pulumi-converter-terraform#65",
 	"format":       "pulumi/pulumi-converter-terraform#65",
 	"formatdate":   "pulumi/pulumi-converter-terraform#196",
