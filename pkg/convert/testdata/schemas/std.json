@@ -1785,6 +1785,40 @@
         "type": "object"
       }
     },
+    "std:index:setintersection": {
+      "description": "Returns the set of elements that all the input sets have in common.",
+      "inputs": {
+        "properties": {
+          "input": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "pulumi.json#/Any"
+              }
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "input"
+        ]
+      },
+      "outputs": {
+        "properties": {
+          "result": {
+            "items": {
+              "$ref": "pulumi.json#/Any"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "type": "object"
+      }
+    },
     "std:index:sha1": {
       "description": "Returns a hexadecimal representation of the SHA-1 hash of the given string.",
       "inputs": {
