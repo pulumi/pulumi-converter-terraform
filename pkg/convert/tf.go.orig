@@ -546,12 +546,6 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input", "newbits", "netnum"},
 		output: "result",
 	},
-	"cidrsubnets": {
-		token:     "std:index:cidrsubnets",
-		inputs:    []string{"input", "newbits"},
-		output:    "result",
-		paramArgs: true,
-	},
 	"csvdecode": {
 		token:  "std:index:csvdecode",
 		inputs: []string{"input"},
@@ -814,11 +808,6 @@ var tfFunctionStd = map[string]struct {
 	},
 	"tobool": {
 		token:  "std:index:tobool",
-		inputs: []string{"input"},
-		output: "result",
-	},
-	"toset": {
-		token:  "std:index:toset",
 		inputs: []string{"input"},
 		output: "result",
 	},
@@ -3690,6 +3679,7 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 var unimplementedFunctionBugs = map[string]string{
 	"formatdate":   "pulumi/pulumi-converter-terraform#196",
 	"templatefile": "pulumi/pulumi-converter-terraform#192",
+	"toset":        "pulumi/pulumi-converter-terraform#137",
 	"yamlencode":   "pulumi/pulumi-converter-terraform#190",
 }
 
