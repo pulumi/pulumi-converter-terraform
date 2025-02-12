@@ -418,6 +418,7 @@ var tfFunctionRenames = map[string]string{
 	"length":     "length",
 	"element":    "element",
 	"try":        "try",
+	"can":        "can",
 }
 
 var tfFunctionStd = map[string]struct {
@@ -717,7 +718,7 @@ var tfFunctionStd = map[string]struct {
 	},
 	"regex": {
 		token:  "std:index:regex",
-		inputs: []string{"regex", "string"},
+		inputs: []string{"pattern", "string"},
 		output: "result",
 	},
 	"regexall": {
@@ -1011,24 +1012,6 @@ func convertFunctionCallExpr(state *convertState,
 		}
 		listTokens = append(listTokens, makeToken(hclsyntax.TokenCBrack, "]"))
 		return listTokens
-	}
-
-	// Try is a special function that must pass the arguments as a list, since
-	// PCL doesn't have variadic functions
-	if call.Name == "try" {
-		var tryCallTokens hclwrite.Tokens
-		tryCallTokens = append(tryCallTokens, hclwrite.TokensForIdentifier(call.Name)...)
-		tryCallTokens = append(tryCallTokens, makeToken(hclsyntax.TokenOParen, "("), makeToken(hclsyntax.TokenOBrack, "["))
-		first := true
-		for _, arg := range args {
-			if !first {
-				tryCallTokens = append(tryCallTokens, makeToken(hclsyntax.TokenComma, ", "))
-			}
-			first = false
-			tryCallTokens = append(tryCallTokens, arg...)
-		}
-		tryCallTokens = append(tryCallTokens, makeToken(hclsyntax.TokenCBrack, "]"), makeToken(hclsyntax.TokenCParen, ")"))
-		return tryCallTokens
 	}
 
 	// Translate tolist(x) as x - in TF this normalizes sets to lists, but in Pulumi everything is represented as a

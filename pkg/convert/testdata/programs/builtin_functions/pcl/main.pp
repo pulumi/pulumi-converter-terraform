@@ -179,13 +179,13 @@ output "funcCan0" {
   value = foo
 }
 output "funcCan1" {
-  value = notImplemented("can(local.foo.bar)")
+  value = can(foo.bar)
 }
 output "funcCan2" {
-  value = notImplemented("can(local.foo.boop)")
+  value = can(foo.boop)
 }
 output "funcCan3" {
-  value = notImplemented("can(local.nonexist)")
+  value = can(nonexist)
 }
 
 
@@ -1169,26 +1169,26 @@ output "funcRange5" {
 # Examples for regex
 output "funcRegex0" {
   value = invoke("std:index:regex", {
-    regex  = "[a-z]+"
-    string = "53453453.345345aaabbbccc23454"
+    pattern = "[a-z]+"
+    string  = "53453453.345345aaabbbccc23454"
   }).result
 }
 output "funcRegex1" {
   value = invoke("std:index:regex", {
-    regex  = "(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)"
-    string = "2019-02-01"
+    pattern = "(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)"
+    string  = "2019-02-01"
   }).result
 }
 output "funcRegex2" {
   value = invoke("std:index:regex", {
-    regex  = "^(?:(?P<scheme>[^:/?#]+):)?(?://(?P<authority>[^/?#]*))?"
-    string = "https://terraform.io/docs/"
+    pattern = "^(?:(?P<scheme>[^:/?#]+):)?(?://(?P<authority>[^/?#]*))?"
+    string  = "https://terraform.io/docs/"
   }).result
 }
 output "funcRegex3" {
   value = invoke("std:index:regex", {
-    regex  = "[a-z]+"
-    string = "53453453.34534523454"
+    pattern = "[a-z]+"
+    string  = "53453453.34534523454"
   }).result
 }
 
@@ -1731,13 +1731,13 @@ output "funcTry0" {
   value = foo
 }
 output "funcTry1" {
-  value = try([foo.bar, "fallback"])
+  value = try(foo.bar, "fallback")
 }
 output "funcTry2" {
-  value = try([foo.boop, "fallback"])
+  value = try(foo.boop, "fallback")
 }
 output "funcTry3" {
-  value = try([nonexist, "fallback"])
+  value = try(nonexist, "fallback")
 }
 
 
