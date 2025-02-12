@@ -441,6 +441,16 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input"},
 		output: "result",
 	},
+	"alltrue": {
+		token:	"std:index:alltrue",
+		inputs: []string{"input"},
+		output: "result",
+	},
+	"anytrue": {
+		token:	"std:index:anytrue",
+		inputs: []string{"input"},
+		output: "result",
+	},
 	"base64decode": {
 		token:  "std:index:base64decode",
 		inputs: []string{"input"},
