@@ -725,7 +725,13 @@ output "funcJsonencode" {
 
 # Examples for keys
 output "funcKeys" {
-  value = notImplemented("keys({a=1,c=2,d=3})")
+  value = invoke("std:index:keys", {
+    input = {
+      a = 1
+      c = 2
+      d = 3
+    }
+  }).result
 }
 
 

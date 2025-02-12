@@ -16,7 +16,9 @@ myFileTypes = { for p in outputFilePaths : p => invoke("std:index:lookup", {
   default = defaultFileType
 }).result }
 files = invoke("std:index:merge", {
-  input = [{ for p in notImplemented("keys(local.template_file_paths)") : p => {
+  input = [{ for p in invoke("std:index:keys", {
+    input = templateFilePaths
+    }).result : p => {
     contentType = myFileTypes[p]
     sourcePath  = notImplemented("tostring(null)")
     content     = templateFileContents[p]
