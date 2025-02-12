@@ -1,5 +1,11 @@
-allFilePaths    = notImplemented("fileset(var.base_dir,\"**\")")
-staticFilePaths = notImplemented("toset([\nforpinlocal.all_file_paths:p\niflength(p)<length(var.template_file_suffix)||substr(p,length(p)-length(var.template_file_suffix),length(var.template_file_suffix))!=var.template_file_suffix\n])")
+allFilePaths = notImplemented("fileset(var.base_dir,\"**\")")
+staticFilePaths = invoke("std:index:toset", {
+  input = [for p in allFilePaths : p if length(p) < length(templateFileSuffix) || invoke("std:index:substr", {
+    input  = p
+    length = length(p) - length(templateFileSuffix)
+    offset = length(templateFileSuffix)
+  }).result != templateFileSuffix]
+}).result
 templateFilePaths = { for p in allFilePaths : invoke("std:index:substr", {
   input  = p
   offset = 0
