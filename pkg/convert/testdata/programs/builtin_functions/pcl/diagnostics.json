@@ -55,6 +55,7 @@
   "warning:builtin_functions/main.tf:757,18-57:Function not yet implemented:Function regexall not yet implemented, see pulumi/pulumi-converter-terraform#191",
   "warning:builtin_functions/main.tf:760,18-49:Function not yet implemented:Function regexall not yet implemented, see pulumi/pulumi-converter-terraform#191",
   "warning:builtin_functions/main.tf:775,11-29:Function not yet implemented:Function reverse not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
+  "warning:builtin_functions/main.tf:799,11-62:Function not yet implemented:Function setintersection not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:805,11-67:Function not yet implemented:Function setproduct not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:808,11-35:Function not yet implemented:Function setproduct not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:811,11-58:Function not yet implemented:Function setproduct not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",

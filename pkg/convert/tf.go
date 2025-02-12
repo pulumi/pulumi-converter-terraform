@@ -693,12 +693,6 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"cipherText", "key"},
 		output: "result",
 	},
-	"setintersection": {
-		token:     "std:index:setintersection",
-		inputs:    []string{"input"},
-		output:    "result",
-		paramArgs: true,
-	},
 	"sha1": {
 		token:  "std:index:sha1",
 		inputs: []string{"input"},

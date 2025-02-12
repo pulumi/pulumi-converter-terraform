@@ -1202,9 +1202,7 @@ output "funcSensitive2" {
 
 # Examples for setintersection
 output "funcSetintersection" {
-  value = invoke("std:index:setintersection", {
-    input = [["a", "b"], ["b", "c"], ["b", "d"]]
-  }).result
+  value = notImplemented("setintersection([\"a\",\"b\"],[\"b\",\"c\"],[\"b\",\"d\"])")
 }
 
 
