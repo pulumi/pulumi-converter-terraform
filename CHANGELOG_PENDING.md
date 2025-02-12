@@ -11,5 +11,6 @@
 - Implement `distinct` through the `pulumi-std` invoke of the same name
 - Implement `format` through the `pulumi-std` invoke of the same name
 - Implement `keys` through the `pulumi-std` invoke of the same name
+- Implement `setintersection` through the `pulumi-std` invoke of the same name
 
 ### Bug Fixes
