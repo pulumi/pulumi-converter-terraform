@@ -338,13 +338,19 @@ output "funcCoalesce6" {
 
 # Examples for coalescelist
 output "funcCoalescelist0" {
-  value = notImplemented("coalescelist([\"a\",\"b\"],[\"c\",\"d\"])")
+  value = invoke("std:index:coalescelist", {
+    input = [["a", "b"], ["c", "d"]]
+  }).result
 }
 output "funcCoalescelist1" {
-  value = notImplemented("coalescelist([],[\"c\",\"d\"])")
+  value = invoke("std:index:coalescelist", {
+    input = [[], ["c", "d"]]
+  }).result
 }
 output "funcCoalescelist2" {
-  value = notImplemented("coalescelist([[],[\"c\",\"d\"]]...)")
+  value = invoke("std:index:coalescelist", {
+    input = [[], ["c", "d"]]
+  }).result
 }
 
 
@@ -397,7 +403,9 @@ output "funcDirname" {
 
 # Examples for distinct
 output "funcDistinct" {
-  value = notImplemented("distinct([\"a\",\"b\",\"a\",\"c\",\"d\",\"b\"])")
+  value = invoke("std:index:distinct", {
+    input = ["a", "b", "a", "c", "d", "b"]
+  }).result
 }
 
 
