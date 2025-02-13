@@ -18,3 +18,5 @@
 - Implement `chunklist` through the `pulumi-std` invoke of the same name
 
 ### Bug Fixes
+
+- Fix the order of arguments to `substr`

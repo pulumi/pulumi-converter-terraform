@@ -761,7 +761,7 @@ var tfFunctionStd = map[string]struct {
 	},
 	"substr": {
 		token:  "std:index:substr",
-		inputs: []string{"input", "length", "offset"},
+		inputs: []string{"input", "offset", "length"},
 		output: "result",
 	},
 	"sum": {
