@@ -19,9 +19,10 @@
 package convert
 
 import (
+	"errors"
 	"fmt"
+
 	"github.com/hashicorp/hcl/v2"
-	//"strings"
 
 	"github.com/pulumi/pulumi/pkg/v3/codegen/hcl2/model"
 )
@@ -45,11 +46,11 @@ import (
 // case.
 func setConfigBlockType(block *model.Block, variableType model.Type) error {
 	if block.Type != "config" {
-		return fmt.Errorf("setConfigBlockType should only be used on block.Type='config' blocks")
+		return errors.New("setConfigBlockType should only be used on block.Type='config' blocks")
 	}
 
 	if len(block.Labels) >= 2 {
-		return fmt.Errorf("setConfigBlockType refuses to overwrite block.Label[1]")
+		return errors.New("setConfigBlockType refuses to overwrite block.Label[1]")
 	}
 
 	tempScope := model.TypeScope.Push(nil)

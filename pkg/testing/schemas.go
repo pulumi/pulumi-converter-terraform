@@ -24,7 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// If zeroValue is non-nil it's used if a JSON file is missing. This saves us having to keep a load of diagnostic.json files with just "[]" in them.
+// If zeroValue is non-nil it's used if a JSON file is missing. This saves us having to keep a load of diagnostic.json
+// files with just "[]" in them.
 func AssertEqualsJSONFile[T any](
 	t *testing.T,
 	expectedJSONFile string,

@@ -4,17 +4,20 @@ VERSION         ?= $(shell pulumictl get version)
 VERSION_PATH    := pkg/version.Version
 WORKING_DIR     := $(shell pwd)
 TESTPARALLELISM := 4
-GOPATH			:= $(shell go env GOPATH)
+GOPATH          := $(shell go env GOPATH)
+#
+# Additional arguments to pass to golangci-lint.
+GOLANGCI_LINT_ARGS ?=
 
 ensure::
 	go mod tidy
 
-lint::
-	cd "pkg" && golangci-lint run -c ../.golangci.yml --timeout 10m
-	cd "cmd" && golangci-lint run -c ../.golangci.yml --timeout 10m
+format::
+	gofumpt -w cmd pkg
 
-lint-copyright:
-	pulumictl copyright
+lint::
+	cd "pkg" && golangci-lint run $(GOLANGCI_LINT_ARGS) -c ../.golangci.yml --timeout 10m
+	cd "cmd" && golangci-lint run $(GOLANGCI_LINT_ARGS) -c ../.golangci.yml --timeout 10m
 
 build::
 	(cd cmd && go build -o $(WORKING_DIR)/bin/${BINARY} -ldflags "-X ${PROJECT}/${VERSION_PATH}=${VERSION}" $(PROJECT)/cmd/$(BINARY))

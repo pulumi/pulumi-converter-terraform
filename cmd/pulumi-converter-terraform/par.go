@@ -26,7 +26,6 @@ func parTransformMapWith[K comparable, T any, U any](
 	transform func(K, T) (U, error),
 	workers int,
 ) (map[K]U, error) {
-
 	n := workers
 	if workers < 1 {
 		n = runtime.NumCPU()

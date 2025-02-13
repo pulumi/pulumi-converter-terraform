@@ -95,6 +95,8 @@ func (l *testLoader) LoadPackageReference(pkg string, version *semver.Version) (
 // It will use schemas from the testdata/schemas folder, and mappings from the testdata/mappings folder. The
 // resulting PCL will be checked against PCL written to a subfolder inside each test folder called "pcl".
 func TestTranslate(t *testing.T) {
+	t.Parallel()
+
 	// Test framework for eject
 	// Each folder in testdata has a pcl folder, we check that if we convert the hcl we get the expected pcl
 	// You can regenerate the test data by running "PULUMI_ACCEPT=1 go test" in this folder (pkg/tf2pulumi/convert).
@@ -126,7 +128,7 @@ func TestTranslate(t *testing.T) {
 		tt := tt // avoid capturing loop variable in the closure
 
 		t.Run(tt.name, func(t *testing.T) {
-			// t.Parallel()
+			t.Parallel()
 
 			snapshotPath := filepath.Join(tt.path, "pcl")
 			if cmdutil.IsTruthy(os.Getenv("PULUMI_ACCEPT")) {
@@ -142,7 +144,7 @@ func TestTranslate(t *testing.T) {
 			hclPath := filepath.Join(tempDir, tt.name)
 			modulePath := filepath.Join(tempDir, "modules")
 
-			copy := func(srcDirectory, dstDirectory, suffix string) {
+			copyFiles := func(srcDirectory, dstDirectory, suffix string) {
 				err = filepath.WalkDir(srcDirectory, func(path string, d fs.DirEntry, err error) error {
 					if err != nil {
 						return err
@@ -184,8 +186,8 @@ func TestTranslate(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			copy(tt.path, hclPath, ".tf")
-			copy(filepath.Join(testDir, "modules"), modulePath, ".tf")
+			copyFiles(tt.path, hclPath, ".tf")
+			copyFiles(filepath.Join(testDir, "modules"), modulePath, ".tf")
 
 			osFs := afero.NewOsFs()
 			pclFs := afero.NewBasePathFs(osFs, pclPath)
@@ -197,7 +199,7 @@ func TestTranslate(t *testing.T) {
 			// copy these out even if this returned errors, this makes it easy in the local dev loop to see
 			// what's wrong without going and looking in temp directories.
 			if cmdutil.IsTruthy(os.Getenv("PULUMI_ACCEPT")) {
-				copy(pclPath, snapshotPath, "")
+				copyFiles(pclPath, snapshotPath, "")
 			}
 
 			require.False(t,
@@ -205,7 +207,8 @@ func TestTranslate(t *testing.T) {
 				"translate diagnostics should not have errors: %v",
 				diagnostics)
 
-			// Keep track of all diagnostics, from each of the three phases. We'll check these match what we expect at the end of the test.
+			// Keep track of all diagnostics, from each of the three phases. We'll check these match what we expect at the end
+			// of the test.
 			allDiagnostics := []string{}
 			logDiagnostics := func(label string, diagnostics hcl.Diagnostics) {
 				if len(diagnostics) > 0 {
@@ -241,7 +244,15 @@ func TestTranslate(t *testing.T) {
 							fmt.Sprintf("%s:%s:%s:%s", sev, rangeToString(diagnostic.Subject), diagnostic.Summary, diagnostic.Detail))
 					} else {
 						allDiagnostics = append(allDiagnostics,
-							fmt.Sprintf("%s:%s:%s:%s:%s", sev, rangeToString(diagnostic.Context), rangeToString(diagnostic.Subject), diagnostic.Summary, diagnostic.Detail))
+							fmt.Sprintf(
+								"%s:%s:%s:%s:%s",
+								sev,
+								rangeToString(diagnostic.Context),
+								rangeToString(diagnostic.Subject),
+								diagnostic.Summary,
+								diagnostic.Detail,
+							),
+						)
 					}
 				}
 			}
@@ -349,6 +360,8 @@ func TestTranslate(t *testing.T) {
 }
 
 func Test_GenerateTestDataSchemas(t *testing.T) {
+	t.Parallel()
+
 	// This is to assert that all the schemas we save in testdata/schemas, match up with the
 	// mapping files in testdata/mappings. Add in the use of PULUMI_ACCEPT and it means you
 	// don't have to manually write schemas, just mappings for tests.
@@ -368,7 +381,11 @@ func Test_GenerateTestDataSchemas(t *testing.T) {
 	infos, err := os.ReadDir(mappingsPath)
 	require.NoError(t, err)
 	for _, info := range infos {
+		info := info
+
 		t.Run(info.Name(), func(t *testing.T) {
+			t.Parallel()
+
 			// Strip off the .json part to make the package name
 			pkg := strings.Replace(info.Name(), filepath.Ext(info.Name()), "", -1)
 			provInfo, err := providerInfoSource.GetProviderInfo("", "", pkg, "")

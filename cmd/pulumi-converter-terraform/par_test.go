@@ -15,6 +15,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"sync/atomic"
 	"testing"
@@ -23,6 +24,7 @@ import (
 )
 
 func TestParTransformMap(t *testing.T) {
+	t.Parallel()
 
 	mkMap := func(n int) map[int]int {
 		m := map[int]int{}
@@ -44,7 +46,7 @@ func TestParTransformMap(t *testing.T) {
 
 	increment := func(k, v int) (int, error) {
 		if v < 0 {
-			return 0, fmt.Errorf("neg")
+			return 0, errors.New("neg")
 		}
 		return v + 1, nil
 	}
@@ -62,6 +64,8 @@ func TestParTransformMap(t *testing.T) {
 		tc := tc
 
 		t.Run(fmt.Sprintf("w%d", tc.workers), func(t *testing.T) {
+			t.Parallel()
+
 			var ops atomic.Uint64
 
 			inc := func(k, v int) (int, error) {
@@ -71,6 +75,7 @@ func TestParTransformMap(t *testing.T) {
 
 			actual, actualErr := parTransformMapWith(tc.inputs, inc, tc.workers)
 			expect, expectErr := apply(increment, tc.inputs)
+			//nolint:gosec
 			assert.Equal(t, len(tc.inputs), int(ops.Load()))
 			assert.Equal(t, expectErr == nil, actualErr == nil)
 			assert.Equal(t, expect, actual)

@@ -25,6 +25,8 @@ import (
 )
 
 func TestSetConfigBlockType(t *testing.T) {
+	t.Parallel()
+
 	check := func(name string, ty model.Type, expectError bool) {
 		t.Run(name, func(t *testing.T) {
 			block := &model.Block{Type: "config", Labels: []string{"x"}}
@@ -62,6 +64,8 @@ func TestSetConfigBlockType(t *testing.T) {
 }
 
 func TestGeneralizeConstType(t *testing.T) {
+	t.Parallel()
+
 	constType := model.NewConstType(model.IntType, cty.NumberIntVal(1))
 	assert.True(t, generalizeConstType(constType).Equals(model.IntType))
 

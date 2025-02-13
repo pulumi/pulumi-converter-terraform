@@ -26,31 +26,20 @@ jobs:
         with:
           go-version: 1.22.x
       - run: go mod tidy
-      - name: Fail if god mod not tidy
+      - name: Fail if go.mod not tidy
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             echo "::error go.mod not tidy"
             exit 1
           fi
-      - name: Lint
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.49.0
-          make lint-golang || true
 
-  check-copyright:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
+      # We leverage the golangci-lint action to install and maintain the cache, but we want to run the command
+      # ourselves. The action doesn't have an install-only mode, so we'll ask it to print its help output instead.
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v4
         with:
-          ref: ${{ inputs.commit-ref }}
-      - name: Install pulumictl
-        uses: jaxxstorm/action-install-gh-release@v1.5.0
-        with:
-          repo: pulumi/pulumictl
-      - name: Set up Go 1.22.x
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.22.x
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          args: --help
+
       - name: Lint
-        run: make lint-copyright
+        run: make lint GOLANGCI_LINT_ARGS=--out-format=colored-line-number

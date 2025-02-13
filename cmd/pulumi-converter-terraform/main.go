@@ -16,6 +16,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -50,7 +51,7 @@ func (*tfConverter) ConvertState(_ context.Context,
 	providerInfoSource := il.NewMapperProviderInfoSource(mapper)
 
 	if len(req.Args) != 1 {
-		return nil, fmt.Errorf("expected exactly one argument")
+		return nil, errors.New("expected exactly one argument")
 	}
 	path := req.Args[0]
 
