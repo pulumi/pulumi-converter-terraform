@@ -1316,7 +1316,11 @@ output "funcSignum2" {
 
 # Examples for slice
 output "funcSlice" {
-  value = notImplemented("slice([\"a\",\"b\",\"c\",\"d\"],1,3)")
+  value = invoke("std:index:slice", {
+    list = ["a", "b", "c", "d"]
+    from = 1
+    to   = 3
+  }).result
 }
 
 
