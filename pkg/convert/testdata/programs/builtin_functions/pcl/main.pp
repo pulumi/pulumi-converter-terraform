@@ -309,13 +309,25 @@ output "funcCidrsubnet4" {
 
 # Examples for cidrsubnets
 output "funcCidrsubnets0" {
-  value = notImplemented("cidrsubnets(\"10.1.0.0/16\",4,4,8,4)")
+  value = invoke("std:index:cidrsubnets", {
+    input   = "10.1.0.0/16"
+    newbits = [4, 4, 8, 4]
+  }).result
 }
 output "funcCidrsubnets1" {
-  value = notImplemented("cidrsubnets(\"fd00:fd12:3456:7890::/56\",16,16,16,32)")
+  value = invoke("std:index:cidrsubnets", {
+    input   = "fd00:fd12:3456:7890::/56"
+    newbits = [16, 16, 16, 32]
+  }).result
 }
 output "funcCidrsubnets2" {
-  value = [for cidrBlock in notImplemented("cidrsubnets(\"10.0.0.0/8\",8,8,8,8)") : notImplemented("cidrsubnets(cidr_block,4,4)")]
+  value = [for cidrBlock in invoke("std:index:cidrsubnets", {
+    input   = "10.0.0.0/8"
+    newbits = [8, 8, 8, 8]
+    }).result : invoke("std:index:cidrsubnets", {
+    input   = cidrBlock
+    newbits = [4, 4]
+  }).result]
 }
 
 

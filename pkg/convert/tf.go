@@ -544,6 +544,12 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input", "newbits", "netnum"},
 		output: "result",
 	},
+	"cidrsubnets": {
+		token:     "std:index:cidrsubnets",
+		inputs:    []string{"input", "newbits"},
+		output:    "result",
+		paramArgs: true,
+	},
 	"csvdecode": {
 		token:  "std:index:csvdecode",
 		inputs: []string{"input"},
