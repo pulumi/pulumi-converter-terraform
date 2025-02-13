@@ -1150,29 +1150,50 @@ output "funcRange5" {
 
 # Examples for regex
 output "funcRegex0" {
-  value = notImplemented("regex(\"[a-z]+\",\"53453453.345345aaabbbccc23454\")")
+  value = invoke("std:index:regex", {
+    pattern = "[a-z]+"
+    string  = "53453453.345345aaabbbccc23454"
+  }).result
 }
 output "funcRegex1" {
-  value = notImplemented("regex(\"(\\\\d\\\\d\\\\d\\\\d)-(\\\\d\\\\d)-(\\\\d\\\\d)\",\"2019-02-01\")")
+  value = invoke("std:index:regex", {
+    pattern = "(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)"
+    string  = "2019-02-01"
+  }).result
 }
 output "funcRegex2" {
-  value = notImplemented("regex(\"^(?:(?P<scheme>[^:/?#]+):)?(?://(?P<authority>[^/?#]*))?\",\"https://terraform.io/docs/\")")
+  value = invoke("std:index:regex", {
+    pattern = "^(?:(?P<scheme>[^:/?#]+):)?(?://(?P<authority>[^/?#]*))?"
+    string  = "https://terraform.io/docs/"
+  }).result
 }
 output "funcRegex3" {
-  value = notImplemented("regex(\"[a-z]+\",\"53453453.34534523454\")")
+  value = invoke("std:index:regex", {
+    pattern = "[a-z]+"
+    string  = "53453453.34534523454"
+  }).result
 }
 
 
 
 # Examples for regexall
 output "funcRegexall0" {
-  value = notImplemented("regexall(\"[a-z]+\",\"1234abcd5678efgh9\")")
+  value = invoke("std:index:regexall", {
+    pattern = "[a-z]+"
+    string  = "1234abcd5678efgh9"
+  }).result
 }
 output "funcRegexall1" {
-  value = length(notImplemented("regexall(\"[a-z]+\",\"1234abcd5678efgh9\")"))
+  value = length(invoke("std:index:regexall", {
+    pattern = "[a-z]+"
+    string  = "1234abcd5678efgh9"
+  }).result)
 }
 output "funcRegexall2" {
-  value = length(notImplemented("regexall(\"[a-z]+\",\"123456789\")")) > 0
+  value = length(invoke("std:index:regexall", {
+    pattern = "[a-z]+"
+    string  = "123456789"
+  }).result) > 0
 }
 
 
