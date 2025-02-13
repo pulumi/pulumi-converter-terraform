@@ -43,9 +43,11 @@ func (mapper *mapperProviderInfoSource) GetProviderInfo(
 	}
 	// Might be nil or []
 	if len(data) == 0 {
-		message := fmt.Sprintf("could not find mapping information for provider %s", name)
-		message += "; try installing a pulumi plugin that supports this terraform provider"
-		return nil, fmt.Errorf(message)
+		return nil, fmt.Errorf(
+			"could not find mapping information for provider %s; "+
+				"try installing a pulumi plugin that supports this terraform provider",
+			name,
+		)
 	}
 
 	var info *tfbridge.MarshallableProviderInfo

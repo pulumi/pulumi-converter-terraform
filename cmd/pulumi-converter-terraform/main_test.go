@@ -88,7 +88,9 @@ func TestExamplesJson(t *testing.T) {
 				map[string]interface{}{
 					"Severity": 2.0,
 					"Summary":  "Failed to get provider info",
-					"Detail":   "Failed to get provider info for \"aws_bucket\": could not find mapping information for provider aws; try installing a pulumi plugin that supports this terraform provider",
+					"Detail": "Failed to get provider info for \"aws_bucket\": " +
+						"could not find mapping information for provider aws; " +
+						"try installing a pulumi plugin that supports this terraform provider",
 					"Subject": map[string]interface{}{
 						"Filename": "/aws.tf",
 						"Start":    map[string]interface{}{"Line": 1.0, "Column": 1.0, "Byte": 0.0},

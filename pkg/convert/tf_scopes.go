@@ -286,7 +286,6 @@ func (s *scopes) getInfo(fullyQualifiedPath string) PathInfo {
 		}
 
 		return getInner(currentSchema, currentInfo, parts[3:])
-
 	}
 
 	root, has := s.roots[parts[0]+"."+parts[1]]

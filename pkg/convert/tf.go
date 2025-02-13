@@ -421,9 +421,9 @@ var tfFunctionRenames = map[string]string{
 }
 
 var tfFunctionStd = map[string]struct {
-	token     string
-	inputs    []string
-	output    string
+	token  string
+	inputs []string
+	output string
 
 	// True if and only if the function has a variable number of arguments. If this is the case, these arguments will be
 	// packed into a single list in order to be passed to the relevant `pulumi-std` invoke, since invokes do not support
@@ -442,12 +442,12 @@ var tfFunctionStd = map[string]struct {
 		output: "result",
 	},
 	"alltrue": {
-		token:	"std:index:alltrue",
+		token:  "std:index:alltrue",
 		inputs: []string{"input"},
 		output: "result",
 	},
 	"anytrue": {
-		token:	"std:index:anytrue",
+		token:  "std:index:anytrue",
 		inputs: []string{"input"},
 		output: "result",
 	},
@@ -620,9 +620,9 @@ var tfFunctionStd = map[string]struct {
 		output: "result",
 	},
 	"format": {
-		token:	"std:index:format",
-		inputs: []string{"input", "args"},
-		output: "result",
+		token:     "std:index:format",
+		inputs:    []string{"input", "args"},
+		output:    "result",
 		paramArgs: true,
 	},
 	"indent": {
@@ -641,7 +641,7 @@ var tfFunctionStd = map[string]struct {
 		output: "result",
 	},
 	"keys": {
-		token: "std:index:keys",
+		token:  "std:index:keys",
 		inputs: []string{"input"},
 		output: "result",
 	},
@@ -651,7 +651,7 @@ var tfFunctionStd = map[string]struct {
 		output: "result",
 	},
 	"lookup": {
-		token: "std:index:lookup",
+		token:  "std:index:lookup",
 		inputs: []string{"map", "key", "default"},
 		output: "result",
 	},
@@ -672,9 +672,9 @@ var tfFunctionStd = map[string]struct {
 		output: "result",
 	},
 	"merge": {
-		token:  "std:index:merge",
-		inputs: []string{"input"},
-		output: "result",
+		token:     "std:index:merge",
+		inputs:    []string{"input"},
+		output:    "result",
 		paramArgs: true,
 	},
 	"min": {
@@ -740,7 +740,7 @@ var tfFunctionStd = map[string]struct {
 		output: "result",
 	},
 	"slice": {
-		token: "std:index:slice",
+		token:  "std:index:slice",
 		inputs: []string{"list", "from", "to"},
 		output: "result",
 	},
@@ -881,7 +881,12 @@ func (s *convertState) sourceCode(rng hcl.Range) string {
 	return strings.Replace(buffer.String(), "\r\n", "\n", -1)
 }
 
-func (s *convertState) renamePclOverlap(kind string, hclType *string, name string, hclRange *hcl.Range) (string, string) {
+func (s *convertState) renamePclOverlap(
+	kind string,
+	hclType *string,
+	name string,
+	hclRange *hcl.Range,
+) (string, string) {
 	newName := name
 	newType := new(string)
 	if hclType != nil {
@@ -1110,7 +1115,8 @@ func appendPathArray(root string) string {
 	return root + "[]"
 }
 
-// matchStaticString returns a literal string if the expression is a static string or identifier, else nil. It returns true if this was an identifier.
+// matchStaticString returns a literal string if the expression is a static string or identifier, else nil. It returns
+// true if this was an identifier.
 func matchStaticString(expr hclsyntax.Expression) (*string, bool) {
 	switch expr := expr.(type) {
 	case *hclsyntax.ObjectConsKeyExpr:
@@ -1351,7 +1357,7 @@ func convertTemplateExpr(state *convertState,
 		}
 	}
 	if isHereDoc {
-		tokens = append(tokens, makeToken(hclsyntax.TokenCHeredoc, fmt.Sprintf("\n%s", cDelim)))
+		tokens = append(tokens, makeToken(hclsyntax.TokenCHeredoc, "\n"+cDelim))
 	} else {
 		tokens = append(tokens, makeToken(hclsyntax.TokenCQuote, "\""))
 	}
@@ -2424,7 +2430,7 @@ func convertProvisioner(
 		target.AppendUnstructuredTokens(hclwrite.Tokens{
 			&hclwrite.Token{
 				Type:  hclsyntax.TokenComment,
-				Bytes: []byte(fmt.Sprintf("// Unsupported provisioner type %s", provisioner.Type)),
+				Bytes: []byte("// Unsupported provisioner type " + provisioner.Type),
 			},
 		})
 		return
@@ -2532,9 +2538,7 @@ func convertManagedResources(state *convertState,
 	var options *hclwrite.Block
 	// Does this resource have dependencies? If so set the "dependsOn" attribute
 	if len(managedResource.DependsOn) > 0 {
-		if options == nil {
-			options = hclwrite.NewBlock("options", nil)
-		}
+		options = hclwrite.NewBlock("options", nil)
 		dependsOn := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
 		for idx, dep := range managedResource.DependsOn {
 			if idx > 0 {
@@ -2739,9 +2743,8 @@ func (items terraformItems) Less(i, j int) bool {
 		return true
 	} else if a.Filename > b.Filename {
 		return false
-	} else {
-		return a.Start.Line < b.Start.Line
 	}
+	return a.Start.Line < b.Start.Line
 }
 
 // Used to key into the modules map for the given address and version.
@@ -2954,6 +2957,7 @@ func translateModuleSourceCode(
 				invokeToken = root.DataSourceInfo.Tok.String()
 			}
 			tokenParts := strings.Split(invokeToken, ":")
+			//nolint:staticcheck
 			suffix := strings.Title(tokenParts[len(tokenParts)-1])
 			root.Name = scopes.getOrAddPulumiName(key, "", suffix)
 			scopes.roots[key] = root
@@ -2986,6 +2990,7 @@ func translateModuleSourceCode(
 				resourceToken = root.ResourceInfo.Tok.String()
 			}
 			tokenParts := strings.Split(resourceToken, ":")
+			//nolint:staticcheck
 			suffix := strings.Title(tokenParts[len(tokenParts)-1])
 			root.Name = scopes.getOrAddPulumiName(key, "", suffix)
 			scopes.roots[key] = root
@@ -3129,7 +3134,8 @@ func translateModuleSourceCode(
 						return state.diagnostics
 					}
 
-					// At this point we have a real version, we're going to resolve our module key to _that_ version and look it up again
+					// At this point we have a real version, we're going to resolve our module key to _that_ version and look it
+					// up again
 					absoluteKey := moduleKey.WithVersion(latestVersion.String())
 					if _, has := modules[absoluteKey]; has {
 						// We've seen this before, we can just use that path
@@ -3194,7 +3200,7 @@ func translateModuleSourceCode(
 							return state.diagnostics
 						}
 					}
-					// Update both our origional key, and the resolved absolute key to point to this created path
+					// Update both our original key, and the resolved absolute key to point to this created path
 					modules[moduleKey] = destinationPath
 					modules[absoluteKey] = destinationPath
 
@@ -3523,9 +3529,9 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 	packageNameParts := strings.Split(prov.Source, "/")
 	packageName := packageNameParts[len(packageNameParts)-1]
 
-	// TODO(pulumi/pulumi#17933) For now we just the package name portion of the source (also known as the "type" in tf parlance).
-	// This may lead to name overlap, but as of now this is how our system works.
-	// If we need to fix name overlap, this is the place to start.
+	// TODO(pulumi/pulumi#17933) For now we just the package name portion of the source (also known as the "type" in tf
+	// parlance). This may lead to name overlap, but as of now this is how our system works. If we need to fix name
+	// overlap, this is the place to start.
 	_ = name
 	block := hclwrite.NewBlock("package", []string{packageName})
 	body := block.Body()
@@ -3613,12 +3619,12 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 		// Load all .pp files in the components' directory
 		files, err := afero.ReadDir(fs, componentSourceDir)
 		if err != nil {
-			diagnostics = diagnostics.Append(errorf(nodeRange, err.Error()))
+			diagnostics = diagnostics.Append(errorf(nodeRange, "%s", err.Error()))
 			return nil, diagnostics, nil
 		}
 
 		if len(files) == 0 {
-			diagnostics = diagnostics.Append(errorf(nodeRange, err.Error()))
+			diagnostics = diagnostics.Append(errorf(nodeRange, "no .pp files found"))
 			return nil, diagnostics, nil
 		}
 
@@ -3632,13 +3638,13 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 			if filepath.Ext(fileName) == ".pp" {
 				file, err := fs.Open(path)
 				if err != nil {
-					diagnostics = diagnostics.Append(errorf(nodeRange, err.Error()))
+					diagnostics = diagnostics.Append(errorf(nodeRange, "%s", err.Error()))
 					return nil, diagnostics, err
 				}
 
 				err = parser.ParseFile(file, fileName)
 				if err != nil {
-					diagnostics = diagnostics.Append(errorf(nodeRange, err.Error()))
+					diagnostics = diagnostics.Append(errorf(nodeRange, "%s", err.Error()))
 					return nil, diagnostics, err
 				}
 
@@ -3647,11 +3653,6 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 					return nil, diagnostics, err
 				}
 			}
-		}
-
-		if err != nil {
-			diagnostics = diagnostics.Append(errorf(nodeRange, err.Error()))
-			return nil, diagnostics, err
 		}
 
 		componentProgram, programDiags, err := pcl.BindProgram(parser.Files,

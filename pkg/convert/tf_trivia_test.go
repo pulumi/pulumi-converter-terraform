@@ -74,8 +74,9 @@ func TestGetTriviaFromIndex(t *testing.T) {
 
 	for _, tt := range cases {
 		tt := tt
+
 		t.Run(tt.name, func(t *testing.T) {
-			//t.Parallel()
+			t.Parallel()
 
 			tokens, diagnostics := hclsyntax.LexConfig([]byte(tt.input), "", hcl.Pos{Byte: 0, Line: 1, Column: 1})
 			assert.Empty(t, diagnostics)
