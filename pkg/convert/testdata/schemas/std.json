@@ -1,7 +1,7 @@
 {
   "name": "std",
   "displayName": "StandardLibrary",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Standard library functions",
   "homepage": "https://github.com/pulumi/pulumi-std",
   "repository": "https://github.com/pulumi/pulumi-std",
@@ -476,6 +476,41 @@
         "properties": {
           "result": {
             "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "type": "object"
+      }
+    },
+    "std:index:cidrsubnets": {
+      "description": "Takes an IP address prefix in CIDR notation (like 10.0.0.0/8) and creates a series of consecutive IP address ranges within that CIDR prefix. See https://opentofu.org/docs/language/functions/cidrsubnets/ for additional information",
+      "inputs": {
+        "properties": {
+          "input": {
+            "type": "string"
+          },
+          "newbits": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "input",
+          "newbits"
+        ]
+      },
+      "outputs": {
+        "properties": {
+          "result": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           }
         },
         "required": [
@@ -1104,6 +1139,41 @@
         "type": "object"
       }
     },
+    "std:index:formatlist": {
+      "description": "Formats a list of strings according to the given format. Argument values which are lists are \"zipped\" together to produce a list of results.",
+      "inputs": {
+        "properties": {
+          "args": {
+            "type": "array",
+            "items": {
+              "$ref": "pulumi.json#/Any"
+            }
+          },
+          "input": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "args",
+          "input"
+        ]
+      },
+      "outputs": {
+        "properties": {
+          "result": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "type": "object"
+      }
+    },
     "std:index:indent": {
       "description": "Adds a given number of spaces after each newline character in the given string.",
       "inputs": {
@@ -1682,6 +1752,67 @@
           "result": {
             "items": {
               "type": "number"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "type": "object"
+      }
+    },
+    "std:index:regex": {
+      "description": "Returns the first match of a regular expression in a string (including named or indexed groups).",
+      "inputs": {
+        "properties": {
+          "pattern": {
+            "type": "string"
+          },
+          "string": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pattern",
+          "string"
+        ]
+      },
+      "outputs": {
+        "properties": {
+          "result": {
+            "$ref": "pulumi.json#/Any"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "type": "object"
+      }
+    },
+    "std:index:regexall": {
+      "description": "Returns a list of all matches of a regular expression in a string (including named or indexed groups).",
+      "inputs": {
+        "properties": {
+          "pattern": {
+            "type": "string"
+          },
+          "string": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pattern",
+          "string"
+        ]
+      },
+      "outputs": {
+        "properties": {
+          "result": {
+            "items": {
+              "$ref": "pulumi.json#/Any"
             },
             "type": "array"
           }
