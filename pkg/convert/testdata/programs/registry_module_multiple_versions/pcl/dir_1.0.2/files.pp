@@ -2,8 +2,8 @@ allFilePaths = notImplemented("fileset(var.base_dir,\"**\")")
 staticFilePaths = invoke("std:index:toset", {
   input = [for p in allFilePaths : p if length(p) < length(templateFileSuffix) || invoke("std:index:substr", {
     input  = p
-    length = length(p) - length(templateFileSuffix)
-    offset = length(templateFileSuffix)
+    offset = length(p) - length(templateFileSuffix)
+    length = length(templateFileSuffix)
   }).result != templateFileSuffix]
 }).result
 templateFilePaths = { for p in allFilePaths : invoke("std:index:substr", {
