@@ -703,6 +703,16 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"limit", "start", "step"},
 		output: "result",
 	},
+	"regex": {
+		token:  "std:index:regex",
+		inputs: []string{"pattern", "string"},
+		output: "result",
+	},
+	"regexall": {
+		token:  "std:index:regexall",
+		inputs: []string{"pattern", "string"},
+		output: "result",
+	},
 	"replace": {
 		token:  "std:index:replace",
 		inputs: []string{"text", "search", "replace"},
@@ -3671,7 +3681,6 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 
 var unimplementedFunctionBugs = map[string]string{
 	"formatdate":   "pulumi/pulumi-converter-terraform#196",
-	"regexall":     "pulumi/pulumi-converter-terraform#191",
 	"templatefile": "pulumi/pulumi-converter-terraform#192",
 	"try":          "pulumi/pulumi-converter-terraform#16",
 	"yamlencode":   "pulumi/pulumi-converter-terraform#190",

@@ -17,8 +17,11 @@ templateFilePaths = { for p in allFilePaths : invoke("std:index:substr", {
 templateFileContents = { for p, sp in templateFilePaths : p => notImplemented("templatefile(\"$${var.base_dir}/$${sp}\",var.template_vars)") }
 staticFileLocalPaths = { for p in staticFilePaths : p => "${baseDir}/${p}" }
 outputFilePaths      = notImplemented("setunion(keys(local.template_file_paths),local.static_file_paths)")
-fileSuffixMatches    = { for p in outputFilePaths : p => notImplemented("regexall(\"\\\\.[^\\\\.]+\\\\z\",p)") }
-fileSuffixes         = { for p, ms in fileSuffixMatches : p => length(ms) > 0 ? ms[0] : "" }
+fileSuffixMatches = { for p in outputFilePaths : p => invoke("std:index:regexall", {
+  pattern = "\\.[^\\.]+\\z"
+  string  = p
+}).result }
+fileSuffixes = { for p, ms in fileSuffixMatches : p => length(ms) > 0 ? ms[0] : "" }
 myFileTypes = { for p in outputFilePaths : p => invoke("std:index:lookup", {
   map     = fileTypes
   key     = fileSuffixes[p]
