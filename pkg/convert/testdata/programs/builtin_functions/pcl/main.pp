@@ -225,10 +225,16 @@ output "funcChomp2" {
 
 # Examples for chunklist
 output "funcChunklist0" {
-  value = notImplemented("chunklist([\"a\",\"b\",\"c\",\"d\",\"e\"],2)")
+  value = invoke("std:index:chunklist", {
+    input = ["a", "b", "c", "d", "e"]
+    size  = 2
+  }).result
 }
 output "funcChunklist1" {
-  value = notImplemented("chunklist([\"a\",\"b\",\"c\",\"d\",\"e\"],1)")
+  value = invoke("std:index:chunklist", {
+    input = ["a", "b", "c", "d", "e"]
+    size  = 1
+  }).result
 }
 
 

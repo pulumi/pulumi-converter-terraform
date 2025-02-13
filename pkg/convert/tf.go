@@ -496,6 +496,11 @@ var tfFunctionStd = map[string]struct {
 		inputs: []string{"input"},
 		output: "result",
 	},
+	"chunklist": {
+		token:  "std:index:chunklist",
+		inputs: []string{"input", "size"},
+		output: "result",
+	},
 	"coalesce": {
 		token:     "std:index:coalesce",
 		inputs:    []string{"input"},
