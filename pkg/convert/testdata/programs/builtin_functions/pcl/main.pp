@@ -1396,29 +1396,29 @@ output "funcStrrev1" {
 output "funcSubstr0" {
   value = invoke("std:index:substr", {
     input  = "hello world"
-    length = 1
-    offset = 4
+    offset = 1
+    length = 4
   }).result
 }
 output "funcSubstr1" {
   value = invoke("std:index:substr", {
     input  = "🤔🤷"
-    length = 0
-    offset = 1
+    offset = 0
+    length = 1
   }).result
 }
 output "funcSubstr2" {
   value = invoke("std:index:substr", {
     input  = "hello world"
-    length = -5
-    offset = -1
+    offset = -5
+    length = -1
   }).result
 }
 output "funcSubstr3" {
   value = invoke("std:index:substr", {
     input  = "hello world"
-    length = 6
-    offset = 10
+    offset = 6
+    length = 10
   }).result
 }
 
