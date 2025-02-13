@@ -53,7 +53,6 @@
   "warning:builtin_functions/main.tf:823,67-112:Function not yet implemented:Function setsubtract not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:823,11-113:Function not yet implemented:Function setunion not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:829,11-50:Function not yet implemented:Function setunion not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
-  "warning:builtin_functions/main.tf:865,11-44:Function not yet implemented:Function slice not yet implemented, see pulumi/pulumi-converter-terraform#65",
   "warning:builtin_functions/main.tf:898,11-44:Function not yet implemented:Function strcontains not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:901,11-44:Function not yet implemented:Function strcontains not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:937,31-38:builtin_functions/main.tf:937,27-38:Terraform input not yet implemented:path",

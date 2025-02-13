@@ -16,6 +16,7 @@
 - Implement `anytrue` through the `pulumi-std` invoke of the same name
 - Implement `contains` through the `pulumi-std` invoke of the same name
 - Implement `chunklist` through the `pulumi-std` invoke of the same name
+- Implement `slice` through the `pulumi-std` invoke of the same name
 
 ### Bug Fixes
 
