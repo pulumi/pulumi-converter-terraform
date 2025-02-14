@@ -1,18 +1,18 @@
 component "someModule" "./mod" {
 }
 
-output "modulePath" {
+output "modulePathOutput" {
   value = someModule.output
 }
 
-output "root" {
-  value = notImplemented("path.root")
+output "rootOutput" {
+  value = rootDirectory()
 }
 
-output "cwd" {
-  value = notImplemented("path.cwd")
+output "cwdOutput" {
+  value = cwd()
 }
 
-output "workspace" {
+output "workspaceOutput" {
   value = notImplemented("terraform.workspace")
 }
