@@ -19,6 +19,7 @@
 - Implement `slice` through the `pulumi-std` invoke of the same name
 - Implement `regex(all)` through the `pulumi-std` invokes of the same name
 - Implement `toset` through the `pulumi-std` invoke of the same name
+- Implement `cidrsubnets` through the `pulumi-std` invoke of the same name
 
 ### Bug Fixes
 

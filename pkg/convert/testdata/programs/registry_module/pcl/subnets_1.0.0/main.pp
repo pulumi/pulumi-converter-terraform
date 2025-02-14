@@ -1,4 +1,7 @@
-addrsByIdx  = notImplemented("cidrsubnets(var.base_cidr_block,var.networks[*].new_bits...)")
+addrsByIdx = invoke("std:index:cidrsubnets", {
+  input   = baseCidrBlock
+  newbits = networks[*].newBits
+}).result
 addrsByName = { for i, n in networks : n.name => addrsByIdx[i] if n.name != null }
 networkObjs = [for i, n in networks : {
   name      = n.name
