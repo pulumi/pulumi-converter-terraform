@@ -1603,13 +1603,19 @@ output "funcTonumber3" {
 
 # Examples for toset
 output "funcToset0" {
-  value = notImplemented("toset([\"a\",\"b\",\"c\"])")
+  value = invoke("std:index:toset", {
+    input = ["a", "b", "c"]
+  }).result
 }
 output "funcToset1" {
-  value = notImplemented("toset([\"a\",\"b\",3])")
+  value = invoke("std:index:toset", {
+    input = ["a", "b", 3]
+  }).result
 }
 output "funcToset2" {
-  value = notImplemented("toset([\"c\",\"b\",\"b\"])")
+  value = invoke("std:index:toset", {
+    input = ["c", "b", "b"]
+  }).result
 }
 
 
