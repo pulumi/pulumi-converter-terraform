@@ -3511,6 +3511,11 @@ func translateModuleSourceCode(
 					_, block, trailing := convertSandboxModuleCall(state, scopes, sandboxedModule)
 					body.AppendBlock(block)
 					body.AppendUnstructuredTokens(trailing)
+				} else {
+					leading, block, trailing := convertModuleCall(state, scopes, modules, destinationDirectory, item.moduleCall)
+					body.AppendUnstructuredTokens(leading)
+					body.AppendBlock(block)
+					body.AppendUnstructuredTokens(trailing)
 				}
 			} else {
 				leading, block, trailing := convertModuleCall(state, scopes, modules, destinationDirectory, item.moduleCall)
@@ -3679,7 +3684,7 @@ func sandboxedModulePackageBlock(
 ) *hclwrite.Block {
 	block := hclwrite.NewBlock("package", []string{packageName})
 	body := block.Body()
-	body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-module-provider"))
+	body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-module"))
 	body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.0.1"))
 	paramBlock := hclwrite.NewBlock("parameterization", []string{})
 	body.AppendBlock(paramBlock)
