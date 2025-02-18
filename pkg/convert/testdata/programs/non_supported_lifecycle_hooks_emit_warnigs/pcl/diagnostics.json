@@ -1,4 +1,4 @@
 [
-  "warning:non_supported_lifecycle_hooks_emit_warnigs/main.tf:1,1-40:non_supported_lifecycle_hooks_emit_warnigs/main.tf:1,1-40:converting create_before_destroy lifecycle hook is not supported:",
+  "warning:non_supported_lifecycle_hooks_emit_warnigs/main.tf:1,1-40:non_supported_lifecycle_hooks_emit_warnigs/main.tf:1,1-40:converting create_before_destroy lifecycle hook is not supported:in Pulumi, resources are always created before destroy unless the resource is created with the \nresource option deleteBeforeReplace. If this behavior is desired, it must be set. \nSee https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for details",
   "warning:non_supported_lifecycle_hooks_emit_warnigs/main.tf:9,1-40:non_supported_lifecycle_hooks_emit_warnigs/main.tf:9,1-40:converting replace_triggered_by lifecycle hook is not supported:"
 ]
