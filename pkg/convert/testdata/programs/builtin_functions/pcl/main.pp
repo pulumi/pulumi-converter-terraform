@@ -179,13 +179,13 @@ output "funcCan0" {
   value = foo
 }
 output "funcCan1" {
-  value = notImplemented("can(local.foo.bar)")
+  value = can(foo.bar)
 }
 output "funcCan2" {
-  value = notImplemented("can(local.foo.boop)")
+  value = can(foo.boop)
 }
 output "funcCan3" {
-  value = notImplemented("can(local.nonexist)")
+  value = can(nonexist)
 }
 
 
@@ -1725,13 +1725,13 @@ output "funcTry0" {
   value = foo
 }
 output "funcTry1" {
-  value = notImplemented("try(local.foo.bar,\"fallback\")")
+  value = try(foo.bar, "fallback")
 }
 output "funcTry2" {
-  value = notImplemented("try(local.foo.boop,\"fallback\")")
+  value = try(foo.boop, "fallback")
 }
 output "funcTry3" {
-  value = notImplemented("try(local.nonexist,\"fallback\")")
+  value = try(nonexist, "fallback")
 }
 
 
