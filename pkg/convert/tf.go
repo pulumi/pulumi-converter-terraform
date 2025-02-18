@@ -2577,7 +2577,7 @@ func convertManagedResources(state *convertState,
 			Severity: hcl.DiagWarning,
 			Summary:  "converting create_before_destroy lifecycle hook is not supported",
 			Detail: `in Pulumi, resources are always created before destroy unless the resource is created with the 
-resource option deleteBeforeReplace, if this behavior is desired, it must be set. 
+resource option deleteBeforeReplace. If this behavior is desired, it must be set. 
 See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for details`,
 			Subject: managedResource.DeclRange.Ptr(),
 			Context: managedResource.DeclRange.Ptr(),
