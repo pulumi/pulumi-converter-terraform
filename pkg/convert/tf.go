@@ -902,12 +902,19 @@ func (s *convertState) sourceCode(rng hcl.Range) string {
 	return strings.Replace(buffer.String(), "\r\n", "\n", -1)
 }
 
-func (s *convertState) renamePclOverlap(
+// renameForPclOverlap renames the given name and type to avoid overlap with
+// PCL keywords, as well as renames any modules which have different
+// configuration names in pcl (eg google -> gcp)
+func (s *convertState) renameForPclOverlap(
 	kind string,
 	hclType *string,
 	name string,
 	hclRange *hcl.Range,
 ) (string, string) {
+	if rename, ok := pulumiProviderConfigRenames[name]; ok {
+		name = rename
+	}
+
 	newName := name
 	newType := new(string)
 	if hclType != nil {
@@ -2894,40 +2901,40 @@ func translateModuleSourceCode(
 	// First go through and add everything to the items list so we can sort it by source order
 	items := make(terraformItems, 0)
 	for _, variable := range module.Variables {
-		_, name := state.renamePclOverlap("variable", nil, variable.Name, &variable.DeclRange)
+		_, name := state.renameForPclOverlap("variable", nil, variable.Name, &variable.DeclRange)
 		variable.Name = name
 		items = append(items, terraformItem{variable: variable})
 	}
 	for _, local := range module.Locals {
-		_, name := state.renamePclOverlap("local", nil, local.Name, &local.DeclRange)
+		_, name := state.renameForPclOverlap("local", nil, local.Name, &local.DeclRange)
 		local.Name = name
 		items = append(items, terraformItem{local: local})
 	}
 	for _, data := range module.DataResources {
-		typeName, name := state.renamePclOverlap("data", &data.Type, data.Name, &data.DeclRange)
+		typeName, name := state.renameForPclOverlap("data", &data.Type, data.Name, &data.DeclRange)
 		data.Type = typeName
 		data.Name = name
 		items = append(items, terraformItem{data: data})
 	}
 	for _, moduleCall := range module.ModuleCalls {
-		_, name := state.renamePclOverlap("moduleCall", nil, moduleCall.Name, &moduleCall.DeclRange)
+		_, name := state.renameForPclOverlap("moduleCall", nil, moduleCall.Name, &moduleCall.DeclRange)
 		moduleCall.Name = name
 		items = append(items, terraformItem{moduleCall: moduleCall})
 	}
 	for _, resource := range module.ManagedResources {
 		// TODO do all types and diagnostics.
-		typeName, name := state.renamePclOverlap("resource", &resource.Type, resource.Name, &resource.DeclRange)
+		typeName, name := state.renameForPclOverlap("resource", &resource.Type, resource.Name, &resource.DeclRange)
 		resource.Type = typeName
 		resource.Name = name
 		items = append(items, terraformItem{resource: resource})
 	}
 	for _, output := range module.Outputs {
-		_, name := state.renamePclOverlap("output", nil, output.Name, &output.DeclRange)
+		_, name := state.renameForPclOverlap("output", nil, output.Name, &output.DeclRange)
 		output.Name = name
 		items = append(items, terraformItem{output: output})
 	}
 	for _, provider := range module.ProviderConfigs {
-		_, name := state.renamePclOverlap("provider", nil, provider.Name, &provider.DeclRange)
+		_, name := state.renameForPclOverlap("provider", nil, provider.Name, &provider.DeclRange)
 		provider.Name = name
 		items = append(items, terraformItem{provider: provider})
 	}

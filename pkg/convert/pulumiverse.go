@@ -51,10 +51,10 @@ var pulumiSupportedProviders = []string{
 	"f5bigip",
 	"fastly",
 	"gandi",
-	"gcp",
 	"github",
 	"github-credentials",
 	"gitlab",
+	"google",
 	"googleworkspace",
 	"harbor",
 	"harness",
@@ -114,4 +114,8 @@ var pulumiSupportedProviders = []string{
 	"wavefront",
 	"xyz",
 	"zitadel",
+}
+
+var pulumiProviderConfigRenames = map[string]string{
+	"google": "gcp",
 }
