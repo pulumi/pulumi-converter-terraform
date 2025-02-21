@@ -1,6 +1,6 @@
 package "boundary" {
   baseProviderName    = "terraform-provider"
-  baseProviderVersion = "0.6.0"
+  baseProviderVersion = "0.8.1"
   parameterization {
     version = "1.1.9"
     name    = "boundary"

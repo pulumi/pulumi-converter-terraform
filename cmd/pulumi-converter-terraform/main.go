@@ -25,7 +25,6 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	tfconvert "github.com/pulumi/pulumi-converter-terraform/pkg/convert"
-	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/rpcutil"
@@ -48,7 +47,7 @@ func (*tfConverter) ConvertState(_ context.Context,
 	if err != nil {
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
-	providerInfoSource := il.NewMapperProviderInfoSource(mapper)
+	providerInfoSource := tfconvert.NewMapperProviderInfoSource(mapper)
 
 	if len(req.Args) != 1 {
 		return nil, errors.New("expected exactly one argument")
@@ -97,7 +96,7 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	if err != nil {
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
-	providerInfoSource := il.NewMapperProviderInfoSource(mapper)
+	providerInfoSource := tfconvert.NewMapperProviderInfoSource(mapper)
 
 	if *convertExamples != "" {
 		examplesBytes, err := os.ReadFile(filepath.Join(req.SourceDirectory, *convertExamples))

@@ -30,14 +30,15 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/blang/semver"
-	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfgen"
+	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/hcl2/syntax"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/pcl"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/schema"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/diag"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/diag/colors"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/cmdutil"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -99,7 +100,7 @@ func TestTranslate(t *testing.T) {
 
 	// Test framework for eject
 	// Each folder in testdata has a pcl folder, we check that if we convert the hcl we get the expected pcl
-	// You can regenerate the test data by running "PULUMI_ACCEPT=1 go test" in this folder (pkg/tf2pulumi/convert).
+	// You can regenerate the test data by running "PULUMI_ACCEPT=1 go test" in this folder (pkg/convert).
 	testDir, err := filepath.Abs(filepath.Join("testdata"))
 	require.NoError(t, err)
 	infos, err := os.ReadDir(filepath.Join(testDir, "programs"))
@@ -192,7 +193,7 @@ func TestTranslate(t *testing.T) {
 			osFs := afero.NewOsFs()
 			pclFs := afero.NewBasePathFs(osFs, pclPath)
 
-			providerInfoSource := il.NewMapperProviderInfoSource(mapper)
+			providerInfoSource := NewMapperProviderInfoSource(mapper)
 			diagnostics := TranslateModule(osFs, hclPath, pclFs, providerInfoSource)
 
 			// If PULUMI_ACCEPT is set then clear the PCL folder and copy the generated files out. Note we
@@ -371,7 +372,7 @@ func Test_GenerateTestDataSchemas(t *testing.T) {
 	mappingsPath := filepath.Join(testDir, "mappings")
 	schemasPath := filepath.Join(testDir, "schemas")
 	mapper := &bridgetesting.TestFileMapper{Path: mappingsPath}
-	providerInfoSource := il.NewMapperProviderInfoSource(mapper)
+	providerInfoSource := NewMapperProviderInfoSource(mapper)
 
 	nilSink := diag.DefaultSink(io.Discard, io.Discard, diag.FormatOptions{
 		Color: colors.Never,
@@ -388,7 +389,7 @@ func Test_GenerateTestDataSchemas(t *testing.T) {
 
 			// Strip off the .json part to make the package name
 			pkg := strings.Replace(info.Name(), filepath.Ext(info.Name()), "", -1)
-			provInfo, err := providerInfoSource.GetProviderInfo("", "", pkg, "")
+			provInfo, err := providerInfoSource.GetProviderInfo(pkg, nil /*requiredProvider*/)
 			require.NoError(t, err)
 
 			schema, err := tfgen.GenerateSchema(*provInfo, nilSink)
@@ -398,4 +399,64 @@ func Test_GenerateTestDataSchemas(t *testing.T) {
 			bridgetesting.AssertEqualsJSONFile(t, schemaPath, schema, nil)
 		})
 	}
+}
+
+// Tests that the converter correctly loads mappings for providers that are not part of the Pulumiverse, by requesting
+// mapping for an appropriately parameterized instance of the Terraform provider plugin.
+func TestTranslateParameterized(t *testing.T) {
+	t.Parallel()
+
+	// Arrange.
+	testDir, err := filepath.Abs(filepath.Join("testdata"))
+	require.NoError(t, err)
+
+	testPath := filepath.Join(testDir, "terraform-provider")
+
+	seen := map[string]*convert.MapperPackageHint{}
+
+	mapper := &bridgetesting.MockMapper{
+		GetMappingF: func(
+			_ context.Context,
+			provider string,
+			hint *convert.MapperPackageHint,
+		) ([]byte, error) {
+			seen[provider] = hint
+			return []byte{}, nil
+		},
+	}
+
+	osFs := afero.NewOsFs()
+
+	tempDir := t.TempDir()
+	pclPath := filepath.Join(tempDir, "pcl")
+	pclFs := afero.NewBasePathFs(osFs, pclPath)
+
+	providerInfoSource := NewMapperProviderInfoSource(mapper)
+
+	expectedToSee := map[string]*convert.MapperPackageHint{
+		// "google" has a Pulumiverse provider ("gcp"), so we should expect the converter to request the Pulumi plugin with
+		// that name, with no parameterization.
+		"google": {
+			PluginName: "gcp",
+		},
+
+		// "planetscale" is not a Pulumiverse provider, so we should expect the converter to request for it to be
+		// dynamically bridged, by providing a mapping hint that mentions the terraform-provider plugin with an appropriate
+		// parameterization.
+		"planetscale": {
+			PluginName: "terraform-provider",
+			Parameterization: &workspace.Parameterization{
+				Name:    "planetscale",
+				Version: semver.MustParse("0.1.0"),
+				Value:   []byte(`{"remote":{"url":"planetscale/planetscale","version":"0.1.0"}}`),
+			},
+		},
+	}
+
+	// Act.
+	diagnostics := TranslateModule(osFs, testPath, pclFs, providerInfoSource)
+
+	// Assert.
+	require.False(t, diagnostics.HasErrors(), "translate diagnostics should not have errors: %v", diagnostics)
+	require.Equal(t, expectedToSee, seen, "expected to see an appropriate set of provider hints")
 }

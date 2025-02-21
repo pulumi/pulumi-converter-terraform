@@ -14,6 +14,24 @@
 
 package convert
 
+import "slices"
+
+// isTerraformProvider returns true if and only if the given provider name is *not* one in the "Pulumi universe". This
+// means that this function should return true for any provider that must be dynamically bridged. Note that the given
+// provider name must be a *Pulumi package name*, not (for instance) a Terraform provider name.
+func isTerraformProvider(name string) bool {
+	return !slices.Contains(pulumiSupportedProviders, name)
+}
+
+// pulumiRenamedProviderNames is a map whose keys are Terraform provider names and whose values are the corresponding
+// (managed) Pulumi provider names, in the cases where they differ.
+var pulumiRenamedProviderNames = map[string]string{
+	"azurerm":  "azure",
+	"bigip":    "f5bigip",
+	"google":   "gcp",
+	"template": "terraform-template",
+}
+
 var pulumiSupportedProviders = []string{
 	"acme",
 	"aiven",

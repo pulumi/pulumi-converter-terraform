@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
-	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	shim "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/schema"
@@ -53,8 +52,6 @@ type PathInfo struct {
 }
 
 type scopes struct {
-	info il.ProviderInfoSource
-
 	// All known roots, keyed by fully qualified path e.g. data.some_data_source
 	roots map[string]PathInfo
 
@@ -69,9 +66,8 @@ type scopes struct {
 	scope *lang.Scope
 }
 
-func newScopes(info il.ProviderInfoSource) *scopes {
+func newScopes() *scopes {
 	s := &scopes{
-		info:   info,
 		roots:  make(map[string]PathInfo),
 		locals: make([]map[string]string, 0),
 	}

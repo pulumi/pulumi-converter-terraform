@@ -24,3 +24,4 @@
 ### Bug Fixes
 
 - Fix the order of arguments to `substr`
+- Fix conversion in the presence of dynamically bridged Terraform providers

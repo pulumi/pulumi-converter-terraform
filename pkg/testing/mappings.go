@@ -63,3 +63,25 @@ func (l *TestFileMapper) GetMapping(
 
 	return mappingBytes, nil
 }
+
+// MockMapper provides a way to mock the Mapper interface for testing purposes.
+type MockMapper struct {
+	// GetMappingF is a function that will be called when Mapper.GetMapping is invoked.
+	GetMappingF func(
+		context.Context,
+		string,
+		*convert.MapperPackageHint,
+	) ([]byte, error)
+}
+
+func (m *MockMapper) GetMapping(
+	ctx context.Context,
+	provider string,
+	hint *convert.MapperPackageHint,
+) ([]byte, error) {
+	if m.GetMappingF == nil {
+		panic("GetMappingF is not implemented")
+	}
+
+	return m.GetMappingF(ctx, provider, hint)
+}
