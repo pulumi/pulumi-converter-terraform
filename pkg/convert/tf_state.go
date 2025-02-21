@@ -22,7 +22,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
-	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 	"github.com/pulumi/terraform/pkg/addrs"
@@ -43,7 +42,7 @@ func getString(addr addrs.Resource, obj map[string]interface{}, key string) (str
 	return str, nil
 }
 
-func TranslateState(info il.ProviderInfoSource, path string) (*plugin.ConvertStateResponse, error) {
+func TranslateState(info ProviderInfoSource, path string) (*plugin.ConvertStateResponse, error) {
 	stateFile, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -185,7 +184,7 @@ func TranslateState(info il.ProviderInfoSource, path string) (*plugin.ConvertSta
 					// Try to grab the info for this resource type
 					tfType := resource.Addr.Resource.Type
 					provider := impliedProvider(tfType)
-					providerInfo, err := info.GetProviderInfo("", "", provider, "")
+					providerInfo, err := info.GetProviderInfo(provider, nil /*requiredProvider*/)
 					if err != nil {
 						// Don't fail the import, just warn
 						diagnostics = append(diagnostics, &hcl.Diagnostic{

@@ -20,18 +20,25 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
 )
 
 type TestFileMapper struct {
 	Path string
 }
 
-func (l *TestFileMapper) GetMapping(_ context.Context, provider string, pulumiProvider string) ([]byte, error) {
-	if pulumiProvider == "" {
-		pulumiProvider = provider
+func (l *TestFileMapper) GetMapping(
+	_ context.Context,
+	provider string,
+	hint *convert.MapperPackageHint,
+) ([]byte, error) {
+	pulumiProvider := provider
+	if hint != nil {
+		pulumiProvider = hint.PluginName
 	}
 	if pulumiProvider == "" {
-		panic("provider and pulumiProvider cannot both be empty")
+		panic("provider and hint cannot both be empty")
 	}
 
 	if pulumiProvider == "unknown" {
