@@ -4,8 +4,6 @@ go 1.22.3
 
 toolchain go1.23.3
 
-replace github.com/pulumi/pulumi-terraform-bridge/v3 v3.96.0 => ../pulumi-terraform-bridge
-
 replace github.com/opentofu/opentofu/shim => ./pkg/internal/shim
 
 require (
@@ -15,7 +13,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.23.0
 	github.com/hashicorp/terraform-svchost v0.1.1
 	github.com/opentofu/opentofu/shim v0.0.0-00010101000000-000000000000
-	github.com/pulumi/pulumi-terraform-bridge/v3 v3.96.0
+	github.com/pulumi/pulumi-terraform-bridge/v3 v3.103.1-0.20250225074029-c535e789aacb
 	github.com/pulumi/pulumi/pkg/v3 v3.152.0
 	github.com/pulumi/pulumi/sdk/v3 v3.152.0
 	github.com/pulumi/terraform v0.12.1-0.20230322133416-a268cd0892c9

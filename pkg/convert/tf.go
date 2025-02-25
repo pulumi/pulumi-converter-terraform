@@ -3259,7 +3259,6 @@ func translateModuleSourceCode(
 				cfgName = rename
 			}
 
-
 			// If an alias is set just warn and ignore this, we can't support this yet
 			if provider.Alias != "" {
 				state.appendDiagnostic(&hcl.Diagnostic{
