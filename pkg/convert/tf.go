@@ -3254,6 +3254,11 @@ func translateModuleSourceCode(
 	for _, item := range items {
 		if item.provider != nil {
 			provider := item.provider
+			cfgName := provider.Name
+			if rename, ok := pulumiRenamedProviderNames[provider.Name]; ok {
+				cfgName = rename
+			}
+
 
 			// If an alias is set just warn and ignore this, we can't support this yet
 			if provider.Alias != "" {
@@ -3327,7 +3332,7 @@ func translateModuleSourceCode(
 						Subject:  &provider.DeclRange,
 						Severity: hcl.DiagWarning,
 						Summary:  "Failed to evaluate provider config",
-						Detail:   fmt.Sprintf("Could not evaluate expression for %s:%s", provider.Name, attrKey),
+						Detail:   fmt.Sprintf("Could not evaluate expression for %s:%s", cfgName, attrKey),
 					})
 					// If we couldn't eval the config we'll emit an obvious TODO to the config for it
 					val = cty.StringVal("TODO: " + state.sourceCode(value.Expr.Range()))
@@ -3364,7 +3369,8 @@ func translateModuleSourceCode(
 					}
 				}
 
-				cfg[provider.Name+":"+name] = workspace.ProjectConfigType{
+				// When there is a renamed provider be sure to update it's name in the Pulumi.yaml config.
+				cfg[cfgName+":"+name] = workspace.ProjectConfigType{
 					Value: yamlValue,
 				}
 			}
