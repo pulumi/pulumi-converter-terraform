@@ -43,6 +43,18 @@
                             "inner_string": {
                                 "type": 4,
                                 "optional": true
+                            },
+                            "inner_dynamic_resources": {
+                              "type": 5,
+                              "optional": true,
+                              "element": {
+                                "resource": {
+                                  "nested_string": {
+                                    "type": 4,
+                                    "optional": true
+                                  }
+                                }
+                              }
                             }
                         }
                     }
