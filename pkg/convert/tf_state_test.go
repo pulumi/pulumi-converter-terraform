@@ -23,7 +23,6 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	bridgetesting "github.com/pulumi/pulumi-converter-terraform/pkg/testing"
-	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/cmdutil"
 	"github.com/stretchr/testify/assert"
@@ -59,7 +58,7 @@ func TestTranslateState(t *testing.T) {
 	}
 
 	mapper := &bridgetesting.TestFileMapper{Path: filepath.Join(testDir, "mappings")}
-	info := il.NewCachingProviderInfoSource(il.NewMapperProviderInfoSource(mapper))
+	info := NewCachingProviderInfoSource(NewMapperProviderInfoSource(mapper))
 
 	for _, tt := range tests {
 		tt := tt // avoid capturing loop variable in the closure

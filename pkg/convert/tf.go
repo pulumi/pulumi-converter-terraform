@@ -35,7 +35,6 @@ import (
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-svchost/disco"
 	"github.com/opentofu/opentofu/shim"
-	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tf2pulumi/il"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/hcl2/syntax"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/pcl"
@@ -2356,7 +2355,7 @@ func convertLocal(state *convertState, scopes *scopes,
 }
 
 func convertDataResource(state *convertState,
-	info il.ProviderInfoSource, scopes *scopes,
+	info ProviderInfoSource, scopes *scopes,
 	dataResource *configs.Resource,
 ) (hclwrite.Tokens, string, hclwrite.Tokens, hclwrite.Tokens) {
 	// We translate dataResources into invokes
@@ -2440,7 +2439,7 @@ func convertDataResource(state *convertState,
 
 func convertProvisioner(
 	state *convertState,
-	info il.ProviderInfoSource, scopes *scopes,
+	info ProviderInfoSource, scopes *scopes,
 	provisioner *configs.Provisioner,
 	resourceName string, provisionerIndex int,
 	forEach hcl.Expression,
@@ -2530,7 +2529,7 @@ func convertProvisioner(
 }
 
 func convertManagedResources(state *convertState,
-	info il.ProviderInfoSource, scopes *scopes,
+	info ProviderInfoSource, scopes *scopes,
 	managedResource *configs.Resource,
 	target *hclwrite.Body,
 ) {
@@ -2576,8 +2575,8 @@ func convertManagedResources(state *convertState,
 		state.appendDiagnostic(&hcl.Diagnostic{
 			Severity: hcl.DiagWarning,
 			Summary:  "converting create_before_destroy lifecycle hook is not supported",
-			Detail: `in Pulumi, resources are always created before destroy unless the resource is created with the 
-resource option deleteBeforeReplace. If this behavior is desired, it must be set. 
+			Detail: `in Pulumi, resources are always created before destroy unless the resource is created with the
+resource option deleteBeforeReplace. If this behavior is desired, it must be set.
 See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for details`,
 			Subject: managedResource.DeclRange.Ptr(),
 			Context: managedResource.DeclRange.Ptr(),
@@ -2804,7 +2803,7 @@ func translateRemoteModule(
 	packageSubdir string,
 	destinationRoot afero.Fs, // The root of the destination filesystem to write PCL to.
 	destinationDirectory string, // A path in destination to write the translated code to.
-	info il.ProviderInfoSource,
+	info ProviderInfoSource,
 	requiredProviders map[string]*configs.RequiredProvider,
 ) hcl.Diagnostics {
 	fetcher := getmodules.NewPackageFetcher()
@@ -2860,7 +2859,7 @@ func translateModuleSourceCode(
 	sourceDirectory string, // The path in sourceRoot to the source terraform module.
 	destinationRoot afero.Fs, // The root of the destination filesystem to write PCL to.
 	destinationDirectory string, // A path in destination to write the translated code to.
-	info il.ProviderInfoSource,
+	info ProviderInfoSource,
 	requiredProviders map[string]*configs.RequiredProvider,
 	topLevelModule bool,
 ) hcl.Diagnostics {
@@ -2875,7 +2874,7 @@ func translateModuleSourceCode(
 		requiredProviders[name] = provider
 	}
 
-	scopes := newScopes(info)
+	scopes := newScopes()
 
 	state := &convertState{
 		sources:           sources,
@@ -2960,7 +2959,7 @@ func translateModuleSourceCode(
 				// We rewrite uses of template because it's really common but the provider for it is
 				// deprecated. As such we don't want to try and do a mapping lookup for it.
 
-				providerInfo, err := info.GetProviderInfo("", "", provider, "")
+				providerInfo, err := info.GetProviderInfo(provider, requiredProviders[provider])
 				if err != nil {
 					state.appendDiagnostic(&hcl.Diagnostic{
 						Subject:  &dataResource.DeclRange,
@@ -2993,7 +2992,7 @@ func translateModuleSourceCode(
 			key := managedResource.Type + "." + managedResource.Name
 			// Try to grab the info for this resource type
 			provider := impliedProvider(managedResource.Type)
-			providerInfo, err := info.GetProviderInfo("", "", provider, "")
+			providerInfo, err := info.GetProviderInfo(provider, requiredProviders[provider])
 			if err != nil {
 				state.appendDiagnostic(&hcl.Diagnostic{
 					Subject:  &managedResource.DeclRange,
@@ -3255,6 +3254,10 @@ func translateModuleSourceCode(
 	for _, item := range items {
 		if item.provider != nil {
 			provider := item.provider
+			cfgName := provider.Name
+			if rename, ok := pulumiRenamedProviderNames[provider.Name]; ok {
+				cfgName = rename
+			}
 
 			// If an alias is set just warn and ignore this, we can't support this yet
 			if provider.Alias != "" {
@@ -3279,7 +3282,7 @@ func translateModuleSourceCode(
 			}
 
 			// Try to grab the info for this provider config
-			providerInfo, err := info.GetProviderInfo("", "", provider.Name, "")
+			providerInfo, err := info.GetProviderInfo(provider.Name, requiredProviders[provider.Name])
 			if err != nil {
 				state.appendDiagnostic(&hcl.Diagnostic{
 					Subject:  &provider.DeclRange,
@@ -3328,7 +3331,7 @@ func translateModuleSourceCode(
 						Subject:  &provider.DeclRange,
 						Severity: hcl.DiagWarning,
 						Summary:  "Failed to evaluate provider config",
-						Detail:   fmt.Sprintf("Could not evaluate expression for %s:%s", provider.Name, attrKey),
+						Detail:   fmt.Sprintf("Could not evaluate expression for %s:%s", cfgName, attrKey),
 					})
 					// If we couldn't eval the config we'll emit an obvious TODO to the config for it
 					val = cty.StringVal("TODO: " + state.sourceCode(value.Expr.Range()))
@@ -3365,7 +3368,8 @@ func translateModuleSourceCode(
 					}
 				}
 
-				cfg[provider.Name+":"+name] = workspace.ProjectConfigType{
+				// When there is a renamed provider be sure to update it's name in the Pulumi.yaml config.
+				cfg[cfgName+":"+name] = workspace.ProjectConfigType{
 					Value: yamlValue,
 				}
 			}
@@ -3553,6 +3557,13 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 	packageNameParts := strings.Split(prov.Source, "/")
 	packageName := packageNameParts[len(packageNameParts)-1]
 
+	// Some Terraform providers correspond to Pulumi packages which have different names (e.g. "google" is actually backed
+	// by the Pulumi "gcp" package). Perform that renaming now before generating definitions/looking up whether we'll
+	// bridge or not.
+	if renamed, ok := pulumiRenamedProviderNames[packageName]; ok {
+		packageName = renamed
+	}
+
 	// TODO(pulumi/pulumi#17933) For now we just the package name portion of the source (also known as the "type" in tf
 	// parlance). This may lead to name overlap, but as of now this is how our system works. If we need to fix name
 	// overlap, this is the place to start.
@@ -3564,7 +3575,7 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 
 	if isTerraformProvider(packageName) {
 		body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-provider"))
-		body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.6.0"))
+		body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.8.1"))
 
 		// Right now we use the shim  of the opentofu implementation of getting the
 		// TF Package version to access an internal API.
@@ -3595,13 +3606,9 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 	return block, diags
 }
 
-func isTerraformProvider(name string) bool {
-	return !slices.Contains(pulumiSupportedProviders, name)
-}
-
 func TranslateModule(
 	source afero.Fs, sourceDirectory string,
-	destination afero.Fs, info il.ProviderInfoSource,
+	destination afero.Fs, info ProviderInfoSource,
 ) hcl.Diagnostics {
 	modules := make(map[moduleKey]string)
 	return translateModuleSourceCode(modules,
