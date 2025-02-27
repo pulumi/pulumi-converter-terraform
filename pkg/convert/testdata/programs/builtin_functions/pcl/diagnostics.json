@@ -13,8 +13,6 @@
   "warning:builtin_functions/main.tf:445,11-56:Function not yet implemented:Function formatdate not yet implemented, see pulumi/pulumi-converter-terraform#196",
   "warning:builtin_functions/main.tf:448,11-60:Function not yet implemented:Function formatdate not yet implemented, see pulumi/pulumi-converter-terraform#196",
   "warning:builtin_functions/main.tf:451,11-66:Function not yet implemented:Function formatdate not yet implemented, see pulumi/pulumi-converter-terraform#196",
-  "warning:builtin_functions/main.tf:457,11-76:Function not yet implemented:Function formatlist not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
-  "warning:builtin_functions/main.tf:460,11-88:Function not yet implemented:Function formatlist not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:472,11-38:Function not yet implemented:Function index not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:571,11-34:Function not yet implemented:Function map not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",
   "warning:builtin_functions/main.tf:577,11-97:Function not yet implemented:Function matchkeys not yet implemented, see pulumi/pulumi-converter-terraform#65 (catch all bug)",

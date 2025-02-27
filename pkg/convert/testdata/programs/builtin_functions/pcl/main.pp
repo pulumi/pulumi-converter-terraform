@@ -694,10 +694,16 @@ output "funcFormatdate6" {
 
 # Examples for formatlist
 output "funcFormatlist0" {
-  value = notImplemented("formatlist(\"Hello, %s!\",[\"Valentina\",\"Ander\",\"Olivia\",\"Sam\"])")
+  value = invoke("std:index:formatlist", {
+    input = "Hello, %s!"
+    args  = [["Valentina", "Ander", "Olivia", "Sam"]]
+  }).result
 }
 output "funcFormatlist1" {
-  value = notImplemented("formatlist(\"%s, %s!\",\"Salutations\",[\"Valentina\",\"Ander\",\"Olivia\",\"Sam\"])")
+  value = invoke("std:index:formatlist", {
+    input = "%s, %s!"
+    args  = ["Salutations", ["Valentina", "Ander", "Olivia", "Sam"]]
+  }).result
 }
 
 

@@ -630,6 +630,12 @@ var tfFunctionStd = map[string]struct {
 		output:    "result",
 		paramArgs: true,
 	},
+	"formatlist": {
+		token:     "std:index:formatlist",
+		inputs:    []string{"input", "args"},
+		output:    "result",
+		paramArgs: true,
+	},
 	"indent": {
 		token:  "std:index:indent",
 		inputs: []string{"spaces", "input"},
