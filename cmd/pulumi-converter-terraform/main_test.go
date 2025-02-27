@@ -27,7 +27,7 @@ import (
 
 type testMapper struct{}
 
-func (m *testMapper) GetMapping(context.Context, string, string) ([]byte, error) {
+func (m *testMapper) GetMapping(context.Context, string, *convert.MapperPackageHint) ([]byte, error) {
 	// No mapping as yet, we'll get warning diagnostics about this but that's not important for this test.
 	return nil, nil
 }
