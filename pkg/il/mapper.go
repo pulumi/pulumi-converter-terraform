@@ -37,7 +37,9 @@ func (mapper *mapperProviderInfoSource) GetProviderInfo(
 	registryName, namespace, name, version string,
 ) (*tfbridge.ProviderInfo, error) {
 	// TODO: Mapper has been made context aware, but ProviderInfoSource isn't.
-	data, err := mapper.mapper.GetMapping(context.TODO(), name, il.GetPulumiProviderName(name))
+	data, err := mapper.mapper.GetMapping(context.TODO(), name, &convert.MapperPackageHint{
+		PluginName: il.GetPulumiProviderName(name),
+	})
 	if err != nil {
 		return nil, err
 	}
