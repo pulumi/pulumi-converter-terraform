@@ -1,0 +1,7 @@
+[
+  "warning:dynamic_nested_for_each/main.tf:23,26-71:Function not yet implemented:Function try not yet implemented, see pulumi/pulumi-converter-terraform#16",
+  "warning:dynamic_nested_for_each/main.tf:21,28-76:Function not yet implemented:Function try not yet implemented, see pulumi/pulumi-converter-terraform#16",
+  "warning:dynamic_nested_for_each/main.tf:42,26-71:Function not yet implemented:Function try not yet implemented, see pulumi/pulumi-converter-terraform#16",
+  "warning:dynamic_nested_for_each/main.tf:47,33-81:Function not yet implemented:Function try not yet implemented, see pulumi/pulumi-converter-terraform#16",
+  "warning:dynamic_nested_for_each/main.tf:40,28-76:Function not yet implemented:Function try not yet implemented, see pulumi/pulumi-converter-terraform#16"
+]
