@@ -6,8 +6,8 @@ locals {
     # the current module, but tf2pulumi doesn't support that so we replace it with local.path_module.
     path_module = "some/path"
 
-    # Some of the examples in the docs use `path.root` which _should_ resolve to the file system path of the
-    # root module of the configuration, but tf2pulumi doesn't support that so we replace it with local.path_root.
+    # Instead of using path.root use a local to not conflate testing of
+    # path.root conversion with uses of a path.
     path_root = "root/path"
 
     # The `can` examples make use of a local `foo`.
@@ -1227,4 +1227,3 @@ output "funcYamlencode2" {
 output "funcZipmap" {
   value = zipmap(["a", "b"], [1, 2])
 }
-

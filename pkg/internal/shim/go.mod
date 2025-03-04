@@ -2,8 +2,6 @@ module github.com/opentofu/opentofu/shim
 
 go 1.22.0
 
-toolchain go1.23.1
-
 require (
 	github.com/apparentlymart/go-versions v1.0.2
 	github.com/hashicorp/hcl/v2 v2.22.0

@@ -21,6 +21,7 @@
 - Implement `toset` through the `pulumi-std` invoke of the same name
 - Implement `cidrsubnets` through the `pulumi-std` invoke of the same name
 - Implement `formatlist` through the `pulumi-std` invoke of the same name
+- Add path.root and path.cwd to the converter to pcl intrinsics projectRoot and cwd respectively.
 
 ### Bug Fixes
 
