@@ -14,8 +14,8 @@ require (
 	github.com/hashicorp/terraform-svchost v0.1.1
 	github.com/opentofu/opentofu/shim v0.0.0-00010101000000-000000000000
 	github.com/pulumi/pulumi-terraform-bridge/v3 v3.103.1-0.20250225074029-c535e789aacb
-	github.com/pulumi/pulumi/pkg/v3 v3.152.1-0.20250227003515-e15af80ca210
-	github.com/pulumi/pulumi/sdk/v3 v3.152.1-0.20250227083209-2cc7e08f9eee
+	github.com/pulumi/pulumi/pkg/v3 v3.156.1-0.20250313185526-b42b854857ef
+	github.com/pulumi/pulumi/sdk/v3 v3.156.1-0.20250313185526-b42b854857ef
 	github.com/pulumi/terraform v0.12.1-0.20230322133416-a268cd0892c9
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/pflag v1.0.5
@@ -73,7 +73,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/glog v1.2.2 // indirect
+	github.com/golang/glog v1.2.4 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
