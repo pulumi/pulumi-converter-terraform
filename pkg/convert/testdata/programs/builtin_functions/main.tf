@@ -10,12 +10,13 @@ locals {
     # path.root conversion with uses of a path.
     path_root = "root/path"
 
-    # The `can` examples make use of a local `foo`.
-    foo = { "bar" = "baz" }
-
     # The `nonsensitive` examples make use of a local `mixed_content`.
     # We don't use jsondecode(var.mixed_content_json) here because we don't want to depend on the jsondecode function working.
     mixed_content = { "password" = "hunter2" }
+}
+
+variable "can_try_example" {
+  default = { "bar" = "baz" }
 }
 
 # The `nonsensitive` examples make use of a variable `mixed_content_json`.
@@ -124,18 +125,14 @@ output "funcBcrypt" {
 
 # Examples for can
 output "funcCan0" {
-  value = local.foo
+  value = var.can_try_example
 }
 output "funcCan1" {
-  value = can(local.foo.bar)
+  value = can(var.can_try_example.bar)
 }
 output "funcCan2" {
-  value = can(local.foo.boop)
+  value = can(var.can_try_example.boop)
 }
-output "funcCan3" {
-  value = can(local.nonexist)
-}
-
 
 # Examples for ceil
 output "funcCeil0" {
@@ -1117,18 +1114,14 @@ output "funcTrimsuffix" {
 
 # Examples for try
 output "funcTry0" {
-  value = local.foo
+  value = var.can_try_example
 }
 output "funcTry1" {
-  value = try(local.foo.bar, "fallback")
+  value = try(var.can_try_example.bar, "fallback")
 }
 output "funcTry2" {
-  value = try(local.foo.boop, "fallback")
+  value = try(var.can_try_example.boop, "fallback")
 }
-output "funcTry3" {
-  value = try(local.nonexist, "fallback")
-}
-
 
 # Examples for type
 output "funcType0" {

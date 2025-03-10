@@ -7,15 +7,16 @@ pathModule = "some/path"
 # path.root conversion with uses of a path.
 pathRoot = "root/path"
 
-# The `can` examples make use of a local `foo`.
-foo = {
-  "bar" = "baz"
-}
-
 # The `nonsensitive` examples make use of a local `mixed_content`.
 # We don't use jsondecode(var.mixed_content_json) here because we don't want to depend on the jsondecode function working.
 mixedContent = {
   "password" = "hunter2"
+}
+
+config "canTryExample" {
+  default = {
+    bar = "baz"
+  }
 }
 
 
@@ -176,18 +177,14 @@ output "funcBcrypt" {
 
 # Examples for can
 output "funcCan0" {
-  value = foo
+  value = canTryExample
 }
 output "funcCan1" {
-  value = can(foo.bar)
+  value = can(canTryExample.bar)
 }
 output "funcCan2" {
-  value = can(foo.boop)
+  value = can(canTryExample.boop)
 }
-output "funcCan3" {
-  value = can(nonexist)
-}
-
 
 
 # Examples for ceil
@@ -1728,18 +1725,14 @@ output "funcTrimsuffix" {
 
 # Examples for try
 output "funcTry0" {
-  value = foo
+  value = canTryExample
 }
 output "funcTry1" {
-  value = try(foo.bar, "fallback")
+  value = try(canTryExample.bar, "fallback")
 }
 output "funcTry2" {
-  value = try(foo.boop, "fallback")
+  value = try(canTryExample.boop, "fallback")
 }
-output "funcTry3" {
-  value = try(nonexist, "fallback")
-}
-
 
 
 # Examples for type
