@@ -147,17 +147,12 @@ func (s *scopes) generateUniqueName(name, prefix, suffix string) string {
 	}
 }
 
-// addNestedScopeUniqueName adds a name to the current scope, making it unqiue
+// addNestedScopeUniqueName adds a name to the current scope, making it unique
 // if needed.  Returns a function to cleanup any root modifications.
 func (s *scopes) addNestedScopeUniqueName(name, prefix, suffix string) (string, func()) {
 	addAndReturn := func(name string) (string, func()) {
-		cleanup := func() {}
-		if len(s.locals) == 0 {
-			s.roots[name] = PathInfo{Name: name}
-			cleanup = func() { delete(s.roots, name) }
-		} else {
-			s.locals[len(s.locals)-1][name] = name
-		}
+		cleanup := func() { s.pop() }
+		s.push(map[string]string{name: name})
 		return name, cleanup
 	}
 

@@ -36,10 +36,10 @@
     },
     "blocks:index/resourceAListOfResource:resourceAListOfResource": {
       "properties": {
-        "innerDynamicResources": {
+        "innerResources": {
           "type": "array",
           "items": {
-            "$ref": "#/types/blocks:index/resourceAListOfResourceInnerDynamicResource:resourceAListOfResourceInnerDynamicResource"
+            "$ref": "#/types/blocks:index/resourceAListOfResourceInnerResource:resourceAListOfResourceInnerResource"
           }
         },
         "innerString": {
@@ -48,7 +48,7 @@
       },
       "type": "object"
     },
-    "blocks:index/resourceAListOfResourceInnerDynamicResource:resourceAListOfResourceInnerDynamicResource": {
+    "blocks:index/resourceAListOfResourceInnerResource:resourceAListOfResourceInnerResource": {
       "properties": {
         "nestedString": {
           "type": "string"
