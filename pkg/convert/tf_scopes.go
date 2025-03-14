@@ -147,6 +147,55 @@ func (s *scopes) generateUniqueName(name, prefix, suffix string) string {
 	}
 }
 
+// addNestedScopeUniqueName adds a name to the current scope, making it unique
+// if needed.  Returns a function to cleanup any root modifications.
+func (s *scopes) addNestedScopeUniqueName(name, prefix, suffix string) (string, func()) {
+	addAndReturn := func(name string) (string, func()) {
+		cleanup := func() { s.pop() }
+		s.push(map[string]string{name: name})
+		return name, cleanup
+	}
+
+	isUsedInAnyScope := func(name string) bool {
+		isUsed := s.isUsed(name)
+		if isUsed {
+			return true
+		}
+
+		for _, locals := range s.locals {
+			if locals[name] != "" {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	if !isUsedInAnyScope(name) {
+		return addAndReturn(name)
+	}
+
+	// It's used, so add the prefix and suffix
+	if prefix != "" {
+		name = prefix + cgstrings.UppercaseFirst(name)
+	}
+
+	if suffix != "" {
+		name = name + cgstrings.UppercaseFirst(suffix)
+	}
+
+	// Still used add a counter
+	baseName := name
+	counter := 2
+	for {
+		name = fmt.Sprintf("%s%d", baseName, counter)
+		if !isUsedInAnyScope(name) {
+			return addAndReturn(name)
+		}
+		counter = counter + 1
+	}
+}
+
 func (s *scopes) getOrAddOutput(name string) string {
 	root, has := s.roots[name]
 	if has {

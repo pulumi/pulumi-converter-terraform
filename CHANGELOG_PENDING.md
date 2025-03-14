@@ -21,6 +21,7 @@
 - Implement `toset` through the `pulumi-std` invoke of the same name
 - Implement `cidrsubnets` through the `pulumi-std` invoke of the same name
 - Implement `formatlist` through the `pulumi-std` invoke of the same name
+- Fix overlapping dynamic scopes shadowing names, making accessing the shadowed `entry` impossible.
 
 ### Bug Fixes
 

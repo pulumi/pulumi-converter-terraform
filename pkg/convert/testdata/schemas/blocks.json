@@ -36,7 +36,21 @@
     },
     "blocks:index/resourceAListOfResource:resourceAListOfResource": {
       "properties": {
+        "innerResources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/blocks:index/resourceAListOfResourceInnerResource:resourceAListOfResourceInnerResource"
+          }
+        },
         "innerString": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "blocks:index/resourceAListOfResourceInnerResource:resourceAListOfResourceInnerResource": {
+      "properties": {
+        "nestedString": {
           "type": "string"
         }
       },

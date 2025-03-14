@@ -2083,7 +2083,8 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 				tfEachVar = block.Labels[0]
 			}
 
-			pulumiEachVar := scopes.generateUniqueName("entry", "", "")
+			pulumiEachVar, cleanup := scopes.addNestedScopeUniqueName("entry", "", "")
+			defer cleanup()
 
 			dynamicTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
 			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "for"))
