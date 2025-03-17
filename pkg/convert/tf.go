@@ -1517,9 +1517,7 @@ func rewriteTraversal(
 		}
 
 		if matches("terraform", "workspace") ||
-			matches("path", "cwd") ||
-			matches("path", "module") ||
-			matches("path", "root") {
+			matches("path", "module") {
 			// If this is one of the builtin terraform inputs we just rewrite it to notImplemented.
 			state.appendDiagnostic(&hcl.Diagnostic{
 				Severity: hcl.DiagWarning,
@@ -1529,6 +1527,18 @@ func rewriteTraversal(
 				Subject:  &contextRange,
 			})
 			return notImplemented(state, getTraversalRange(traversal))
+		} else if matches("path", "root") {
+			return hclwrite.TokensForFunctionCall("rootDirectory")
+		} else if matches("path", "cwd") {
+			state.diagnostics = append(state.diagnostics, &hcl.Diagnostic{
+				Severity: hcl.DiagWarning,
+				Summary:  "Converting the builtin variable path.cwd with differing behavior",
+				Detail: `The builtin Terraform variable path.cwd is being converted, but in Pulumi cwd will start at the 
+project program directory, not the execution directory`,
+				Subject: &subjectRange,
+				Context: &contextRange,
+			})
+			return hclwrite.TokensForFunctionCall("cwd")
 		} else if root.Name == "var" && maybeFirstAttr != nil {
 			// This is a lookup of a var etc, we need to rewrite this traversal such that the root is now the
 			// pulumi config value instead.
