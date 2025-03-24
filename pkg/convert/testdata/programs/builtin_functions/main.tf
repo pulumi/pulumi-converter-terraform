@@ -60,9 +60,6 @@ output "funcAlltrue0" {
 output "funcAlltrue1" {
   value = alltrue([true, false])
 }
-output "funcAlltrue2" {
-  value = alltrue([])
-}
 
 
 # Examples for anytrue
@@ -298,7 +295,7 @@ output "funcElement1" {
   value = element(["a", "b", "c"], 3)
 }
 output "funcElement2" {
-  value = element(["a", "b", "c"], length(["a", "b", "c"])-1)
+  value = element(["a", "b", "c"], -1)
 }
 
 
@@ -308,6 +305,12 @@ output "funcEndswith0" {
 }
 output "funcEndswith1" {
   value = endswith("hello world", "hello")
+}
+
+
+# Examples for ephemeralasnull
+output "funcEphemeralasnull" {
+  value = ephemeralasnull(locals.foo)
 }
 
 
@@ -409,22 +412,28 @@ output "funcFormat2" {
   value = format("Hello, %s!", var.name)
 }
 output "funcFormat3" {
-  value = format("%#v", "hello")
+  value = "Hello, ${var.name}!"
 }
 output "funcFormat4" {
-  value = format("%#v", true)
+  value = format("%[1]s%[2]s%[1]s%[3]s", "/", "path", "file.tf")
 }
 output "funcFormat5" {
-  value = format("%#v", 1)
+  value = format("%#v", "hello")
 }
 output "funcFormat6" {
-  value = format("%#v", {a = 1})
+  value = format("%#v", true)
 }
 output "funcFormat7" {
-  value = format("%#v", [true])
+  value = format("%#v", 1)
 }
 output "funcFormat8" {
-  value = format("%s-%v-%#v-%d", "hello", true, {a = 1}, 1)
+  value = format("%#v", {a = 1})
+}
+output "funcFormat9" {
+  value = format("%#v", [true])
+}
+output "funcFormat10" {
+  value = format("%#v", null)
 }
 
 
@@ -470,6 +479,18 @@ output "funcIndent" {
 # Examples for index
 output "funcIndex" {
   value = index(["a", "b", "c"], "b")
+}
+
+
+# Examples for issensitive
+output "funcIssensitive0" {
+  value = issensitive(sensitive("secret"))
+}
+output "funcIssensitive1" {
+  value = issensitive("hello")
+}
+output "funcIssensitive2" {
+  value = issensitive(var.my-var-with-sensitive-set-to-true)
 }
 
 
@@ -798,8 +819,14 @@ output "funcSensitive2" {
 
 
 # Examples for setintersection
-output "funcSetintersection" {
+output "funcSetintersection0" {
   value = setintersection(["a", "b"], ["b", "c"], ["b", "d"])
+}
+output "funcSetintersection1" {
+  value = setintersection([3,3.3,4], [4,3.3,65,99], [4.0,3.3])
+}
+output "funcSetintersection2" {
+  value = setintersection(["bob","jane",3], ["jane",3,"ajax",10], ["3","jane",26,"nomad"])
 }
 
 
@@ -950,6 +977,36 @@ output "funcTemplatefile1" {
 }
 
 
+# Examples for templatestring
+output "funcTemplatestring" {
+  value = templatestring("${var.foo}", { foo = "bar" })
+}
+
+
+# Examples for terraform-applying
+output "funcTerraform-applying" {
+  value = terraform.applying
+}
+
+
+# Examples for terraform-decode_tfvars
+output "funcTerraform-decode_tfvars" {
+  value = provider::terraform::decode_tfvars("example = \"Hello!\"")
+}
+
+
+# Examples for terraform-encode_expr
+output "funcTerraform-encode_expr" {
+  value = provider::terraform::encode_expr(locals.foo)
+}
+
+
+# Examples for terraform-encode_tfvars
+output "funcTerraform-encode_tfvars" {
+  value = provider::terraform::encode_tfvars({example = "Hello!"})
+}
+
+
 # Examples for textdecodebase64
 output "funcTextdecodebase64" {
   value = textdecodebase64("SABlAGwAbABvACAAVwBvAHIAbABkAA==", "UTF-16LE")
@@ -963,8 +1020,11 @@ output "funcTextencodebase64" {
 
 
 # Examples for timeadd
-output "funcTimeadd" {
-  value = timeadd("2017-11-22T00:00:00Z", "10m")
+output "funcTimeadd0" {
+  value = timeadd("2024-08-16T12:45:05Z", "10m")
+}
+output "funcTimeadd1" {
+  value = timeadd("2024-08-16T12:45:05Z", "-10m")
 }
 
 
@@ -1101,6 +1161,9 @@ output "funcTrimprefix0" {
 output "funcTrimprefix1" {
   value = trimprefix("helloworld", "cat")
 }
+output "funcTrimprefix2" {
+  value = trimprefix("--hello", "-")
+}
 
 
 # Examples for trimspace
@@ -1110,8 +1173,14 @@ output "funcTrimspace" {
 
 
 # Examples for trimsuffix
-output "funcTrimsuffix" {
+output "funcTrimsuffix0" {
   value = trimsuffix("helloworld", "world")
+}
+output "funcTrimsuffix1" {
+  value = trimsuffix("helloworld", "cat")
+}
+output "funcTrimsuffix2" {
+  value = trimsuffix("hello--", "-")
 }
 
 
@@ -1227,3 +1296,5 @@ output "funcYamlencode2" {
 output "funcZipmap" {
   value = zipmap(["a", "b"], [1, 2])
 }
+
+

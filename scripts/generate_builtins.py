@@ -20,6 +20,11 @@ def trimext(file: str) -> str:
 
 # Some functions don't have any examples in the Terraform docs. They _must_ have overrides here else we error on generation.
 overrides = {
+    "abs": [
+        "abs(23)",
+        "abs(0)",
+        "abs(-12.4)",
+    ],
     "base64gzip": "base64gzip(\"test\")",
     "filebase64sha256": "filebase64sha256(\"hello.txt\")",
     "filebase64sha512": "filebase64sha512(\"hello.txt\")",
@@ -42,6 +47,13 @@ overrides = {
                }
               )"""
     ],
+    "templatestring": "templatestring(\"${var.foo}\", { foo = \"bar\" })",
+    "ephemeralasnull": "ephemeralasnull(locals.foo)",
+    "indent": '"  items: ${indent(2, "[\\n  foo,\\n  bar,\\n]\\n")}"',
+    "terraform-applying": "terraform.applying",
+    "terraform-decode_tfvars": "provider::terraform::decode_tfvars(\"example = \\\"Hello!\\\"\")",
+    "terraform-encode_expr": "provider::terraform::encode_expr(locals.foo)",
+    "terraform-encode_tfvars": "provider::terraform::encode_tfvars({example = \"Hello!\"})",
 }
 
 if __name__ == "__main__":
@@ -56,8 +68,8 @@ locals {
     # the current module, but tf2pulumi doesn't support that so we replace it with local.path_module.
     path_module = "some/path"
 
-    # Some of the examples in the docs use `path.root` which _should_ resolve to the file system path of the
-    # root module of the configuration, but tf2pulumi doesn't support that so we replace it with local.path_root.
+    # Instead of using path.root use a local to not conflate testing of
+    # path.root conversion with uses of a path.
     path_root = "root/path"
 
     # The `can` examples make use of a local `foo`.
@@ -106,7 +118,7 @@ resource "simple_resource" "a_resource_with_count" {
                 if m:
                     function_name = m.group(1)
 
-                if "## Examples" in line:
+                if "## Example" in line:
                     in_examples = True
                     continue
 
@@ -151,6 +163,7 @@ resource "simple_resource" "a_resource_with_count" {
                 hcl += "}\n"
 
             hcl += "\n"
+        hcl += "\n"
 
 
         targetFile = os.path.join(os.path.dirname(__file__), "..", "pkg", "convert", "testdata", "programs", "builtin_functions", "main.tf")
