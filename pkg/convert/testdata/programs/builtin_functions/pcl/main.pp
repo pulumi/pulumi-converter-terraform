@@ -79,11 +79,6 @@ output "funcAlltrue1" {
     input = [true, false]
   }).result
 }
-output "funcAlltrue2" {
-  value = invoke("std:index:alltrue", {
-    input = []
-  }).result
-}
 
 
 
@@ -459,7 +454,7 @@ output "funcElement1" {
   value = element(["a", "b", "c"], 3)
 }
 output "funcElement2" {
-  value = element(["a", "b", "c"], length(["a", "b", "c"]) - 1)
+  value = element(["a", "b", "c"], -1)
 }
 
 
@@ -476,6 +471,13 @@ output "funcEndswith1" {
     input  = "hello world"
     suffix = "hello"
   }).result
+}
+
+
+
+# Examples for ephemeralasnull
+output "funcEphemeralasnull" {
+  value = notImplemented("ephemeralasnull(locals.foo)")
 }
 
 
@@ -625,24 +627,33 @@ output "funcFormat2" {
   }).result
 }
 output "funcFormat3" {
-  value = invoke("std:index:format", {
-    input = "%#v"
-    args  = ["hello"]
-  }).result
+  value = "Hello, ${name}!"
 }
 output "funcFormat4" {
   value = invoke("std:index:format", {
-    input = "%#v"
-    args  = [true]
+    input = "%[1]s%[2]s%[1]s%[3]s"
+    args  = ["/", "path", "file.tf"]
   }).result
 }
 output "funcFormat5" {
   value = invoke("std:index:format", {
     input = "%#v"
-    args  = [1]
+    args  = ["hello"]
   }).result
 }
 output "funcFormat6" {
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args  = [true]
+  }).result
+}
+output "funcFormat7" {
+  value = invoke("std:index:format", {
+    input = "%#v"
+    args  = [1]
+  }).result
+}
+output "funcFormat8" {
   value = invoke("std:index:format", {
     input = "%#v"
     args = [{
@@ -650,18 +661,16 @@ output "funcFormat6" {
     }]
   }).result
 }
-output "funcFormat7" {
+output "funcFormat9" {
   value = invoke("std:index:format", {
     input = "%#v"
     args  = [[true]]
   }).result
 }
-output "funcFormat8" {
+output "funcFormat10" {
   value = invoke("std:index:format", {
-    input = "%s-%v-%#v-%d"
-    args = ["hello", true, {
-      a = 1
-    }, 1]
+    input = "%#v"
+    args  = [null]
   }).result
 }
 
@@ -721,6 +730,19 @@ output "funcIndent" {
 # Examples for index
 output "funcIndex" {
   value = notImplemented("index([\"a\",\"b\",\"c\"],\"b\")")
+}
+
+
+
+# Examples for issensitive
+output "funcIssensitive0" {
+  value = notImplemented("issensitive(sensitive(\"secret\"))")
+}
+output "funcIssensitive1" {
+  value = notImplemented("issensitive(\"hello\")")
+}
+output "funcIssensitive2" {
+  value = notImplemented("issensitive(var.my-var-with-sensitive-set-to-true)")
 }
 
 
@@ -1269,9 +1291,19 @@ output "funcSensitive2" {
 
 
 # Examples for setintersection
-output "funcSetintersection" {
+output "funcSetintersection0" {
   value = invoke("std:index:setintersection", {
     input = [["a", "b"], ["b", "c"], ["b", "d"]]
+  }).result
+}
+output "funcSetintersection1" {
+  value = invoke("std:index:setintersection", {
+    input = [[3, 3.3, 4], [4, 3.3, 65, 99], [4, 3.3]]
+  }).result
+}
+output "funcSetintersection2" {
+  value = invoke("std:index:setintersection", {
+    input = [["bob", "jane", 3], ["jane", 3, "ajax", 10], ["3", "jane", 26, "nomad"]]
   }).result
 }
 
@@ -1486,6 +1518,41 @@ output "funcTemplatefile1" {
 
 
 
+# Examples for templatestring
+output "funcTemplatestring" {
+  value = notImplemented("templatestring(\"$${var.foo}\",{foo=\"bar\"})")
+}
+
+
+
+# Examples for terraform-applying
+output "funcTerraform-applying" {
+  value = notImplemented("terraform.applying")
+}
+
+
+
+# Examples for terraform-decode_tfvars
+output "funcTerraform-decodeTfvars" {
+  value = notImplemented("provider::terraform::decode_tfvars(\"example = \\\"Hello!\\\"\")")
+}
+
+
+
+# Examples for terraform-encode_expr
+output "funcTerraform-encodeExpr" {
+  value = notImplemented("provider::terraform::encode_expr(locals.foo)")
+}
+
+
+
+# Examples for terraform-encode_tfvars
+output "funcTerraform-encodeTfvars" {
+  value = notImplemented("provider::terraform::encode_tfvars({example=\"Hello!\"})")
+}
+
+
+
 # Examples for textdecodebase64
 output "funcTextdecodebase64" {
   value = notImplemented("textdecodebase64(\"SABlAGwAbABvACAAVwBvAHIAbABkAA==\",\"UTF-16LE\")")
@@ -1501,10 +1568,16 @@ output "funcTextencodebase64" {
 
 
 # Examples for timeadd
-output "funcTimeadd" {
+output "funcTimeadd0" {
   value = invoke("std:index:timeadd", {
-    duration  = "2017-11-22T00:00:00Z"
+    duration  = "2024-08-16T12:45:05Z"
     timestamp = "10m"
+  }).result
+}
+output "funcTimeadd1" {
+  value = invoke("std:index:timeadd", {
+    duration  = "2024-08-16T12:45:05Z"
+    timestamp = "-10m"
   }).result
 }
 
@@ -1704,6 +1777,12 @@ output "funcTrimprefix1" {
     prefix = "cat"
   }).result
 }
+output "funcTrimprefix2" {
+  value = invoke("std:index:trimprefix", {
+    input  = "--hello"
+    prefix = "-"
+  }).result
+}
 
 
 
@@ -1717,10 +1796,22 @@ output "funcTrimspace" {
 
 
 # Examples for trimsuffix
-output "funcTrimsuffix" {
+output "funcTrimsuffix0" {
   value = invoke("std:index:trimsuffix", {
     input  = "helloworld"
     suffix = "world"
+  }).result
+}
+output "funcTrimsuffix1" {
+  value = invoke("std:index:trimsuffix", {
+    input  = "helloworld"
+    suffix = "cat"
+  }).result
+}
+output "funcTrimsuffix2" {
+  value = invoke("std:index:trimsuffix", {
+    input  = "hello--"
+    suffix = "-"
   }).result
 }
 

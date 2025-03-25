@@ -1516,7 +1516,7 @@ func rewriteTraversal(
 			return root.Name == rootName && maybeFirstAttr != nil && maybeFirstAttr.Name == attrName
 		}
 
-		if matches("terraform", "workspace") ||
+		if matches("terraform", "workspace") || matches("terraform", "applying") ||
 			matches("path", "module") {
 			// If this is one of the builtin terraform inputs we just rewrite it to notImplemented.
 			state.appendDiagnostic(&hcl.Diagnostic{
