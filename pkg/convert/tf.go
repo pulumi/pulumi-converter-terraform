@@ -417,6 +417,8 @@ var tfFunctionRenames = map[string]string{
 	"jsonencode": "toJSON",
 	"length":     "length",
 	"element":    "element",
+	"try":        "try",
+	"can":        "can",
 }
 
 var tfFunctionStd = map[string]struct {
@@ -3715,7 +3717,6 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 var unimplementedFunctionBugs = map[string]string{
 	"formatdate":   "pulumi/pulumi-converter-terraform#196",
 	"templatefile": "pulumi/pulumi-converter-terraform#192",
-	"try":          "pulumi/pulumi-converter-terraform#16",
 	"yamlencode":   "pulumi/pulumi-converter-terraform#190",
 }
 

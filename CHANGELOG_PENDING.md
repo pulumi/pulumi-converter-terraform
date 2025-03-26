@@ -23,6 +23,8 @@
 - Implement `formatlist` through the `pulumi-std` invoke of the same name
 - Fix overlapping dynamic scopes shadowing names, making accessing the shadowed `entry` impossible.
 - Add path.root and path.cwd to the converter to pcl intrinsics projectRoot and cwd respectively.
+- Add path.root and path.cwd to the converter to pcl intrinsics projectRoot and cwd respectively.
+- Implement `try` and `can` now that they are implemented in the pulumi code generator
 
 ### Bug Fixes
 
