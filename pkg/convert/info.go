@@ -75,22 +75,24 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 	if isTerraformProvider(pulumiProvider) && requiredProvider != nil {
 		tfVersion, diags := shim.FindTfPackageVersion(requiredProvider)
 		if diags.HasErrors() {
-			return nil, fmt.Errorf("could not find version for terraform provider %s: %v", tfProvider, diags)
-		}
+			hint = &convert.MapperPackageHint{
+				PluginName: pulumiProvider,
+			}
+		} else {
+			version := semver.MustParse(tfVersion.String())
 
-		version := semver.MustParse(tfVersion.String())
-
-		hint = &convert.MapperPackageHint{
-			PluginName: "terraform-provider",
-			Parameterization: &workspace.Parameterization{
-				Name:    tfProvider,
-				Version: version,
-				Value: []byte(fmt.Sprintf(
-					`{"remote":{"url":"%s","version":"%s"}}`,
-					requiredProvider.Source,
-					tfVersion.String(),
-				)),
-			},
+			hint = &convert.MapperPackageHint{
+				PluginName: "terraform-provider",
+				Parameterization: &workspace.Parameterization{
+					Name:    tfProvider,
+					Version: version,
+					Value: []byte(fmt.Sprintf(
+						`{"remote":{"url":"%s","version":"%s"}}`,
+						requiredProvider.Source,
+						tfVersion.String(),
+					)),
+				},
+			}
 		}
 	} else {
 		// Again, for non-bridged providers, the plugin name we want to find is the *Pulumi universe name* (e.g. "gcp", not
