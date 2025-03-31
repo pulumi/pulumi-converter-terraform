@@ -101,7 +101,6 @@ var pulumiSupportedProviders = []string{
 	"null",
 	"oci",
 	"okta",
-	"onelogin",
 	"openstack",
 	"opsgenie",
 	"pagerduty",
