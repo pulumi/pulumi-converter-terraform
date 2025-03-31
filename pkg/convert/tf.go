@@ -36,8 +36,6 @@ import (
 	"github.com/hashicorp/terraform-svchost/disco"
 	"github.com/opentofu/opentofu/shim"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
-	"github.com/pulumi/pulumi/pkg/v3/codegen/hcl2/syntax"
-	"github.com/pulumi/pulumi/pkg/v3/codegen/pcl"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/tokens"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
@@ -1533,7 +1531,7 @@ func rewriteTraversal(
 			state.diagnostics = append(state.diagnostics, &hcl.Diagnostic{
 				Severity: hcl.DiagWarning,
 				Summary:  "Converting the builtin variable path.cwd with differing behavior",
-				Detail: `The builtin Terraform variable path.cwd is being converted, but in Pulumi cwd will start at the 
+				Detail: `The builtin Terraform variable path.cwd is being converted, but in Pulumi cwd will start at the
 project program directory, not the execution directory`,
 				Subject: &subjectRange,
 				Context: &contextRange,
@@ -3649,66 +3647,6 @@ func diagf(severity hcl.DiagnosticSeverity, subject hcl.Range, f string, args ..
 		Severity: severity,
 		Summary:  message,
 		Subject:  &subject,
-	}
-}
-
-func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
-	return func(args pcl.ComponentProgramBinderArgs) (*pcl.Program, hcl.Diagnostics, error) {
-		var diagnostics hcl.Diagnostics
-		binderDirPath := args.BinderDirPath
-		componentSource := args.ComponentSource
-		nodeRange := args.ComponentNodeRange
-		loader := args.BinderLoader
-		// bind the component here as if it was a new program
-		// this becomes the DirPath for the new binder
-		componentSourceDir := filepath.Join(binderDirPath, componentSource)
-
-		parser := syntax.NewParser()
-		// Load all .pp files in the components' directory
-		files, err := afero.ReadDir(fs, componentSourceDir)
-		if err != nil {
-			diagnostics = diagnostics.Append(errorf(nodeRange, "%s", err.Error()))
-			return nil, diagnostics, nil
-		}
-
-		if len(files) == 0 {
-			diagnostics = diagnostics.Append(errorf(nodeRange, "no .pp files found"))
-			return nil, diagnostics, nil
-		}
-
-		for _, file := range files {
-			if file.IsDir() {
-				continue
-			}
-			fileName := file.Name()
-			path := filepath.Join(componentSourceDir, fileName)
-
-			if filepath.Ext(fileName) == ".pp" {
-				file, err := fs.Open(path)
-				if err != nil {
-					diagnostics = diagnostics.Append(errorf(nodeRange, "%s", err.Error()))
-					return nil, diagnostics, err
-				}
-
-				err = parser.ParseFile(file, fileName)
-				if err != nil {
-					diagnostics = diagnostics.Append(errorf(nodeRange, "%s", err.Error()))
-					return nil, diagnostics, err
-				}
-
-				diags := parser.Diagnostics
-				if diags.HasErrors() {
-					return nil, diagnostics, err
-				}
-			}
-		}
-
-		componentProgram, programDiags, err := pcl.BindProgram(parser.Files,
-			pcl.Loader(loader),
-			pcl.DirPath(componentSourceDir),
-			pcl.ComponentBinder(componentProgramBinderFromAfero(fs)))
-
-		return componentProgram, programDiags, err
 	}
 }
 

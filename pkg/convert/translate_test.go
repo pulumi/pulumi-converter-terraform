@@ -460,3 +460,63 @@ func TestTranslateParameterized(t *testing.T) {
 	require.False(t, diagnostics.HasErrors(), "translate diagnostics should not have errors: %v", diagnostics)
 	require.Equal(t, expectedToSee, seen, "expected to see an appropriate set of provider hints")
 }
+
+func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
+	return func(args pcl.ComponentProgramBinderArgs) (*pcl.Program, hcl.Diagnostics, error) {
+		var diagnostics hcl.Diagnostics
+		binderDirPath := args.BinderDirPath
+		componentSource := args.ComponentSource
+		nodeRange := args.ComponentNodeRange
+		loader := args.BinderLoader
+		// bind the component here as if it was a new program
+		// this becomes the DirPath for the new binder
+		componentSourceDir := filepath.Join(binderDirPath, componentSource)
+
+		parser := syntax.NewParser()
+		// Load all .pp files in the components' directory
+		files, err := afero.ReadDir(fs, componentSourceDir)
+		if err != nil {
+			diagnostics = diagnostics.Append(errorf(nodeRange, "%s", err.Error()))
+			return nil, diagnostics, nil
+		}
+
+		if len(files) == 0 {
+			diagnostics = diagnostics.Append(errorf(nodeRange, "no .pp files found"))
+			return nil, diagnostics, nil
+		}
+
+		for _, file := range files {
+			if file.IsDir() {
+				continue
+			}
+			fileName := file.Name()
+			path := filepath.Join(componentSourceDir, fileName)
+
+			if filepath.Ext(fileName) == ".pp" {
+				file, err := fs.Open(path)
+				if err != nil {
+					diagnostics = diagnostics.Append(errorf(nodeRange, "%s", err.Error()))
+					return nil, diagnostics, err
+				}
+
+				err = parser.ParseFile(file, fileName)
+				if err != nil {
+					diagnostics = diagnostics.Append(errorf(nodeRange, "%s", err.Error()))
+					return nil, diagnostics, err
+				}
+
+				diags := parser.Diagnostics
+				if diags.HasErrors() {
+					return nil, diagnostics, err
+				}
+			}
+		}
+
+		componentProgram, programDiags, err := pcl.BindProgram(parser.Files,
+			pcl.Loader(loader),
+			pcl.DirPath(componentSourceDir),
+			pcl.ComponentBinder(componentProgramBinderFromAfero(fs)))
+
+		return componentProgram, programDiags, err
+	}
+}
