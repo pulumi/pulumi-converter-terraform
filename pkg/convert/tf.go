@@ -1531,8 +1531,8 @@ func rewriteTraversal(
 			state.diagnostics = append(state.diagnostics, &hcl.Diagnostic{
 				Severity: hcl.DiagWarning,
 				Summary:  "Converting the builtin variable path.cwd with differing behavior",
-				Detail: `The builtin Terraform variable path.cwd is being converted, but in Pulumi cwd will start at the
- project program directory, not the execution directory`,
+				Detail: `The builtin Terraform variable path.cwd is being converted, but in Pulumi cwd will start at the ` +
+					"\n" + `project program directory, not the execution directory`,
 				Subject: &subjectRange,
 				Context: &contextRange,
 			})
