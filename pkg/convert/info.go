@@ -67,6 +67,9 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 	}
 
 	var hint *convert.MapperPackageHint
+	mappingMessage := fmt.Sprintf("could not find mapping information for provider %s;"+
+		"try installing a pulumi plugin that supports this terraform provider",
+		tfProvider)
 
 	// If the Pulumi provider name is one that we manage ourselves, we'll use that provider to retrieve information about
 	// mappings from Terraform to Pulumi. If not, then we'll assume that we are going to dynamically bridge a Terraform
@@ -75,6 +78,9 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 	if isTerraformProvider(pulumiProvider) && requiredProvider != nil {
 		tfVersion, diags := shim.FindTfPackageVersion(requiredProvider)
 		if diags.HasErrors() {
+
+			mappingMessage = fmt.Sprintf("could not find Terraform version for package %s; "+
+				"continuing with the assumption that the specified package exists.", tfProvider)
 			hint = &convert.MapperPackageHint{
 				PluginName: pulumiProvider,
 			}
@@ -110,11 +116,7 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 
 	// Might be nil or []
 	if len(mapping) == 0 {
-		return nil, fmt.Errorf(
-			"could not find mapping information for provider %s; "+
-				"try installing a pulumi plugin that supports this terraform provider",
-			tfProvider,
-		)
+		return nil, fmt.Errorf(mappingMessage)
 	}
 
 	var info *tfbridge.MarshallableProviderInfo
