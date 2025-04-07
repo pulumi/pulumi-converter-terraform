@@ -68,7 +68,7 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 	}
 
 	var hint *convert.MapperPackageHint
-	mappingMessage := fmt.Sprintf("could not find mapping information for provider %s;"+
+	mappingMessage := fmt.Sprintf("could not find mapping information for provider %s; "+
 		"try installing a pulumi plugin that supports this terraform provider",
 		tfProvider)
 
