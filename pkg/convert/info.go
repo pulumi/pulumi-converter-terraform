@@ -17,6 +17,7 @@ package convert
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -78,7 +79,6 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 	if isTerraformProvider(pulumiProvider) && requiredProvider != nil {
 		tfVersion, diags := shim.FindTfPackageVersion(requiredProvider)
 		if diags.HasErrors() {
-
 			mappingMessage = fmt.Sprintf("could not find Terraform version for package %s; "+
 				"continuing with the assumption that the specified package exists.", tfProvider)
 			hint = &convert.MapperPackageHint{
@@ -116,7 +116,7 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 
 	// Might be nil or []
 	if len(mapping) == 0 {
-		return nil, fmt.Errorf(mappingMessage)
+		return nil, errors.New(mappingMessage)
 	}
 
 	var info *tfbridge.MarshallableProviderInfo
