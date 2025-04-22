@@ -92,6 +92,7 @@ output "heredoc" {
 This is also a template.
 So we can output the key again ${aKey}
 END
+
 }
 
 output "heredocWithHyphen" {
@@ -99,6 +100,18 @@ output "heredocWithHyphen" {
 This is also a template.
 So we can output the key again ${aKey}
 END
+
+}
+
+output "heredocDoesntLoseNewlines" {
+  value = <<END
+
+This is also a template.
+
+So we can output the key again ${aKey}
+
+END
+
 }
 
 output "forTuple" {

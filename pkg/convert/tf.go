@@ -1334,7 +1334,7 @@ func convertTemplateExpr(state *convertState,
 	} else {
 		tokens = append(tokens, makeToken(hclsyntax.TokenOQuote, "\""))
 	}
-	for partIndex, part := range expr.Parts {
+	for _, part := range expr.Parts {
 		// If it's a literal then we can just write it to the string directly, else we need to wrap it in a
 		// ${} block, or template controls.
 		if lit, ok := part.(*hclsyntax.LiteralValueExpr); ok {
@@ -1352,8 +1352,10 @@ func convertTemplateExpr(state *convertState,
 					if tok.Type == hclsyntax.TokenQuotedLit && isHereDoc {
 						splitStrings := strings.Split(string(tok.Bytes), "\\n")
 						for i, splitString := range splitStrings {
-							strtoksWithNewlines = append(strtoksWithNewlines, makeToken(hclsyntax.TokenStringLit, splitString))
-							if i < len(splitStrings)-1 && partIndex != len(expr.Parts)-1 {
+							if splitString != "" {
+								strtoksWithNewlines = append(strtoksWithNewlines, makeToken(hclsyntax.TokenStringLit, splitString))
+							}
+							if i < len(splitStrings)-1 {
 								// Insert only true newlines.  This is when not the last newline
 								// of the expression unless it is the end of the expression
 								// (which must end in a newline)
@@ -1374,6 +1376,9 @@ func convertTemplateExpr(state *convertState,
 			// A template join is more complex and contains template control
 			// sections, so delegate to the inner expression.
 			tokens = append(tokens, convertTemplateJoinExpr(state, false, scopes, "", forToken)...)
+			if isHereDoc {
+				tokens = append(tokens, makeToken(hclsyntax.TokenStringLit, "\n"))
+			}
 		} else {
 			tokens = append(tokens, makeToken(hclsyntax.TokenTemplateInterp, "${"))
 			tokens = append(tokens, convertExpression(state, false, scopes, "", part)...)
@@ -1381,7 +1386,7 @@ func convertTemplateExpr(state *convertState,
 		}
 	}
 	if isHereDoc {
-		tokens = append(tokens, makeToken(hclsyntax.TokenCHeredoc, "\n"+cDelim))
+		tokens = append(tokens, makeToken(hclsyntax.TokenCHeredoc, cDelim+"\n"))
 	} else {
 		tokens = append(tokens, makeToken(hclsyntax.TokenCQuote, "\""))
 	}

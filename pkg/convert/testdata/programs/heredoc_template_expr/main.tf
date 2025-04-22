@@ -5,4 +5,12 @@ locals {
 ${v}
 %{endfor~}
 EOT
+
+  tuple_cons_heredoc = [
+<<EOT
+oh baby give me
+one more chance
+to show you that I love you
+EOT
+  ]
 }
