@@ -29,3 +29,4 @@
 
 - Fix the order of arguments to `substr`
 - Fix conversion in the presence of dynamically bridged Terraform providers
+- Fix heredoc parsing when inside a typle cons expr
