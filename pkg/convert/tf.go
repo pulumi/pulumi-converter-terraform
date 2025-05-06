@@ -36,6 +36,7 @@ import (
 	"github.com/hashicorp/terraform-svchost/disco"
 	"github.com/opentofu/opentofu/shim"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
+	"github.com/pulumi/pulumi/pkg/v3/codegen"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/tokens"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
@@ -51,6 +52,13 @@ import (
 
 	yaml "gopkg.in/yaml.v3"
 )
+
+const sandboxModuleAnnotation = "@sandbox"
+
+type SandboxModule struct {
+	packageName string
+	moduleCall  *configs.ModuleCall
+}
 
 func changeExtension(path, ext string) string {
 	dir, file := filepath.Split(path)
@@ -878,6 +886,8 @@ type convertState struct {
 	// Names that were changed to avoid overlaps with pcl keywords.
 	renames     pclOverlapRenames
 	typeRenames pclOverlapRenames
+
+	sandboxedModuleNames map[string]string
 }
 
 type pclOverlapRenames struct {
@@ -1205,7 +1215,9 @@ func convertObjectConsExpr(state *convertState, inBlock bool, scopes *scopes,
 				} else {
 					// We either don't know this type, or know it's not a map, so we should try to rename the keys.
 					subQualifiedPath = appendPath(fullyQualifiedPath, *name)
-					*name = scopes.pulumiName(subQualifiedPath)
+					if state.rewriteObjectKeys {
+						*name = scopes.pulumiName(subQualifiedPath)
+					}
 				}
 
 				// If this was a literal string (i.e. not an identifier) then make sure we still quote it.
@@ -1703,10 +1715,34 @@ func rewriteTraversal(
 	return hclwrite.TokensForTraversal(newTraversal)
 }
 
+func isModuleRef(expr *hclsyntax.ScopeTraversalExpr) (string, bool) {
+	root := expr.Traversal.RootName()
+	if root != "module" {
+		return "", false
+	}
+	if attr, ok := expr.Traversal[1].(hcl.TraverseAttr); ok {
+		return attr.Name, true
+	}
+	return "", false
+}
+
 func convertScopeTraversalExpr(
 	state *convertState, inBlock bool,
 	scopes *scopes, fullyQualifiedPath string, expr *hclsyntax.ScopeTraversalExpr,
 ) hclwrite.Tokens {
+	if moduleRef, ok := isModuleRef(expr); ok {
+		if name, ok := state.sandboxedModuleNames[moduleRef]; ok {
+			// sandboxed modules should not rewrite its traversal parts
+			// because the outputs maintain their casing
+			// so we only rewrite the module name
+			// i.e. module.my_vpc.something_else (tf) becomes myVpc.something_else (PCL)
+			var traversal hcl.Traversal
+			newRoot := hcl.TraverseRoot{Name: name}
+			traversal = append(traversal, newRoot)
+			traversal = append(traversal, expr.Traversal[2:]...)
+			return hclwrite.TokensForTraversal(traversal)
+		}
+	}
 	return rewriteTraversal(state, scopes, fullyQualifiedPath, expr.Traversal)
 }
 
@@ -2193,7 +2229,13 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 	for _, name := range names {
 		attr := content.Attributes[name]
 		attrPath := appendPath(fullyQualifiedPath, attr.Name)
-		name := scopes.pulumiName(attrPath)
+
+		var name string
+		if state.rewriteObjectKeys {
+			name = scopes.pulumiName(attrPath)
+		} else {
+			name = attr.Name
+		}
 
 		// We need the leading trivia here, but the trailing trivia will be handled by convertExpression
 		leading, _ := getTrivia(state.sources, getAttributeRange(state.sources, attr.Expr.Range()), true)
@@ -2657,6 +2699,54 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 	}
 }
 
+func convertSandboxModuleCall(
+	state *convertState,
+	scopes *scopes,
+	sandboxedModule *SandboxModule,
+) (hclwrite.Tokens, *hclwrite.Block, hclwrite.Tokens) {
+	// We translate module calls into components
+	moduleCall := sandboxedModule.moduleCall
+	path := "module." + moduleCall.Name
+	pulumiName := scopes.roots[path].Name
+
+	token := fmt.Sprintf("%s:index:Module", sandboxedModule.packageName)
+	labels := []string{pulumiName, token}
+	block := hclwrite.NewBlock("resource", labels)
+	blockBody := block.Body()
+
+	// Does this resource have a count? If so set the "range" attribute
+	if moduleCall.Count != nil {
+		options := blockBody.AppendNewBlock("options", nil)
+		countExpr := convertExpression(state, true, scopes, "", moduleCall.Count)
+		// Set the count_index scope
+		scopes.countIndex = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
+		options.Body().SetAttributeRaw("range", countExpr)
+	}
+
+	if moduleCall.ForEach != nil {
+		options := blockBody.AppendNewBlock("options", nil)
+		forEachExpr := convertExpression(state, true, scopes, "", moduleCall.ForEach)
+		scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
+		scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
+		options.Body().SetAttributeRaw("range", forEachExpr)
+	}
+
+	state.disableRewritingObjectKeys(func() {
+		// sandboxed modules keep their inputs and outputs without rewriting
+		moduleArgs := convertBody(state, scopes, path, moduleCall.Config)
+		for _, arg := range moduleArgs {
+			blockBody.SetAttributeRaw(arg.Name, arg.Value)
+		}
+	})
+
+	// Clear any index we set
+	scopes.countIndex = nil
+	scopes.eachKey = nil
+	scopes.eachValue = nil
+	leading, trailing := getTrivia(state.sources, moduleCall.DeclRange, false)
+	return leading, block, trailing
+}
+
 func convertModuleCall(
 	state *convertState,
 	scopes *scopes,
@@ -2825,6 +2915,7 @@ func translateRemoteModule(
 	destinationDirectory string, // A path in destination to write the translated code to.
 	info ProviderInfoSource,
 	requiredProviders map[string]*configs.RequiredProvider,
+	sandboxedModules map[string]*SandboxModule,
 ) hcl.Diagnostics {
 	fetcher := getmodules.NewPackageFetcher()
 	tempPath, err := os.MkdirTemp("", "pulumi-tf-registry")
@@ -2869,8 +2960,72 @@ func translateRemoteModule(
 		destinationRoot, destinationDirectory,
 		info,
 		requiredProviders,
+		sandboxedModules,
 		/*topLevelModule*/ false,
 	)
+}
+
+func sanboxedAnnotation(trivia string) (string, bool) {
+	lines := strings.Split(trivia, "\n")
+	for _, line := range lines {
+		parts := strings.Split(strings.ReplaceAll(line, "//", ""), " ")
+		partsLength := len(parts)
+		for i, part := range parts {
+			if part == sandboxModuleAnnotation && i < partsLength-1 {
+				packageName := parts[i+1]
+				return packageName, true
+			}
+		}
+	}
+
+	return "", false
+}
+
+func moduleFromRemoteRegistry(moduleCall *configs.ModuleCall) (addrs.ModuleSourceRegistry, bool) {
+	switch source := moduleCall.SourceAddr.(type) {
+	case addrs.ModuleSourceRegistry:
+		return source, true
+	default:
+		return addrs.ModuleSourceRegistry{}, false
+	}
+}
+
+func resolveRemoteRegistryModule(moduleCall *configs.ModuleCall) (addrs.ModuleSourceRegistry, *version.Version, error) {
+	empty := addrs.ModuleSourceRegistry{}
+	source, isRemote := moduleFromRemoteRegistry(moduleCall)
+	if !isRemote {
+		return empty, nil, fmt.Errorf("module source for %s is not from a remote registry", moduleCall.Name)
+	}
+
+	services := disco.NewWithCredentialsSource(nil)
+	reg := registry.NewClient(services, nil)
+	regsrcAddr := regsrc.ModuleFromRegistryPackageAddr(source.Package)
+	resp, err := reg.ModuleVersions(context.TODO(), regsrcAddr)
+	if err != nil {
+		return empty, nil, fmt.Errorf("failed to retrieve available versions for %s: %s", source, err)
+	}
+	modMeta := resp.Modules[0]
+	var latestVersion *version.Version
+	for _, mv := range modMeta.Versions {
+		v, err := version.NewVersion(mv.Version)
+		if err != nil {
+			return empty, nil, fmt.Errorf("failed to parse version %q for %s: %s", mv.Version, source, err)
+		}
+		if v.Prerelease() != "" {
+			continue
+		}
+		if (latestVersion == nil || v.GreaterThan(latestVersion)) && moduleCall.Version.Required.Check(v) {
+			latestVersion = v
+		}
+	}
+
+	if latestVersion == nil {
+		return empty, nil, fmt.Errorf("failed to find version for %s that matched %s",
+			source,
+			moduleCall.Version.Required)
+	}
+
+	return source, latestVersion, nil
 }
 
 func translateModuleSourceCode(
@@ -2881,6 +3036,7 @@ func translateModuleSourceCode(
 	destinationDirectory string, // A path in destination to write the translated code to.
 	info ProviderInfoSource,
 	requiredProviders map[string]*configs.RequiredProvider,
+	sandboxedModules map[string]*SandboxModule,
 	topLevelModule bool,
 ) hcl.Diagnostics {
 	sources, module, moduleDiagnostics := loadConfigDir(sourceRoot, sourceDirectory)
@@ -2897,9 +3053,10 @@ func translateModuleSourceCode(
 	scopes := newScopes()
 
 	state := &convertState{
-		sources:           sources,
-		diagnostics:       hcl.Diagnostics{},
-		rewriteObjectKeys: true,
+		sources:              sources,
+		diagnostics:          hcl.Diagnostics{},
+		rewriteObjectKeys:    true,
+		sandboxedModuleNames: make(map[string]string),
 		renames: pclOverlapRenames{
 			nameToRename: make(map[string]string),
 			renameToName: make(map[string]string),
@@ -3041,17 +3198,41 @@ func translateModuleSourceCode(
 	}
 	for _, item := range items {
 		if item.moduleCall != nil {
+			leadingTrivia, _ := getTrivia(sources, item.moduleCall.DeclRange, false)
+			packageName, sandbox := sanboxedAnnotation(string(leadingTrivia.Bytes()))
 			moduleCall := item.moduleCall
-			scopes.getOrAddPulumiName("module."+moduleCall.Name, "", "Component")
-
-			// First things first, check if this module has been seen before. If it has, we don't need to
-			// translate it again.
+			moduleName := scopes.getOrAddPulumiName("module."+moduleCall.Name, "", "Component")
 			moduleKey := makeModuleKey(moduleCall)
 
-			if _, has := modules[moduleKey]; !has {
+			if !sandbox {
+				// check if other modules have been marked with @sandbox with the same source
+				// in that case, we consider this module as sandboxed too
+				for _, sandboxModule := range sandboxedModules {
+					if sandboxModule.moduleCall.SourceAddr == moduleCall.SourceAddr {
+						sandbox = true
+						packageName = sandboxModule.packageName
+						break
+					}
+				}
+			}
+
+			if source, isRemote := moduleFromRemoteRegistry(moduleCall); isRemote {
+				key := fmt.Sprintf("%s-%s-%s", moduleCall.Name, source.Package.Namespace, source.Package.Name)
+				// if the module is marked with @sandbox, then we translate it anyways
+				if _, seen := sandboxedModules[key]; !seen && sandbox {
+					state.sandboxedModuleNames[moduleCall.Name] = moduleName
+					sandboxedModules[key] = &SandboxModule{
+						packageName: packageName,
+						moduleCall:  moduleCall,
+					}
+				}
+			}
+
+			// check if this module has been seen before. If it has, we don't need to
+			// translate it again.
+			if _, hasBeenSeen := modules[moduleKey]; !hasBeenSeen && !sandbox {
 				// We need the source code for this module. But it might be a reference to a module from the
 				// registry (e.g. "terraform-aws-modules/s3-bucket/aws")
-
 				addr := moduleCall.SourceAddr
 				switch addr := addr.(type) {
 				case addrs.ModuleSourceLocal:
@@ -3095,6 +3276,7 @@ func translateModuleSourceCode(
 						destinationPath,
 						info,
 						requiredProviders,
+						sandboxedModules,
 						/*topLevelModule*/ false,
 					)
 					state.diagnostics = append(state.diagnostics, diags...)
@@ -3128,7 +3310,8 @@ func translateModuleSourceCode(
 						destinationRoot,
 						destinationPath,
 						info,
-						requiredProviders)
+						requiredProviders,
+						sandboxedModules)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
 						return state.diagnostics
@@ -3254,7 +3437,8 @@ func translateModuleSourceCode(
 						destinationRoot,
 						destinationPath,
 						info,
-						requiredProviders)
+						requiredProviders,
+						sandboxedModules)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
 						return state.diagnostics
@@ -3434,6 +3618,32 @@ func translateModuleSourceCode(
 				body.AppendUnstructuredTokens(hclwrite.TokensForIdentifier("\n"))
 			}
 
+			moduleKeys := make([]string, 0, len(sandboxedModules))
+			for key := range sandboxedModules {
+				moduleKeys = append(moduleKeys, key)
+			}
+			slices.Sort(providerBlockNames)
+
+			declaredPackages := codegen.NewStringSet()
+
+			for _, key := range moduleKeys {
+				sandboxModule := sandboxedModules[key]
+				packageName := sandboxModule.packageName
+				if declaredPackages.Has(packageName) {
+					continue
+				}
+				declaredPackages.Add(packageName)
+				source, version, err := resolveRemoteRegistryModule(sandboxModule.moduleCall)
+				if err != nil {
+					state.diagnostics = append(state.diagnostics, errorf(sandboxModule.moduleCall.DeclRange, err.Error()))
+					continue
+				}
+
+				modulePackegeBlock := sandboxedModulePackageBlock(sandboxModule.packageName, source, version.String())
+				body.AppendBlock(modulePackegeBlock)
+				body.AppendUnstructuredTokens(hclwrite.TokensForIdentifier("\n"))
+			}
+
 			// Only write the package block once
 			topLevelModule = false
 		}
@@ -3465,10 +3675,24 @@ func translateModuleSourceCode(
 		}
 		// Next handle any modules
 		if item.moduleCall != nil {
-			leading, block, trailing := convertModuleCall(state, scopes, modules, destinationDirectory, item.moduleCall)
-			body.AppendUnstructuredTokens(leading)
-			body.AppendBlock(block)
-			body.AppendUnstructuredTokens(trailing)
+			if source, isRemote := moduleFromRemoteRegistry(item.moduleCall); isRemote {
+				key := fmt.Sprintf("%s-%s-%s", item.moduleCall.Name, source.Package.Namespace, source.Package.Name)
+				if sandboxedModule, ok := sandboxedModules[key]; ok {
+					_, block, trailing := convertSandboxModuleCall(state, scopes, sandboxedModule)
+					body.AppendBlock(block)
+					body.AppendUnstructuredTokens(trailing)
+				} else {
+					leading, block, trailing := convertModuleCall(state, scopes, modules, destinationDirectory, item.moduleCall)
+					body.AppendUnstructuredTokens(leading)
+					body.AppendBlock(block)
+					body.AppendUnstructuredTokens(trailing)
+				}
+			} else {
+				leading, block, trailing := convertModuleCall(state, scopes, modules, destinationDirectory, item.moduleCall)
+				body.AppendUnstructuredTokens(leading)
+				body.AppendBlock(block)
+				body.AppendUnstructuredTokens(trailing)
+			}
 		}
 		// Finally handle any outputs
 		if item.output != nil {
@@ -3626,6 +3850,30 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 	return block, diags
 }
 
+func sandboxedModulePackageBlock(
+	packageName string,
+	source addrs.ModuleSourceRegistry,
+	version string,
+) *hclwrite.Block {
+	block := hclwrite.NewBlock("package", []string{packageName})
+	body := block.Body()
+	body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-module"))
+	body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.1.3"))
+	paramBlock := hclwrite.NewBlock("parameterization", []string{})
+	body.AppendBlock(paramBlock)
+	paramBlockBody := paramBlock.Body()
+	paramBlockBody.SetAttributeValue("name", cty.StringVal(packageName))
+	paramBlockBody.SetAttributeValue("version", cty.StringVal(version))
+	parameterization, _ := json.Marshal(map[string]string{
+		"module":      source.String(),
+		"version":     version,
+		"packageName": packageName,
+	})
+	paramBlockBody.SetAttributeValue("value",
+		cty.StringVal(base64.StdEncoding.EncodeToString([]byte(parameterization))))
+	return block
+}
+
 func TranslateModule(
 	source afero.Fs, sourceDirectory string,
 	destination afero.Fs, info ProviderInfoSource,
@@ -3638,6 +3886,7 @@ func TranslateModule(
 		"/",
 		info,
 		/*requiredProviders*/ map[string]*configs.RequiredProvider{},
+		/*sanboxedModules*/ map[string]*SandboxModule{},
 		/*topLevelModule*/ true,
 	)
 }
