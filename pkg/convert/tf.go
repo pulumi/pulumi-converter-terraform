@@ -2709,7 +2709,7 @@ func convertSandboxModuleCall(
 	path := "module." + moduleCall.Name
 	pulumiName := scopes.roots[path].Name
 
-	token := fmt.Sprintf("%s:index:Module", sandboxedModule.packageName)
+	token := sandboxedModule.packageName + ":index:Module"
 	labels := []string{pulumiName, token}
 	block := hclwrite.NewBlock("resource", labels)
 	blockBody := block.Body()
@@ -3870,7 +3870,7 @@ func sandboxedModulePackageBlock(
 		"packageName": packageName,
 	})
 	paramBlockBody.SetAttributeValue("value",
-		cty.StringVal(base64.StdEncoding.EncodeToString([]byte(parameterization))))
+		cty.StringVal(base64.StdEncoding.EncodeToString(parameterization)))
 	return block
 }
 
