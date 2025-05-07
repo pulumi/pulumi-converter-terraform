@@ -1,0 +1,69 @@
+{
+  "name": "subnets",
+  "version": "1.0.0",
+  "meta": {
+    "moduleFormat": "(.*)"
+  },
+  "language": {
+    "nodejs": {
+      "respectSchemaVersion": true
+    }
+  },
+  "config": {},
+  "types": {
+    "subnets:index:Networks": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "new_bits": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "provider": {
+    "type": "object"
+  },
+  "resources": {
+    "subnets:index:Module": {
+      "properties": {
+        "base_cidr_block": {
+          "type": "string",
+          "description": "Echoes back the base_cidr_block input variable value, for convenience if passing the result of this module elsewhere as an object."
+        },
+        "network_cidr_blocks": {
+          "type": "string",
+          "description": "A map from network names to allocated address prefixes in CIDR notation."
+        },
+        "networks": {
+          "type": "string",
+          "description": "A list of objects corresponding to each of the objects in the input variable 'networks', each extended with a new attribute 'cidr_block' giving the network's allocated address prefix."
+        }
+      },
+      "type": "object",
+      "inputProperties": {
+        "base_cidr_block": {
+          "type": "string",
+          "description": "A network address prefix in CIDR notation that all of the requested subnetwork prefixes will be allocated within."
+        },
+        "networks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/subnets:index:Networks"
+          },
+          "description": "A list of objects describing requested subnetwork prefixes. new_bits is the number of additional network prefix bits to add, in addition to the existing prefix on base_cidr_block."
+        }
+      },
+      "isComponent": true
+    }
+  },
+  "parameterization": {
+    "baseProvider": {
+      "name": "terraform-module",
+      "version": "0.0.1"
+    },
+    "parameter": "ewogICJtb2R1bGUiOiAiaGFzaGljb3JwL3N1Ym5ldHMvY2lkciIsCiAgInZlcnNpb24iOiAiMS4wLjAiLAogICJwYWNrYWdlTmFtZSI6ICJzdWJuZXRzIgp9"
+  }
+}
