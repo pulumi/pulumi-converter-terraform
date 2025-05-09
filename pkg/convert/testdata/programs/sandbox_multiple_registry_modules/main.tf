@@ -1,4 +1,4 @@
-// @sandbox subnets
+// @pulumi-terraform-module subnets
 module "subnets_cidr" {
   source = "hashicorp/subnets/cidr"
   version = "1.0.0"
@@ -16,7 +16,7 @@ module "subnets_cidr" {
   ]
 }
 
-//@sandbox subnets
+//@pulumi-terraform-module subnets
 module "another_subnets_cidr" {
   source = "hashicorp/subnets/cidr"
   version = "1.0.0"
@@ -27,6 +27,7 @@ module "without_annotation" {
   source = "hashicorp/subnets/cidr"
   version = "1.0.0"
   base_cidr_block = "10.0.0.0/32"
+  count = 10
 }
 
 output "blocks" {

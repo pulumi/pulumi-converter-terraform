@@ -1,4 +1,4 @@
-// @sandbox subnets
+// @pulumi-terraform-module subnets
 module "subnets_cidr" {
   source = "hashicorp/subnets/cidr"
   version = "1.0.0"

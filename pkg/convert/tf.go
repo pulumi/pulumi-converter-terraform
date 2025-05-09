@@ -53,9 +53,9 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
-const sandboxModuleAnnotation = "@sandbox"
+const pulumiTerraformModuleAnnotation = "@pulumi-terraform-module"
 
-type SandboxModule struct {
+type PulumiTerraformModule struct {
 	packageName string
 	moduleCall  *configs.ModuleCall
 }
@@ -2699,17 +2699,17 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 	}
 }
 
-func convertSandboxModuleCall(
+func convertPulumiTerraformModuleCall(
 	state *convertState,
 	scopes *scopes,
-	sandboxedModule *SandboxModule,
+	pulumiTerraformModule *PulumiTerraformModule,
 ) (hclwrite.Tokens, *hclwrite.Block, hclwrite.Tokens) {
 	// We translate module calls into components
-	moduleCall := sandboxedModule.moduleCall
+	moduleCall := pulumiTerraformModule.moduleCall
 	path := "module." + moduleCall.Name
 	pulumiName := scopes.roots[path].Name
 
-	token := sandboxedModule.packageName + ":index:Module"
+	token := pulumiTerraformModule.packageName + ":index:Module"
 	labels := []string{pulumiName, token}
 	block := hclwrite.NewBlock("resource", labels)
 	blockBody := block.Body()
@@ -2915,7 +2915,7 @@ func translateRemoteModule(
 	destinationDirectory string, // A path in destination to write the translated code to.
 	info ProviderInfoSource,
 	requiredProviders map[string]*configs.RequiredProvider,
-	sandboxedModules map[string]*SandboxModule,
+	sandboxedModules map[string]*PulumiTerraformModule,
 ) hcl.Diagnostics {
 	fetcher := getmodules.NewPackageFetcher()
 	tempPath, err := os.MkdirTemp("", "pulumi-tf-registry")
@@ -2965,13 +2965,13 @@ func translateRemoteModule(
 	)
 }
 
-func sanboxedAnnotation(trivia string) (string, bool) {
+func findPulumiTerraformModuleAnnotation(trivia string) (string, bool) {
 	lines := strings.Split(trivia, "\n")
 	for _, line := range lines {
 		parts := strings.Split(strings.ReplaceAll(line, "//", ""), " ")
 		partsLength := len(parts)
 		for i, part := range parts {
-			if part == sandboxModuleAnnotation && i < partsLength-1 {
+			if part == pulumiTerraformModuleAnnotation && i < partsLength-1 {
 				packageName := parts[i+1]
 				return packageName, true
 			}
@@ -2990,6 +2990,9 @@ func moduleFromRemoteRegistry(moduleCall *configs.ModuleCall) (addrs.ModuleSourc
 	}
 }
 
+// resolveRemoteRegistryModule resolves the module source and its concrete version from the remote registry based on the module call.
+// TODO: this duplicates logic from pulumi-terraform-module provider and we could probably delegate the work to it.
+// Possibly using `pulumi package get-schema terraform-module <source>` and extracting the version from the resulting schema
 func resolveRemoteRegistryModule(moduleCall *configs.ModuleCall) (addrs.ModuleSourceRegistry, *version.Version, error) {
 	empty := addrs.ModuleSourceRegistry{}
 	source, isRemote := moduleFromRemoteRegistry(moduleCall)
@@ -3036,7 +3039,7 @@ func translateModuleSourceCode(
 	destinationDirectory string, // A path in destination to write the translated code to.
 	info ProviderInfoSource,
 	requiredProviders map[string]*configs.RequiredProvider,
-	sandboxedModules map[string]*SandboxModule,
+	sandboxedModules map[string]*PulumiTerraformModule,
 	topLevelModule bool,
 ) hcl.Diagnostics {
 	sources, module, moduleDiagnostics := loadConfigDir(sourceRoot, sourceDirectory)
@@ -3199,17 +3202,17 @@ func translateModuleSourceCode(
 	for _, item := range items {
 		if item.moduleCall != nil {
 			leadingTrivia, _ := getTrivia(sources, item.moduleCall.DeclRange, false)
-			packageName, sandbox := sanboxedAnnotation(string(leadingTrivia.Bytes()))
+			packageName, wrapUsingTerraformModule := findPulumiTerraformModuleAnnotation(string(leadingTrivia.Bytes()))
 			moduleCall := item.moduleCall
 			moduleName := scopes.getOrAddPulumiName("module."+moduleCall.Name, "", "Component")
 			moduleKey := makeModuleKey(moduleCall)
 
-			if !sandbox {
+			if !wrapUsingTerraformModule {
 				// check if other modules have been marked with @sandbox with the same source
 				// in that case, we consider this module as sandboxed too
 				for _, sandboxModule := range sandboxedModules {
 					if sandboxModule.moduleCall.SourceAddr == moduleCall.SourceAddr {
-						sandbox = true
+						wrapUsingTerraformModule = true
 						packageName = sandboxModule.packageName
 						break
 					}
@@ -3219,18 +3222,18 @@ func translateModuleSourceCode(
 			if source, isRemote := moduleFromRemoteRegistry(moduleCall); isRemote {
 				key := fmt.Sprintf("%s-%s-%s", moduleCall.Name, source.Package.Namespace, source.Package.Name)
 				// if the module is marked with @sandbox, then we translate it anyways
-				if _, seen := sandboxedModules[key]; !seen && sandbox {
+				if _, seen := sandboxedModules[key]; !seen && wrapUsingTerraformModule {
 					state.sandboxedModuleNames[moduleCall.Name] = moduleName
-					sandboxedModules[key] = &SandboxModule{
+					sandboxedModules[key] = &PulumiTerraformModule{
 						packageName: packageName,
 						moduleCall:  moduleCall,
 					}
 				}
 			}
 
-			// check if this module has been seen before. If it has, we don't need to
-			// translate it again.
-			if _, hasBeenSeen := modules[moduleKey]; !hasBeenSeen && !sandbox {
+			// check if this module has been seen before and it shouldn't be wrapped.
+			// If it has, we don't need to translate it again.
+			if _, hasBeenSeen := modules[moduleKey]; !hasBeenSeen && !wrapUsingTerraformModule {
 				// We need the source code for this module. But it might be a reference to a module from the
 				// registry (e.g. "terraform-aws-modules/s3-bucket/aws")
 				addr := moduleCall.SourceAddr
@@ -3678,7 +3681,7 @@ func translateModuleSourceCode(
 			if source, isRemote := moduleFromRemoteRegistry(item.moduleCall); isRemote {
 				key := fmt.Sprintf("%s-%s-%s", item.moduleCall.Name, source.Package.Namespace, source.Package.Name)
 				if sandboxedModule, ok := sandboxedModules[key]; ok {
-					_, block, trailing := convertSandboxModuleCall(state, scopes, sandboxedModule)
+					_, block, trailing := convertPulumiTerraformModuleCall(state, scopes, sandboxedModule)
 					body.AppendBlock(block)
 					body.AppendUnstructuredTokens(trailing)
 				} else {
@@ -3886,7 +3889,7 @@ func TranslateModule(
 		"/",
 		info,
 		/*requiredProviders*/ map[string]*configs.RequiredProvider{},
-		/*sanboxedModules*/ map[string]*SandboxModule{},
+		/*sanboxedModules*/ map[string]*PulumiTerraformModule{},
 		/*topLevelModule*/ true,
 	)
 }

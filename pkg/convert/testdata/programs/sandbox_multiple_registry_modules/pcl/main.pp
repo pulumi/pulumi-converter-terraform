@@ -22,6 +22,9 @@ resource "anotherSubnetsCidr" "subnets:index:Module" {
   base_cidr_block = "10.0.0.0/16"
 }
 resource "withoutAnnotation" "subnets:index:Module" {
+  options {
+    range = 10
+  }
   base_cidr_block = "10.0.0.0/32"
 }
 
