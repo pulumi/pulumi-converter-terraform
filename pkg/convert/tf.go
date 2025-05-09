@@ -2990,9 +2990,12 @@ func moduleFromRemoteRegistry(moduleCall *configs.ModuleCall) (addrs.ModuleSourc
 	}
 }
 
-// resolveRemoteRegistryModule resolves the module source and its concrete version from the remote registry based on the module call.
+// resolveRemoteRegistryModule resolves the module source and its concrete version from the remote registry
+// based on the module call.
+//
 // TODO: this duplicates logic from pulumi-terraform-module provider and we could probably delegate the work to it.
-// Possibly using `pulumi package get-schema terraform-module <source>` and extracting the version from the resulting schema
+// Possibly using `pulumi package get-schema terraform-module <source>` and
+// extracting the version from the resulting schema
 func resolveRemoteRegistryModule(moduleCall *configs.ModuleCall) (addrs.ModuleSourceRegistry, *version.Version, error) {
 	empty := addrs.ModuleSourceRegistry{}
 	source, isRemote := moduleFromRemoteRegistry(moduleCall)
