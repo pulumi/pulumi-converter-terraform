@@ -79,6 +79,10 @@ func (l *testLoader) LoadPackage(pkg string, version *semver.Version) (*schema.P
 }
 
 func (l *testLoader) LoadPackageV2(ctx context.Context, descriptor *schema.PackageDescriptor) (*schema.Package, error) {
+	if descriptor.Parameterization != nil {
+		packageName := descriptor.Parameterization.Name
+		return l.LoadPackage(packageName, &descriptor.Parameterization.Version)
+	}
 	return l.LoadPackage(descriptor.Name, descriptor.Version)
 }
 
