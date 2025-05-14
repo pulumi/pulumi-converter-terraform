@@ -67,7 +67,7 @@ func (l *testLoader) LoadPackage(pkg string, version *semver.Version) (*schema.P
 		return nil, err
 	}
 
-	schemaPackage, diags, err := schema.BindSpec(spec, l)
+	schemaPackage, diags, err := schema.BindSpec(spec, l, schema.ValidationOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ func TestTranslate(t *testing.T) {
 			pclFs := afero.NewBasePathFs(osFs, pclPath)
 
 			providerInfoSource := NewMapperProviderInfoSource(mapper)
-			diagnostics := TranslateModule(osFs, hclPath, pclFs, providerInfoSource)
+			diagnostics := TranslateModule(osFs, hclPath, pclFs, providerInfoSource, pclPath)
 
 			// If PULUMI_ACCEPT is set then clear the PCL folder and copy the generated files out. Note we
 			// copy these out even if this returned errors, this makes it easy in the local dev loop to see
@@ -458,7 +458,7 @@ func TestTranslateParameterized(t *testing.T) {
 	}
 
 	// Act.
-	diagnostics := TranslateModule(osFs, testPath, pclFs, providerInfoSource)
+	diagnostics := TranslateModule(osFs, testPath, pclFs, providerInfoSource, "/")
 
 	// Assert.
 	require.False(t, diagnostics.HasErrors(), "translate diagnostics should not have errors: %v", diagnostics)

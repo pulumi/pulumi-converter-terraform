@@ -120,7 +120,7 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 			}
 
 			dst := afero.NewMemMapFs()
-			diags := tfconvert.TranslateModule(src, "/", dst, providerInfoSource)
+			diags := tfconvert.TranslateModule(src, "/", dst, providerInfoSource, req.GeneratedProjectDirectory)
 
 			pcl, err := afero.ReadFile(dst, "/"+safename+".pp")
 			if err != nil && !os.IsNotExist(err) {
@@ -163,9 +163,14 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 
 	// Normal path, just doing a plain module translation
 	fs := afero.NewOsFs()
-	dst := afero.NewBasePathFs(fs, req.TargetDirectory)
 
-	diags := tfconvert.TranslateModule(fs, req.SourceDirectory, dst, providerInfoSource)
+	diags := tfconvert.TranslateModule(
+		fs,
+		req.SourceDirectory,
+		afero.NewBasePathFs(fs, req.TargetDirectory),
+		providerInfoSource,
+		req.GeneratedProjectDirectory,
+	)
 	return &plugin.ConvertProgramResponse{
 		Diagnostics: diags,
 	}, nil
