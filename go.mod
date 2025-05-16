@@ -13,9 +13,9 @@ require (
 	github.com/hashicorp/hcl/v2 v2.23.0
 	github.com/hashicorp/terraform-svchost v0.1.1
 	github.com/opentofu/opentofu/shim v0.0.0-00010101000000-000000000000
-	github.com/pulumi/pulumi-terraform-bridge/v3 v3.108.1-0.20250513182725-c16e1ab80d29
-	github.com/pulumi/pulumi/pkg/v3 v3.169.1-0.20250513221220-636b9e4e35e3
-	github.com/pulumi/pulumi/sdk/v3 v3.169.1-0.20250513221220-636b9e4e35e3
+	github.com/pulumi/pulumi-terraform-bridge/v3 v3.108.1-0.20250515235204-ad62d4be0b93
+	github.com/pulumi/pulumi/pkg/v3 v3.170.0
+	github.com/pulumi/pulumi/sdk/v3 v3.170.0
 	github.com/pulumi/terraform v0.12.1-0.20230322133416-a268cd0892c9
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/pflag v1.0.6
@@ -142,7 +142,7 @@ require (
 	github.com/pulumi/esc v0.13.0 // indirect
 	github.com/pulumi/inflector v0.1.1 // indirect
 	github.com/pulumi/pulumi-java/pkg v1.11.0 // indirect
-	github.com/pulumi/pulumi-yaml v1.19.1-0.20250512143948-0f183fdf8cab // indirect
+	github.com/pulumi/pulumi-yaml v1.19.1-0.20250515165432-2144799846ab // indirect
 	github.com/pulumi/schema-tools v0.1.2 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect

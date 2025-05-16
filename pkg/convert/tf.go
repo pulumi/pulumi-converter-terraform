@@ -3677,7 +3677,8 @@ func translateModuleSourceCode(
 				if !sandboxModule.local {
 					source, version, err := resolveRemoteRegistryModule(sandboxModule.moduleCall)
 					if err != nil {
-						state.diagnostics = append(state.diagnostics, errorf(sandboxModule.moduleCall.DeclRange, err.Error()))
+						state.diagnostics = append(state.diagnostics,
+							errorf(sandboxModule.moduleCall.DeclRange, "resolving remote module: %s", err.Error()))
 						continue
 					}
 
@@ -3918,7 +3919,7 @@ func remotePulumiTerraformModulePackageBlock(
 	block := hclwrite.NewBlock("package", []string{packageName})
 	body := block.Body()
 	body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-module"))
-	body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.1.3"))
+	body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.1.4"))
 	paramBlock := hclwrite.NewBlock("parameterization", []string{})
 	appendComment(body, "encoded parameterization values:")
 	appendComment(body, fmt.Sprintf("module: %s", source.String()))
@@ -3955,7 +3956,7 @@ func localPulumiTerraformModulePackageBlock(
 	block := hclwrite.NewBlock("package", []string{packageName})
 	body := block.Body()
 	body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-module"))
-	body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.1.3"))
+	body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.1.4"))
 	paramBlock := hclwrite.NewBlock("parameterization", []string{})
 
 	// hardcoded version to align with the version in pulumi-terraform-module

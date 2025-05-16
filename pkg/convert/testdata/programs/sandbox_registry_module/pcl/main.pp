@@ -1,6 +1,10 @@
 package "subnets" {
   baseProviderName    = "terraform-module"
-  baseProviderVersion = "0.1.3"
+  baseProviderVersion = "0.1.4"
+  // encoded parameterization values:
+  // module: registry.terraform.io/hashicorp/subnets/cidr
+  // version: 1.0.0
+  // packageName: subnets
   parameterization {
     name    = "subnets"
     version = "1.0.0"

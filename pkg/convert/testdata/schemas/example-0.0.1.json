@@ -1,0 +1,39 @@
+{
+    "name": "example",
+    "version": "0.0.1",
+    "meta": {
+      "moduleFormat": "(.*)"
+    },
+    "language": {
+      "nodejs": {
+        "respectSchemaVersion": true
+      }
+    },
+    "config": {},
+    "provider": {
+      "type": "object"
+    },
+    "resources": {
+      "example:index:Module": {
+        "inputProperties": {
+            "name": {
+              "type": "string"
+            }
+        },
+        "properties": {
+            "name": {
+              "type": "string"
+            }
+        },
+        "isComponent": true
+      }
+    },
+    "parameterization": {
+      "baseProvider": {
+        "name": "terraform-module",
+        "version": "0.1.4"
+      },
+      "parameter": "ewogICJtb2R1bGUiOiAiaGFzaGljb3JwL3N1Ym5ldHMvY2lkciIsCiAgInZlcnNpb24iOiAiMS4wLjAiLAogICJwYWNrYWdlTmFtZSI6ICJzdWJuZXRzIgp9"
+    }
+  }
+  
