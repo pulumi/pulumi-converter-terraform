@@ -56,8 +56,12 @@ import (
 const pulumiTerraformModuleAnnotation = "@pulumi-terraform-module"
 
 type PulumiTerraformModule struct {
-	packageName string
-	moduleCall  *configs.ModuleCall
+	packageName     string
+	moduleCall      *configs.ModuleCall
+	local           bool
+	absolutePath    string
+	targetDirectory string
+	copyModule      bool
 }
 
 func changeExtension(path, ext string) string {
@@ -2916,6 +2920,7 @@ func translateRemoteModule(
 	info ProviderInfoSource,
 	requiredProviders map[string]*configs.RequiredProvider,
 	sandboxedModules map[string]*PulumiTerraformModule,
+	generatedProjectDirectory string,
 ) hcl.Diagnostics {
 	fetcher := getmodules.NewPackageFetcher()
 	tempPath, err := os.MkdirTemp("", "pulumi-tf-registry")
@@ -2962,6 +2967,7 @@ func translateRemoteModule(
 		requiredProviders,
 		sandboxedModules,
 		/*topLevelModule*/ false,
+		generatedProjectDirectory,
 	)
 }
 
@@ -2987,6 +2993,15 @@ func moduleFromRemoteRegistry(moduleCall *configs.ModuleCall) (addrs.ModuleSourc
 		return source, true
 	default:
 		return addrs.ModuleSourceRegistry{}, false
+	}
+}
+
+func moduleFromLocalFileSystem(moduleCall *configs.ModuleCall) (addrs.ModuleSourceLocal, bool) {
+	switch source := moduleCall.SourceAddr.(type) {
+	case addrs.ModuleSourceLocal:
+		return source, true
+	default:
+		return "", false
 	}
 }
 
@@ -3044,6 +3059,7 @@ func translateModuleSourceCode(
 	requiredProviders map[string]*configs.RequiredProvider,
 	sandboxedModules map[string]*PulumiTerraformModule,
 	topLevelModule bool,
+	generatedProjectDirectory string,
 ) hcl.Diagnostics {
 	sources, module, moduleDiagnostics := loadConfigDir(sourceRoot, sourceDirectory)
 	if moduleDiagnostics.HasErrors() {
@@ -3224,12 +3240,26 @@ func translateModuleSourceCode(
 
 			if source, isRemote := moduleFromRemoteRegistry(moduleCall); isRemote {
 				key := fmt.Sprintf("%s-%s-%s", moduleCall.Name, source.Package.Namespace, source.Package.Name)
-				// if the module is marked with @sandbox, then we translate it anyways
 				if _, seen := sandboxedModules[key]; !seen && wrapUsingTerraformModule {
 					state.sandboxedModuleNames[moduleCall.Name] = moduleName
 					sandboxedModules[key] = &PulumiTerraformModule{
 						packageName: packageName,
 						moduleCall:  moduleCall,
+					}
+				}
+			}
+
+			if source, isLocal := moduleFromLocalFileSystem(moduleCall); isLocal {
+				key := filepath.Clean(filepath.Join(sourceDirectory, string(source)))
+				if _, seen := sandboxedModules[key]; !seen && wrapUsingTerraformModule {
+					state.sandboxedModuleNames[moduleCall.Name] = moduleName
+					sandboxedModules[key] = &PulumiTerraformModule{
+						packageName:     packageName,
+						moduleCall:      moduleCall,
+						local:           true,
+						absolutePath:    key,
+						targetDirectory: generatedProjectDirectory,
+						copyModule:      false,
 					}
 				}
 			}
@@ -3284,6 +3314,7 @@ func translateModuleSourceCode(
 						requiredProviders,
 						sandboxedModules,
 						/*topLevelModule*/ false,
+						generatedProjectDirectory,
 					)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
@@ -3317,7 +3348,9 @@ func translateModuleSourceCode(
 						destinationPath,
 						info,
 						requiredProviders,
-						sandboxedModules)
+						sandboxedModules,
+						generatedProjectDirectory,
+					)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
 						return state.diagnostics
@@ -3444,7 +3477,9 @@ func translateModuleSourceCode(
 						destinationPath,
 						info,
 						requiredProviders,
-						sandboxedModules)
+						sandboxedModules,
+						generatedProjectDirectory,
+					)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
 						return state.diagnostics
@@ -3639,15 +3674,24 @@ func translateModuleSourceCode(
 					continue
 				}
 				declaredPackages.Add(packageName)
-				source, version, err := resolveRemoteRegistryModule(sandboxModule.moduleCall)
-				if err != nil {
-					state.diagnostics = append(state.diagnostics, errorf(sandboxModule.moduleCall.DeclRange, err.Error()))
-					continue
-				}
+				if !sandboxModule.local {
+					source, version, err := resolveRemoteRegistryModule(sandboxModule.moduleCall)
+					if err != nil {
+						state.diagnostics = append(state.diagnostics,
+							errorf(sandboxModule.moduleCall.DeclRange, "resolving remote module: %s", err.Error()))
+						continue
+					}
 
-				modulePackegeBlock := sandboxedModulePackageBlock(sandboxModule.packageName, source, version.String())
-				body.AppendBlock(modulePackegeBlock)
-				body.AppendUnstructuredTokens(hclwrite.TokensForIdentifier("\n"))
+					modulePackegeBlock := remotePulumiTerraformModulePackageBlock(sandboxModule.packageName, source, version.String())
+					body.AppendBlock(modulePackegeBlock)
+					body.AppendUnstructuredTokens(hclwrite.TokensForIdentifier("\n"))
+				} else {
+					relativePath, err := filepath.Rel(sandboxModule.targetDirectory, sandboxModule.absolutePath)
+					contract.AssertNoErrorf(err, "failed to get relative path for %s", sandboxModule.absolutePath)
+					modulePackageBlock := localPulumiTerraformModulePackageBlock(sandboxModule.packageName, relativePath)
+					body.AppendBlock(modulePackageBlock)
+					body.AppendUnstructuredTokens(hclwrite.TokensForIdentifier("\n"))
+				}
 			}
 
 			// Only write the package block once
@@ -3683,6 +3727,18 @@ func translateModuleSourceCode(
 		if item.moduleCall != nil {
 			if source, isRemote := moduleFromRemoteRegistry(item.moduleCall); isRemote {
 				key := fmt.Sprintf("%s-%s-%s", item.moduleCall.Name, source.Package.Namespace, source.Package.Name)
+				if sandboxedModule, ok := sandboxedModules[key]; ok {
+					_, block, trailing := convertPulumiTerraformModuleCall(state, scopes, sandboxedModule)
+					body.AppendBlock(block)
+					body.AppendUnstructuredTokens(trailing)
+				} else {
+					leading, block, trailing := convertModuleCall(state, scopes, modules, destinationDirectory, item.moduleCall)
+					body.AppendUnstructuredTokens(leading)
+					body.AppendBlock(block)
+					body.AppendUnstructuredTokens(trailing)
+				}
+			} else if source, isLocal := moduleFromLocalFileSystem(item.moduleCall); isLocal {
+				key := filepath.Clean(filepath.Join(sourceDirectory, string(source)))
 				if sandboxedModule, ok := sandboxedModules[key]; ok {
 					_, block, trailing := convertPulumiTerraformModuleCall(state, scopes, sandboxedModule)
 					body.AppendBlock(block)
@@ -3856,7 +3912,7 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 	return block, diags
 }
 
-func sandboxedModulePackageBlock(
+func remotePulumiTerraformModulePackageBlock(
 	packageName string,
 	source addrs.ModuleSourceRegistry,
 	version string,
@@ -3864,12 +3920,16 @@ func sandboxedModulePackageBlock(
 	block := hclwrite.NewBlock("package", []string{packageName})
 	body := block.Body()
 	body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-module"))
-	body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.1.3"))
+	body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.1.4"))
 	paramBlock := hclwrite.NewBlock("parameterization", []string{})
 	body.AppendBlock(paramBlock)
 	paramBlockBody := paramBlock.Body()
 	paramBlockBody.SetAttributeValue("name", cty.StringVal(packageName))
 	paramBlockBody.SetAttributeValue("version", cty.StringVal(version))
+	appendComment(paramBlockBody, "encoded parameterization values:")
+	appendComment(paramBlockBody, "module: "+source.String())
+	appendComment(paramBlockBody, "version: "+version)
+	appendComment(paramBlockBody, "packageName: "+packageName)
 	parameterization, _ := json.Marshal(map[string]string{
 		"module":      source.String(),
 		"version":     version,
@@ -3880,9 +3940,51 @@ func sandboxedModulePackageBlock(
 	return block
 }
 
+func appendComment(body *hclwrite.Body, comment string) {
+	line := fmt.Sprintf("// %s\n", comment)
+	body.AppendUnstructuredTokens(hclwrite.Tokens{
+		{
+			Type:  hclsyntax.TokenIdent,
+			Bytes: []byte(line),
+		},
+	})
+}
+
+func localPulumiTerraformModulePackageBlock(
+	packageName string,
+	localPath string,
+) *hclwrite.Block {
+	block := hclwrite.NewBlock("package", []string{packageName})
+	body := block.Body()
+	body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-module"))
+	body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.1.4"))
+	paramBlock := hclwrite.NewBlock("parameterization", []string{})
+
+	// hardcoded version to align with the version in pulumi-terraform-module
+	// for local modules
+	packageVersion := "0.0.1"
+	body.AppendBlock(paramBlock)
+	paramBlockBody := paramBlock.Body()
+	paramBlockBody.SetAttributeValue("name", cty.StringVal(packageName))
+	paramBlockBody.SetAttributeValue("version", cty.StringVal(packageVersion))
+	parameterization, _ := json.Marshal(map[string]string{
+		"module":      localPath,
+		"packageName": packageName,
+	})
+	appendComment(paramBlockBody, "encoded parameterization values:")
+	appendComment(paramBlockBody, "module: "+localPath)
+	appendComment(paramBlockBody, "packageName: "+packageName)
+	paramBlockBody.SetAttributeValue("value",
+		cty.StringVal(base64.StdEncoding.EncodeToString(parameterization)))
+
+	return block
+}
+
 func TranslateModule(
 	source afero.Fs, sourceDirectory string,
-	destination afero.Fs, info ProviderInfoSource,
+	destination afero.Fs,
+	info ProviderInfoSource,
+	generatedProjectDirectory string,
 ) hcl.Diagnostics {
 	modules := make(map[moduleKey]string)
 	return translateModuleSourceCode(modules,
@@ -3894,6 +3996,7 @@ func TranslateModule(
 		/*requiredProviders*/ map[string]*configs.RequiredProvider{},
 		/*sanboxedModules*/ map[string]*PulumiTerraformModule{},
 		/*topLevelModule*/ true,
+		generatedProjectDirectory,
 	)
 }
 

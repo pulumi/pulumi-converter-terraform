@@ -88,6 +88,9 @@
       "stringConfig": {
         "type": "string"
       }
+    },
+    "methods": {
+      "terraformConfig": "pulumi:providers:configured/terraformConfig"
     }
   },
   "resources": {
@@ -167,6 +170,35 @@
           "result",
           "id"
         ]
+      }
+    },
+    "pulumi:providers:configured/terraformConfig": {
+      "description": "This function returns a Terraform config object with terraform-namecased keys,to be used with the Terraform Module Provider.",
+      "inputs": {
+        "properties": {
+          "__self__": {
+            "type": "ref",
+            "$ref": "#/resources/pulumi:providers:configured"
+          }
+        },
+        "type": "pulumi:providers:configured/terraformConfig",
+        "required": [
+          "__self__"
+        ]
+      },
+      "outputs": {
+        "properties": {
+          "result": {
+            "additionalProperties": {
+              "$ref": "pulumi.json#/Any"
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "type": "object"
       }
     }
   }
