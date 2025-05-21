@@ -3686,7 +3686,8 @@ func translateModuleSourceCode(
 					body.AppendBlock(modulePackegeBlock)
 					body.AppendUnstructuredTokens(hclwrite.TokensForIdentifier("\n"))
 				} else {
-					relativePath, _ := filepath.Rel(sandboxModule.targetDirectory, sandboxModule.absolutePath)
+					relativePath, err := filepath.Rel(sandboxModule.targetDirectory, sandboxModule.absolutePath)
+					contract.AssertNoErrorf(err, "failed to get relative path for %s", sandboxModule.absolutePath)
 					modulePackageBlock := localPulumiTerraformModulePackageBlock(sandboxModule.packageName, relativePath)
 					body.AppendBlock(modulePackageBlock)
 					body.AppendUnstructuredTokens(hclwrite.TokensForIdentifier("\n"))
