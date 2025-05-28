@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+## 1.2.1
+
+- Support converting remote and local modules to resources parameterized by
+  [terraform-module](https://github.com/pulumi/pulumi-terraform-module) provider. To use this feature, annotate the
+  sources with a special comment: `// @pulumi-terraform-module <pulumi-package-name>`
+
+  For example: `// @pulumi-terraform-module vpc`
+
 ## 1.2.0
 
 ### Improvements
