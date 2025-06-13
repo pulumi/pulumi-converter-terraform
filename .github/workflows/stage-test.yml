@@ -51,10 +51,18 @@ jobs:
           # Optional: pass GITHUB_TOKEN to avoid rate limiting.
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Find pulumi version
+        id: pulumi_version
+        shell: bash
+        run: |
+          GO_MODULE_VERSION=$(go list -m -f '{{.Version}}' github.com/pulumi/pulumi/pkg/v3)
+          GO_VERSION=$(echo "$GO_MODULE_VERSION" | sed 's/^v//')
+          echo "pulumi_version=$GO_VERSION"
+          echo "pulumi_version=$GO_VERSION" >> $GITHUB_OUTPUT
       - name: Install pulumi
-        uses: pulumi/actions@v4
+        uses: pulumi/actions@v5
         with:
-          pulumi-version: ">=3.78.1"
+          pulumi-version: ${{ steps.pulumi_version.outputs.pulumi_version }}
 
       # Pre-install some needed plugins
       - name: Install pulumi plugins
