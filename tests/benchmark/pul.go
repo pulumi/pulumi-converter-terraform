@@ -28,8 +28,7 @@ func runClaudeConvert(srcDir string, outDir string) error {
 		return err
 	}
 
-	stdout, err = run(outDir, "npm", "install")
-	fmt.Printf("Npm install stdout: %s\n", stdout)
+	_, err = run(outDir, "pulumi", "install")
 	return err
 }
 
