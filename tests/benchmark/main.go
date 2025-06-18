@@ -32,6 +32,8 @@ func formatResults(results map[string]*benchmarkResult) string {
 func main() {
 	tfResults := runTofuBenchmarks(testCases)
 	fmt.Printf("tfResults: %s", formatResults(tfResults))
-	pulumiResults := runPulumiBenchmarks(testCases)
+	pulumiResults := runPulumiBenchmarks(testCases, runPulumiConvert)
 	fmt.Printf("pulumiResults: %s", formatResults(pulumiResults))
+	claudeResults := runPulumiBenchmarks(testCases, runClaudeConvert)
+	fmt.Printf("claudeResults: %s", formatResults(claudeResults))
 }
