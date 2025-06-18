@@ -45,8 +45,6 @@ func runPulumiPlan(dir string) error {
 }
 
 func runPulumiApply(dir string) (map[string]any, error) {
-	defer runPulumi(dir, "stack", "rm", "--force", "--stack", "test", "--yes")
-	defer runPulumi(dir, "destroy", "--yes", "--stack", "test")
 	_, err := runPulumi(dir, "up", "--yes", "--stack", "test")
 	if err != nil {
 		return nil, err
@@ -66,6 +64,20 @@ func runPulumiApply(dir string) (map[string]any, error) {
 	return output, nil
 }
 
+func runPulumiDestroy(dir string) error {
+	_, err := runPulumi(dir, "destroy", "--yes", "--stack", "test")
+	if err != nil {
+		return err
+	}
+
+	_, err = runPulumi(dir, "stack", "rm", "--force", "--stack", "test", "--yes")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func runPulumiBenchmarks(testCases []testCase, runPulumiConvert func(srcDir, outDir string) error) map[string]*benchmarkResult {
 	results := map[string]*benchmarkResult{}
 	for _, tc := range testCases {
@@ -74,6 +86,7 @@ func runPulumiBenchmarks(testCases []testCase, runPulumiConvert func(srcDir, out
 		if err != nil {
 			log.Fatal(err)
 		}
+		log.Printf("dir: %s", dir)
 		err = os.CopyFS(dir, os.DirFS(tc.dir))
 		if err != nil {
 			log.Fatal(err)
@@ -88,6 +101,7 @@ func runPulumiBenchmarks(testCases []testCase, runPulumiConvert func(srcDir, out
 			results[tc.name].convertSuccess = true
 		}
 
+		defer runPulumiDestroy(dir)
 		{
 			err = runPulumiPlan(dir)
 			if err != nil {

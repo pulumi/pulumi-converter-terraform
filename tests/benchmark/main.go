@@ -19,6 +19,27 @@ var testCases = []testCase{
 			return nil
 		},
 	},
+	{
+		name: "aws_bucket",
+		dir:  "programs/aws_bucket",
+		assertion: func(output map[string]any) error {
+			if output["url"] == nil {
+				return fmt.Errorf("url is nil")
+			}
+			if len(output["url"].(string)) == 0 {
+				return fmt.Errorf("url is empty")
+			}
+			out, err := run(".", "aws", "s3", "cp", output["url"].(string), "-")
+			if err != nil {
+				return fmt.Errorf("failed to copy object: %w", err)
+			}
+			if string(out) != "hi" {
+				return fmt.Errorf("expected 'hi', got %s", string(out))
+			}
+
+			return nil
+		},
+	},
 }
 
 func formatResults(results map[string]*benchmarkResult) string {
