@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 )
@@ -16,6 +17,19 @@ func runPulumiConvert(srcDir string, outDir string) error {
 		return err
 	}
 	return nil
+}
+
+func runClaudeConvert(srcDir string, outDir string) error {
+	// This prompt is intentionally simplistic for now. We'll evolve it with larger test cases.
+	prompt := "Convert this Terraform project to Pulumi TypeScript. Emit a full Pulumi project including package.json, tsconfig.json, and Pulumi.yaml."
+	stdout, err := run(outDir, "claude", "-p", prompt, "--dangerously-skip-permissions")
+	fmt.Printf("Claude convert stdout: %s\n", stdout)
+	if err != nil {
+		return err
+	}
+
+	_, err = run(outDir, "pulumi", "install")
+	return err
 }
 
 func runPulumiPlan(dir string) error {
@@ -52,7 +66,7 @@ func runPulumiApply(dir string) (map[string]any, error) {
 	return output, nil
 }
 
-func runPulumiBenchmarks(testCases []testCase) map[string]*benchmarkResult {
+func runPulumiBenchmarks(testCases []testCase, runPulumiConvert func(srcDir, outDir string) error) map[string]*benchmarkResult {
 	results := map[string]*benchmarkResult{}
 	for _, tc := range testCases {
 		results[tc.name] = &benchmarkResult{}
