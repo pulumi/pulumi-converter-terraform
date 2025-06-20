@@ -21,8 +21,8 @@ func runPulumiConvert(srcDir string, outDir string) error {
 
 func runClaudeConvert(srcDir string, outDir string) error {
 	// This prompt is intentionally simplistic for now. We'll evolve it with larger test cases.
-	prompt := "Convert this Terraform project to Pulumi TypeScript. Emit a full Pulumi project including package.json, tsconfig.json, and Pulumi.yaml."
-	stdout, err := run(outDir, "claude", "-p", prompt, "--dangerously-skip-permissions")
+	prompt := fmt.Sprintf("Convert this Terraform project to Pulumi TypeScript. Emit a full Pulumi project including package.json, tsconfig.json, and Pulumi.yaml. Place the project files in %s.", outDir)
+	stdout, err := run(srcDir, "claude", "-p", prompt, "--add-dir", outDir, "--dangerously-skip-permissions")
 	fmt.Printf("Claude convert stdout: %s\n", stdout)
 	if err != nil {
 		return err
@@ -87,7 +87,7 @@ func runPulumiBenchmarks(testCases []testCase, runPulumiConvert func(srcDir, out
 			log.Fatal(err)
 		}
 		log.Printf("dir: %s", dir)
-		err = os.CopyFS(dir, os.DirFS(tc.dir))
+		err = copyDirExcept(tc.dir, dir, ".tf")
 		if err != nil {
 			log.Fatal(err)
 		}
