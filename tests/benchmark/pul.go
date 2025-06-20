@@ -11,12 +11,36 @@ func runPulumi(dir string, args ...string) ([]byte, error) {
 	return run(dir, append([]string{"pulumi"}, args...)...)
 }
 
-func runPulumiConvert(srcDir string, outDir string) error {
-	_, err := runPulumi(srcDir, "convert", "--from", "terraform", "--language", "typescript", "--out", outDir)
+func runPulumiConvert(srcDir string, outDir string, language string) error {
+	_, err := runPulumi(srcDir, "convert", "--from", "terraform", "--language", language, "--out", outDir)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func runPulumiConvertTS(srcDir string, outDir string) error {
+	return runPulumiConvert(srcDir, outDir, "typescript")
+}
+
+func runPulumiConvertPy(srcDir string, outDir string) error {
+	return runPulumiConvert(srcDir, outDir, "python")
+}
+
+func runPulumiConvertGo(srcDir string, outDir string) error {
+	return runPulumiConvert(srcDir, outDir, "go")
+}
+
+func runPulumiConvertCs(srcDir string, outDir string) error {
+	return runPulumiConvert(srcDir, outDir, "csharp")
+}
+
+func runPulumiConvertJava(srcDir string, outDir string) error {
+	return runPulumiConvert(srcDir, outDir, "java")
+}
+
+func runPulumiConvertYaml(srcDir string, outDir string) error {
+	return runPulumiConvert(srcDir, outDir, "yaml")
 }
 
 func runClaudeConvert(srcDir string, outDir string) error {
@@ -78,7 +102,7 @@ func runPulumiDestroy(dir string) error {
 	return nil
 }
 
-func runPulumiBenchmarks(testCases []testCase, runPulumiConvert func(srcDir, outDir string) error) map[string]*benchmarkResult {
+func runPulumiBenchmarks(testCases []testCase, convertFunc func(srcDir, outDir string) error) map[string]*benchmarkResult {
 	results := map[string]*benchmarkResult{}
 	for _, tc := range testCases {
 		results[tc.name] = &benchmarkResult{}
@@ -93,7 +117,7 @@ func runPulumiBenchmarks(testCases []testCase, runPulumiConvert func(srcDir, out
 		}
 
 		{
-			err = runPulumiConvert(tc.dir, dir)
+			err = convertFunc(tc.dir, dir)
 			if err != nil {
 				log.Printf("convert failed: %v", err)
 				continue

@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
+	"os"
 )
 
 var testCases = []testCase{
@@ -50,11 +52,92 @@ func formatResults(results map[string]*benchmarkResult) string {
 	return buf.String()
 }
 
-func main() {
+func resultSummary(results map[string]*benchmarkResult) string {
+	buf := bytes.Buffer{}
+	total := len(results)
+	type summary struct {
+		convertSuccesses int
+		planSuccesses    int
+		applySuccesses   int
+		assertSuccesses  int
+	}
+	res := summary{}
+	for _, v := range results {
+		if v.convertSuccess {
+			res.convertSuccesses++
+		}
+		if v.planSuccess {
+			res.planSuccesses++
+		}
+		if v.applySuccess {
+			res.applySuccesses++
+		}
+		if v.assertSuccess {
+			res.assertSuccesses++
+		}
+	}
+	buf.WriteString(fmt.Sprintf("total: %d\n", total))
+	buf.WriteString(fmt.Sprintf("convertSuccesses: %d (%d%%)\n", res.convertSuccesses, res.convertSuccesses*100/total))
+	buf.WriteString(fmt.Sprintf("planSuccesses: %d (%d%%)\n", res.planSuccesses, res.planSuccesses*100/total))
+	buf.WriteString(fmt.Sprintf("applySuccesses: %d (%d%%)\n", res.applySuccesses, res.applySuccesses*100/total))
+	buf.WriteString(fmt.Sprintf("assertSuccesses: %d (%d%%)\n", res.assertSuccesses, res.assertSuccesses*100/total))
+	return buf.String()
+}
+
+func runBenchmarkForLanguage(language string) {
+	switch language {
+	case "typescript":
+		tfResults := runTofuBenchmarks(testCases)
+		fmt.Printf("tfResults:\n%s", formatResults(tfResults))
+		claudeResults := runPulumiBenchmarks(testCases, runClaudeConvert)
+		fmt.Printf("claudeResults:\n%s", formatResults(claudeResults))
+		pulumiResultsTs := runPulumiBenchmarks(testCases, runPulumiConvertTS)
+		fmt.Printf("pulumiResultsTs:\n%s", formatResults(pulumiResultsTs))
+		fmt.Println("--------------------------------")
+		fmt.Printf("tfResults:\n%s", resultSummary(tfResults))
+		fmt.Printf("claudeResults:\n%s", resultSummary(claudeResults))
+		fmt.Printf("pulumiResultsTs:\n%s", resultSummary(pulumiResultsTs))
+	default:
+		// TODO: add other languages
+		fmt.Printf("Language %s not supported\n", language)
+		os.Exit(1)
+	}
+}
+
+func runBenchmark() {
 	tfResults := runTofuBenchmarks(testCases)
-	fmt.Printf("tfResults: %s", formatResults(tfResults))
-	pulumiResults := runPulumiBenchmarks(testCases, runPulumiConvert)
-	fmt.Printf("pulumiResults: %s", formatResults(pulumiResults))
+	fmt.Printf("tfResults:\n%s", formatResults(tfResults))
 	claudeResults := runPulumiBenchmarks(testCases, runClaudeConvert)
-	fmt.Printf("claudeResults: %s", formatResults(claudeResults))
+	fmt.Printf("claudeResults:\n%s", formatResults(claudeResults))
+	pulumiResultsTs := runPulumiBenchmarks(testCases, runPulumiConvertTS)
+	fmt.Printf("pulumiResultsTs:\n%s", formatResults(pulumiResultsTs))
+	pulumiResultsPy := runPulumiBenchmarks(testCases, runPulumiConvertPy)
+	fmt.Printf("pulumiResultsPy:\n%s", formatResults(pulumiResultsPy))
+	pulumiResultsGo := runPulumiBenchmarks(testCases, runPulumiConvertGo)
+	fmt.Printf("pulumiResultsGo:\n%s", formatResults(pulumiResultsGo))
+	pulumiResultsCs := runPulumiBenchmarks(testCases, runPulumiConvertCs)
+	fmt.Printf("pulumiResultsCs:\n%s", formatResults(pulumiResultsCs))
+	pulumiResultsJava := runPulumiBenchmarks(testCases, runPulumiConvertJava)
+	fmt.Printf("pulumiResultsJava:\n%s", formatResults(pulumiResultsJava))
+	pulumiResultsYaml := runPulumiBenchmarks(testCases, runPulumiConvertYaml)
+	fmt.Printf("pulumiResultsYaml:\n%s", formatResults(pulumiResultsYaml))
+	fmt.Println("--------------------------------")
+	fmt.Printf("tfResults:\n%s", resultSummary(tfResults))
+	fmt.Printf("claudeResults:\n%s", resultSummary(claudeResults))
+	fmt.Printf("pulumiResultsTs:\n%s", resultSummary(pulumiResultsTs))
+	fmt.Printf("pulumiResultsPy:\n%s", resultSummary(pulumiResultsPy))
+	fmt.Printf("pulumiResultsGo:\n%s", resultSummary(pulumiResultsGo))
+	fmt.Printf("pulumiResultsCs:\n%s", resultSummary(pulumiResultsCs))
+	fmt.Printf("pulumiResultsJava:\n%s", resultSummary(pulumiResultsJava))
+	fmt.Printf("pulumiResultsYaml:\n%s", resultSummary(pulumiResultsYaml))
+}
+
+func main() {
+	language := flag.String("language", "typescript", "The language to benchmark. all will run all languages")
+	flag.Parse()
+	if *language == "all" {
+		runBenchmark()
+	} else {
+		runBenchmarkForLanguage(*language)
+	}
 }
