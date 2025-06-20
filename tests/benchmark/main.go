@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
+	"os"
 )
 
 var testCases = []testCase{
@@ -82,7 +84,27 @@ func resultSummary(results map[string]*benchmarkResult) string {
 	return buf.String()
 }
 
-func main() {
+func runBenchmarkForLanguage(language string) {
+	switch language {
+	case "typescript":
+		tfResults := runTofuBenchmarks(testCases)
+		fmt.Printf("tfResults:\n%s", formatResults(tfResults))
+		claudeResults := runPulumiBenchmarks(testCases, runClaudeConvert)
+		fmt.Printf("claudeResults:\n%s", formatResults(claudeResults))
+		pulumiResultsTs := runPulumiBenchmarks(testCases, runPulumiConvertTS)
+		fmt.Printf("pulumiResultsTs:\n%s", formatResults(pulumiResultsTs))
+		fmt.Println("--------------------------------")
+		fmt.Printf("tfResults:\n%s", resultSummary(tfResults))
+		fmt.Printf("claudeResults:\n%s", resultSummary(claudeResults))
+		fmt.Printf("pulumiResultsTs:\n%s", resultSummary(pulumiResultsTs))
+	default:
+		// TODO: add other languages
+		fmt.Printf("Language %s not supported\n", language)
+		os.Exit(1)
+	}
+}
+
+func runBenchmark() {
 	tfResults := runTofuBenchmarks(testCases)
 	fmt.Printf("tfResults:\n%s", formatResults(tfResults))
 	claudeResults := runPulumiBenchmarks(testCases, runClaudeConvert)
@@ -108,4 +130,14 @@ func main() {
 	fmt.Printf("pulumiResultsCs:\n%s", resultSummary(pulumiResultsCs))
 	fmt.Printf("pulumiResultsJava:\n%s", resultSummary(pulumiResultsJava))
 	fmt.Printf("pulumiResultsYaml:\n%s", resultSummary(pulumiResultsYaml))
+}
+
+func main() {
+	language := flag.String("language", "typescript", "The language to benchmark. all will run all languages")
+	flag.Parse()
+	if *language == "all" {
+		runBenchmark()
+	} else {
+		runBenchmarkForLanguage(*language)
+	}
 }
