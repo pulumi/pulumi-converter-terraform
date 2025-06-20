@@ -5,10 +5,12 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func run(dir string, args ...string) ([]byte, error) {
 	stdoutBuf := bytes.Buffer{}
+	log.Printf("running %s in %s", strings.Join(args, " "), dir)
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = &stdoutBuf
 	cmd.Stderr = os.Stderr

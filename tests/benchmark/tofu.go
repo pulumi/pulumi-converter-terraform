@@ -27,7 +27,6 @@ func runTofuPlan(dir string) error {
 }
 
 func runTofuApply(dir string) (map[string]any, error) {
-	defer runTofu(dir, "destroy", "-auto-approve")
 	_, err := runTofu(dir, "apply", "-auto-approve")
 	if err != nil {
 		return nil, err
@@ -49,6 +48,14 @@ func runTofuApply(dir string) (map[string]any, error) {
 		output[k] = v.Value
 	}
 	return output, nil
+}
+
+func runTofuDestroy(dir string) error {
+	_, err := runTofu(dir, "destroy", "-auto-approve")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type testCase struct {
@@ -88,6 +95,7 @@ func runTofuBenchmarks(testCases []testCase) map[string]*benchmarkResult {
 			results[tc.name].planSuccess = true
 		}
 
+		defer runTofuDestroy(dir)
 		output := map[string]any{}
 
 		{
