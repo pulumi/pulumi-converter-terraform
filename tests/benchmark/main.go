@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -139,6 +140,53 @@ var allTestCases = map[string]testCase{
 			}
 			if string(out) != "hi" {
 				return fmt.Errorf("expected 'hi', got %s", string(out))
+			}
+
+			return nil
+		},
+	},
+	"aws_bucket_with_tags": {
+		name: "aws_bucket_with_tags",
+		dir:  "programs/aws_bucket_with_tags",
+		assertion: func(output map[string]any) error {
+			if output["name"] == nil {
+				return fmt.Errorf("name is nil")
+			}
+
+			name := output["name"].(string)
+			if len(name) == 0 {
+				return fmt.Errorf("name is empty")
+			}
+
+			out, err := run(".", "aws", "s3api", "get-bucket-tagging", "--bucket", name)
+			if err != nil {
+				return fmt.Errorf("failed to get bucket tags: %w", err)
+			}
+
+			type response struct {
+				TagSet []struct {
+					Key   string `json:"Key"`
+					Value string `json:"Value"`
+				} `json:"TagSet"`
+			}
+
+			var tags response
+			err = json.Unmarshal(out, &tags)
+			if err != nil {
+				return fmt.Errorf("failed to unmarshal tags: %w", err)
+			}
+
+			tagsMap := make(map[string]string)
+			for _, tag := range tags.TagSet {
+				tagsMap[tag.Key] = tag.Value
+			}
+
+			if tagsMap["Name"] != "My bucket" {
+				return fmt.Errorf("wrong tags: %v", tagsMap)
+			}
+
+			if tagsMap["my_tag"] != "my_value" {
+				return fmt.Errorf("wrong tags: %v", tagsMap)
 			}
 
 			return nil
