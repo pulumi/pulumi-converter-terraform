@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -46,6 +47,49 @@ var allTestCases = map[string]testCase{
 
 				return nil
 			},
+			"tags are correct": func(output map[string]any) error {
+				if output["name"] == nil {
+					return fmt.Errorf("name is nil")
+				}
+
+				name := output["name"].(string)
+				if len(name) == 0 {
+					return fmt.Errorf("name is empty")
+				}
+
+				out, err := run(".", "aws", "s3api", "get-bucket-tagging", "--bucket", name)
+				if err != nil {
+					return fmt.Errorf("failed to get bucket tags: %w", err)
+				}
+
+				type response struct {
+					TagSet []struct {
+						Key   string `json:"Key"`
+						Value string `json:"Value"`
+					} `json:"TagSet"`
+				}
+
+				var tags response
+				err = json.Unmarshal(out, &tags)
+				if err != nil {
+					return fmt.Errorf("failed to unmarshal tags: %w", err)
+				}
+
+				tagsMap := make(map[string]string)
+				for _, tag := range tags.TagSet {
+					tagsMap[tag.Key] = tag.Value
+				}
+
+				if tagsMap["Name"] != "My bucket" {
+					return fmt.Errorf("wrong tags: %v", tagsMap)
+				}
+
+				if tagsMap["my_tag"] != "my_value" {
+					return fmt.Errorf("wrong tags: %v", tagsMap)
+				}
+
+				return nil
+			},
 		},
 	},
 	"aws_lambda_api": {
@@ -83,6 +127,40 @@ var allTestCases = map[string]testCase{
 				expected := `{"message":"Hello, John!"}`
 				if string(body) != expected {
 					return fmt.Errorf("expected %s, got %s", expected, string(body))
+				}
+
+				return nil
+			},
+			"tags are correct": func(output map[string]any) error {
+				if output["arn"] == nil {
+					return fmt.Errorf("arn is nil")
+				}
+				arn := output["arn"].(string)
+				out, err := run(".", "aws", "lambda", "list-tags", "--resource", arn)
+				if err != nil {
+					return fmt.Errorf("failed to list tags: %w", err)
+				}
+
+				type response struct {
+					Tags map[string]string `json:"Tags"`
+				}
+
+				var tags response
+				err = json.Unmarshal(out, &tags)
+				if err != nil {
+					return fmt.Errorf("failed to unmarshal tags: %w", err)
+				}
+
+				if tags.Tags["project"] != "aws_lambda_api" {
+					return fmt.Errorf("wrong tags: %v", tags)
+				}
+
+				if tags.Tags["environment"] != "test" {
+					return fmt.Errorf("wrong tags: %v", tags)
+				}
+
+				if tags.Tags["my_tag"] != "my_value" {
+					return fmt.Errorf("wrong tags: %v", tags)
 				}
 
 				return nil

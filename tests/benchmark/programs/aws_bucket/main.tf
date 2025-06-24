@@ -4,6 +4,16 @@ resource "random_string" "bucket_name" {
   upper   = false
 }
 
+provider "aws" {
+  region = "us-east-1"
+
+  default_tags {
+    tags = {
+      "my_tag" = "my_value"
+    }
+  }
+}
+
 resource "aws_s3_bucket" "example" {
   bucket = random_string.bucket_name.result
   tags = {
@@ -19,4 +29,8 @@ resource "aws_s3_bucket_object" "object" {
 
 output "url" {
   value = "s3://${aws_s3_bucket.example.bucket}/${aws_s3_bucket_object.object.key}"
+}
+
+output "name" {
+  value = aws_s3_bucket.example.bucket
 }

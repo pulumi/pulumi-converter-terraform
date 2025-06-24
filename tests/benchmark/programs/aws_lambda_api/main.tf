@@ -15,6 +15,13 @@ terraform {
 
 provider "aws" {
   region = "us-east-1"
+
+  default_tags {
+    tags = {
+      "project"     = "aws_lambda_api"
+      "environment" = "test"
+    }
+  }
 }
 
 resource "random_pet" "lambda_bucket_name" {
@@ -74,6 +81,10 @@ resource "aws_lambda_function" "hello_world" {
   source_code_hash = data.archive_file.lambda_hello_world.output_base64sha256
 
   role = aws_iam_role.lambda_exec.arn
+
+  tags = {
+    "my_tag" = "my_value"
+  }
 }
 
 
