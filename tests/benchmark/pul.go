@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
+
+	mcp "github.com/metoro-io/mcp-golang"
+	"github.com/metoro-io/mcp-golang/transport/stdio"
 )
 
 func runPulumi(dir string, args ...string) ([]byte, error) {
@@ -44,16 +49,48 @@ func runPulumiConvertYaml(srcDir string, outDir string) error {
 }
 
 func runClaudeConvert(srcDir string, outDir string) error {
-	// This prompt is intentionally simplistic for now. We'll evolve it with larger test cases.
-	prompt := fmt.Sprintf("Convert this Terraform project to Pulumi TypeScript. Emit a full Pulumi project including package.json, tsconfig.json, and Pulumi.yaml. Place the project files in %s.", outDir)
-	stdout, err := run(srcDir, "claude", "-p", prompt, "--add-dir", outDir, "--dangerously-skip-permissions")
-	fmt.Printf("Claude convert stdout: %s\n", stdout)
+	prompt, err := readMcpPrompt("@pulumi/mcp-server@latest", "convert-terraform-to-typescript", outDir)
 	if err != nil {
 		return err
 	}
 
-	_, err = run(outDir, "pulumi", "install")
+	stdout, err := run(srcDir, "claude", "-p", prompt, "--add-dir", outDir, "--dangerously-skip-permissions")
+	fmt.Printf("Claude convert stdout: %s\n", stdout)
 	return err
+}
+
+func readMcpPrompt(mcpServer, promptName, outDir string) (string, error) {
+	// Setup the stdio transport.
+	cmd := exec.Command("npx", mcpServer, "stdio")
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return "", err
+	}
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", err
+	}
+	if err := cmd.Start(); err != nil {
+		return "", err
+	}
+	defer cmd.Process.Kill()
+	transport := stdio.NewStdioServerTransportWithIO(stdout, stdin)
+	client := mcp.NewClient(transport)
+	if _, err := client.Initialize(context.Background()); err != nil {
+		return "", err
+	}
+
+	// Prepare arguments for the prompt
+	args := map[string]interface{}{
+		"outputDir": outDir,
+	}
+	// Call the prompt
+	resp, err := client.GetPrompt(context.Background(), promptName, args)
+	if err != nil {
+		return "", err
+	}
+	prompt := resp.Messages[0].Content.TextContent.Text
+	return prompt, nil
 }
 
 func runPulumiPlan(dir string) error {
