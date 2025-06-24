@@ -184,12 +184,14 @@ func runPulumiBenchmarks(testCases []testCase, convertFunc func(srcDir, outDir s
 		}
 
 		{
-			err = tc.assertion(output)
-			if err != nil {
-				log.Printf("assertion failed: %v", err)
-				continue
+			for _, assertion := range tc.assertions {
+				err = assertion(output)
+				if err != nil {
+					results[tc.name].assertSuccesses = append(results[tc.name].assertSuccesses, false)
+					continue
+				}
+				results[tc.name].assertSuccesses = append(results[tc.name].assertSuccesses, true)
 			}
-			results[tc.name].assertSuccess = true
 		}
 	}
 	return results

@@ -58,17 +58,19 @@ func runTofuDestroy(dir string) error {
 	return nil
 }
 
+type assertion func(output map[string]any) error
+
 type testCase struct {
-	name      string
-	dir       string
-	assertion func(output map[string]any) error
+	name       string
+	dir        string
+	assertions []assertion
 }
 
 type benchmarkResult struct {
-	convertSuccess bool
-	planSuccess    bool
-	applySuccess   bool
-	assertSuccess  bool
+	convertSuccess  bool
+	planSuccess     bool
+	applySuccess    bool
+	assertSuccesses []bool
 }
 
 func runTofuBenchmarks(testCases []testCase) map[string]*benchmarkResult {
@@ -108,12 +110,14 @@ func runTofuBenchmarks(testCases []testCase) map[string]*benchmarkResult {
 		}
 
 		{
-			err = tc.assertion(output)
-			if err != nil {
-				log.Printf("assertion failed: %v", err)
-				continue
+			for _, assertion := range tc.assertions {
+				err = assertion(output)
+				if err != nil {
+					results[tc.name].assertSuccesses = append(results[tc.name].assertSuccesses, false)
+					continue
+				}
+				results[tc.name].assertSuccesses = append(results[tc.name].assertSuccesses, true)
 			}
-			results[tc.name].assertSuccess = true
 		}
 	}
 	return results
