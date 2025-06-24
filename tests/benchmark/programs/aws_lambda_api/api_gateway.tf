@@ -1,5 +1,11 @@
+resource "random_string" "api_gw_name" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
 resource "aws_apigatewayv2_api" "lambda" {
-  name          = "serverless_lambda_gw"
+  name          = "serverless_lambda_gw-${random_string.api_gw_name.result}"
   protocol_type = "HTTP"
 }
 

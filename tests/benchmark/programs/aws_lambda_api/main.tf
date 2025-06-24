@@ -56,8 +56,14 @@ resource "aws_s3_object" "lambda_hello_world" {
   etag = filemd5(data.archive_file.lambda_hello_world.output_path)
 }
 
+resource "random_string" "lambda_name" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
 resource "aws_lambda_function" "hello_world" {
-  function_name = "HelloWorld"
+  function_name = "HelloWorld-${random_string.lambda_name.result}"
 
   s3_bucket = aws_s3_bucket.lambda_bucket.id
   s3_key    = aws_s3_object.lambda_hello_world.key
