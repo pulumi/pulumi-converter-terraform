@@ -26,6 +26,7 @@ func resultSummary(results map[string]*benchmarkResult) string {
 		planSuccesses    int
 		applySuccesses   int
 		assertSuccesses  int
+		assertTotal      int
 	}
 	res := summary{}
 	for _, v := range results {
@@ -38,15 +39,18 @@ func resultSummary(results map[string]*benchmarkResult) string {
 		if v.applySuccess {
 			res.applySuccesses++
 		}
-		if v.assertSuccess {
-			res.assertSuccesses++
+		for _, assertSuccess := range v.assertSuccesses {
+			if assertSuccess {
+				res.assertSuccesses++
+			}
 		}
+		res.assertTotal += len(v.assertSuccesses)
 	}
 	buf.WriteString(fmt.Sprintf("total: %d\n", total))
 	buf.WriteString(fmt.Sprintf("convertSuccesses: %d (%d%%)\n", res.convertSuccesses, res.convertSuccesses*100/total))
 	buf.WriteString(fmt.Sprintf("planSuccesses: %d (%d%%)\n", res.planSuccesses, res.planSuccesses*100/total))
 	buf.WriteString(fmt.Sprintf("applySuccesses: %d (%d%%)\n", res.applySuccesses, res.applySuccesses*100/total))
-	buf.WriteString(fmt.Sprintf("assertSuccesses: %d (%d%%)\n", res.assertSuccesses, res.assertSuccesses*100/total))
+	buf.WriteString(fmt.Sprintf("assertSuccesses: %d (%d%%)\n", res.assertSuccesses, res.assertSuccesses*100/res.assertTotal))
 	return buf.String()
 }
 
@@ -113,74 +117,80 @@ var allTestCases = map[string]testCase{
 	"random_simple": {
 		name: "random_simple",
 		dir:  "programs/random_simple",
-		assertion: func(output map[string]any) error {
-			if output["name"] == nil {
-				return fmt.Errorf("name is nil")
-			}
-			if len(output["name"].(string)) == 0 {
-				return fmt.Errorf("name is empty")
-			}
-			return nil
+		assertions: map[string]assertion{
+			"name is not empty": func(output map[string]any) error {
+				if output["name"] == nil {
+					return fmt.Errorf("name is nil")
+				}
+				if len(output["name"].(string)) == 0 {
+					return fmt.Errorf("name is empty")
+				}
+				return nil
+			},
 		},
 	},
 	"aws_bucket": {
 		name: "aws_bucket",
 		dir:  "programs/aws_bucket",
-		assertion: func(output map[string]any) error {
-			if output["url"] == nil {
-				return fmt.Errorf("url is nil")
-			}
-			if len(output["url"].(string)) == 0 {
-				return fmt.Errorf("url is empty")
-			}
-			out, err := run(".", "aws", "s3", "cp", output["url"].(string), "-")
-			if err != nil {
-				return fmt.Errorf("failed to copy object: %w", err)
-			}
-			if string(out) != "hi" {
-				return fmt.Errorf("expected 'hi', got %s", string(out))
-			}
+		assertions: map[string]assertion{
+			"s3 object content is correct": func(output map[string]any) error {
+				if output["url"] == nil {
+					return fmt.Errorf("url is nil")
+				}
+				if len(output["url"].(string)) == 0 {
+					return fmt.Errorf("url is empty")
+				}
+				out, err := run(".", "aws", "s3", "cp", output["url"].(string), "-")
+				if err != nil {
+					return fmt.Errorf("failed to copy object: %w", err)
+				}
+				if string(out) != "hi" {
+					return fmt.Errorf("expected 'hi', got %s", string(out))
+				}
 
-			return nil
+				return nil
+			},
 		},
 	},
 	"aws_lambda_api": {
 		name: "aws_lambda_api",
 		dir:  "programs/aws_lambda_api",
-		assertion: func(output map[string]any) error {
-			time.Sleep(2 * time.Second)
+		assertions: map[string]assertion{
+			"lambda api response is correct": func(output map[string]any) error {
+				time.Sleep(2 * time.Second)
 
-			if output["url"] == nil {
-				return fmt.Errorf("url is nil")
-			}
+				if output["url"] == nil {
+					return fmt.Errorf("url is nil")
+				}
 
-			url := output["url"].(string)
-			if len(url) == 0 {
-				return fmt.Errorf("url is empty")
-			}
+				url := output["url"].(string)
+				if len(url) == 0 {
+					return fmt.Errorf("url is empty")
+				}
 
-			// make an http request to the url
-			resp, err := http.Get(url + "/hello?Name=John")
-			if err != nil {
-				return fmt.Errorf("failed to make http request: %w", err)
-			}
-			defer resp.Body.Close()
+				// make an http request to the url
+				resp, err := http.Get(url + "/hello?Name=John")
+				if err != nil {
+					return fmt.Errorf("failed to make http request: %w", err)
+				}
+				defer resp.Body.Close()
 
-			if resp.StatusCode != 200 {
-				return fmt.Errorf("expected status code 200, got %d", resp.StatusCode)
-			}
+				if resp.StatusCode != 200 {
+					return fmt.Errorf("expected status code 200, got %d", resp.StatusCode)
+				}
 
-			body, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return fmt.Errorf("failed to read response body: %w", err)
-			}
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					return fmt.Errorf("failed to read response body: %w", err)
+				}
 
-			expected := `{"message":"Hello, John!"}`
-			if string(body) != expected {
-				return fmt.Errorf("expected %s, got %s", expected, string(body))
-			}
+				expected := `{"message":"Hello, John!"}`
+				if string(body) != expected {
+					return fmt.Errorf("expected %s, got %s", expected, string(body))
+				}
 
-			return nil
+				return nil
+			},
 		},
 	},
 }

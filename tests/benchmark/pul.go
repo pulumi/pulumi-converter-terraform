@@ -142,7 +142,13 @@ func runPulumiDestroy(dir string) error {
 func runPulumiBenchmarks(testCases []testCase, convertFunc func(srcDir, outDir string) error) map[string]*benchmarkResult {
 	results := map[string]*benchmarkResult{}
 	for _, tc := range testCases {
-		results[tc.name] = &benchmarkResult{}
+		results[tc.name] = &benchmarkResult{
+			assertSuccesses: map[string]bool{},
+		}
+		for k := range tc.assertions {
+			results[tc.name].assertSuccesses[k] = false
+		}
+
 		dir, err := os.MkdirTemp("", "pulumi-benchmark")
 		if err != nil {
 			log.Fatal(err)
@@ -184,12 +190,14 @@ func runPulumiBenchmarks(testCases []testCase, convertFunc func(srcDir, outDir s
 		}
 
 		{
-			err = tc.assertion(output)
-			if err != nil {
-				log.Printf("assertion failed: %v", err)
-				continue
+			for k, assertion := range tc.assertions {
+				err = assertion(output)
+				if err != nil {
+					results[tc.name].assertSuccesses[k] = false
+					continue
+				}
+				results[tc.name].assertSuccesses[k] = true
 			}
-			results[tc.name].assertSuccess = true
 		}
 	}
 	return results

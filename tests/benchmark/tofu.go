@@ -58,23 +58,31 @@ func runTofuDestroy(dir string) error {
 	return nil
 }
 
+type assertion func(output map[string]any) error
+
 type testCase struct {
-	name      string
-	dir       string
-	assertion func(output map[string]any) error
+	name       string
+	dir        string
+	assertions map[string]assertion
 }
 
 type benchmarkResult struct {
-	convertSuccess bool
-	planSuccess    bool
-	applySuccess   bool
-	assertSuccess  bool
+	convertSuccess  bool
+	planSuccess     bool
+	applySuccess    bool
+	assertSuccesses map[string]bool
 }
 
 func runTofuBenchmarks(testCases []testCase) map[string]*benchmarkResult {
 	results := map[string]*benchmarkResult{}
 	for _, tc := range testCases {
-		results[tc.name] = &benchmarkResult{}
+		results[tc.name] = &benchmarkResult{
+			assertSuccesses: map[string]bool{},
+		}
+		for k := range tc.assertions {
+			results[tc.name].assertSuccesses[k] = false
+		}
+
 		dir, err := os.MkdirTemp("", "tofu-benchmark")
 		if err != nil {
 			log.Fatal(err)
@@ -108,12 +116,14 @@ func runTofuBenchmarks(testCases []testCase) map[string]*benchmarkResult {
 		}
 
 		{
-			err = tc.assertion(output)
-			if err != nil {
-				log.Printf("assertion failed: %v", err)
-				continue
+			for k, assertion := range tc.assertions {
+				err = assertion(output)
+				if err != nil {
+					results[tc.name].assertSuccesses[k] = false
+					continue
+				}
+				results[tc.name].assertSuccesses[k] = true
 			}
-			results[tc.name].assertSuccess = true
 		}
 	}
 	return results
