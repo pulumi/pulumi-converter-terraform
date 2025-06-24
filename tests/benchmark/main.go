@@ -43,8 +43,8 @@ func resultSummary(results map[string]*benchmarkResult) string {
 			if assertSuccess {
 				res.assertSuccesses++
 			}
-			res.assertTotal++
 		}
+		res.assertTotal += len(v.assertSuccesses)
 	}
 	buf.WriteString(fmt.Sprintf("total: %d\n", total))
 	buf.WriteString(fmt.Sprintf("convertSuccesses: %d (%d%%)\n", res.convertSuccesses, res.convertSuccesses*100/total))
@@ -117,8 +117,8 @@ var allTestCases = map[string]testCase{
 	"random_simple": {
 		name: "random_simple",
 		dir:  "programs/random_simple",
-		assertions: []assertion{
-			func(output map[string]any) error {
+		assertions: map[string]assertion{
+			"name is not empty": func(output map[string]any) error {
 				if output["name"] == nil {
 					return fmt.Errorf("name is nil")
 				}
@@ -132,8 +132,8 @@ var allTestCases = map[string]testCase{
 	"aws_bucket": {
 		name: "aws_bucket",
 		dir:  "programs/aws_bucket",
-		assertions: []assertion{
-			func(output map[string]any) error {
+		assertions: map[string]assertion{
+			"s3 object content is correct": func(output map[string]any) error {
 				if output["url"] == nil {
 					return fmt.Errorf("url is nil")
 				}
@@ -155,8 +155,8 @@ var allTestCases = map[string]testCase{
 	"aws_lambda_api": {
 		name: "aws_lambda_api",
 		dir:  "programs/aws_lambda_api",
-		assertions: []assertion{
-			func(output map[string]any) error {
+		assertions: map[string]assertion{
+			"lambda api response is correct": func(output map[string]any) error {
 				time.Sleep(2 * time.Second)
 
 				if output["url"] == nil {
