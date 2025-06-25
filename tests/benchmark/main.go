@@ -92,6 +92,7 @@ var allTestCases = map[string]testCase{
 			},
 		},
 	},
+	// adapted from https://github.com/hashicorp-education/learn-terraform-lambda-api-gateway
 	"aws_lambda_api": {
 		name: "aws_lambda_api",
 		dir:  "programs/aws_lambda_api",
@@ -171,6 +172,7 @@ var allTestCases = map[string]testCase{
 func main() {
 	language := flag.String("language", "typescript", "The language to benchmark. all will run all languages")
 	skipTF := flag.Bool("skip-tf", false, "Skip the Terraform benchmark")
+	skipLLM := flag.Bool("skip-llm", false, "Skip the LLM benchmark")
 	example := flag.String("example", "all", "The example to run. all will run all examples")
 	flag.Parse()
 
@@ -188,9 +190,14 @@ func main() {
 		testCases = []testCase{tCase}
 	}
 
+	opts := benchmarkOptions{
+		skipTF:  *skipTF,
+		skipLLM: *skipLLM,
+	}
+
 	if *language == "all" {
-		runBenchmark(*skipTF, testCases)
+		runBenchmark(opts, testCases)
 	} else {
-		runBenchmarkForLanguage(*language, *skipTF, testCases)
+		runBenchmarkForLanguage(*language, opts, testCases)
 	}
 }

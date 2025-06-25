@@ -68,23 +68,33 @@ func resultSummary(results map[string]*benchmarkResult) string {
 	return buf.String()
 }
 
-func runBenchmarkForLanguage(language string, skipTF bool, testCases []testCase) {
+type benchmarkOptions struct {
+	skipTF  bool
+	skipLLM bool
+}
+
+func runBenchmarkForLanguage(language string, opts benchmarkOptions, testCases []testCase) {
 	switch language {
 	case "typescript":
 		tfResults := map[string]*benchmarkResult{}
-		if !skipTF {
+		if !opts.skipTF {
 			tfResults = runTFBenchmarks(testCases)
 			fmt.Printf("tfResults:\n%s", formatResults(tfResults))
 		}
-		claudeResults := runPulumiBenchmarks(testCases, "claude", runClaudeConvert)
-		fmt.Printf("claudeResults:\n%s", formatResults(claudeResults))
+		claudeResults := map[string]*benchmarkResult{}
+		if !opts.skipLLM {
+			claudeResults = runPulumiBenchmarks(testCases, "claude", runClaudeConvert)
+			fmt.Printf("claudeResults:\n%s", formatResults(claudeResults))
+		}
 		pulumiResultsTs := runPulumiBenchmarks(testCases, "converter-ts", runPulumiConvertTS)
 		fmt.Printf("pulumiResultsTs:\n%s", formatResults(pulumiResultsTs))
 		fmt.Println("--------------------------------")
-		if !skipTF {
+		if !opts.skipTF {
 			fmt.Printf("tfResults:\n%s", resultSummary(tfResults))
 		}
-		fmt.Printf("claudeResults:\n%s", resultSummary(claudeResults))
+		if !opts.skipLLM {
+			fmt.Printf("claudeResults:\n%s", resultSummary(claudeResults))
+		}
 		fmt.Printf("pulumiResultsTs:\n%s", resultSummary(pulumiResultsTs))
 	default:
 		// TODO: add other languages
@@ -93,15 +103,18 @@ func runBenchmarkForLanguage(language string, skipTF bool, testCases []testCase)
 	}
 }
 
-func runBenchmark(skipTF bool, testCases []testCase) {
+func runBenchmark(opts benchmarkOptions, testCases []testCase) {
 	tfResults := map[string]*benchmarkResult{}
-	if !skipTF {
+	if !opts.skipTF {
 		tfResults = runTFBenchmarks(testCases)
 		fmt.Printf("tfResults:\n%s", formatResults(tfResults))
 	}
 
-	claudeResults := runPulumiBenchmarks(testCases, "claude", runClaudeConvert)
-	fmt.Printf("claudeResults:\n%s", formatResults(claudeResults))
+	claudeResults := map[string]*benchmarkResult{}
+	if !opts.skipLLM {
+		claudeResults = runPulumiBenchmarks(testCases, "claude", runClaudeConvert)
+		fmt.Printf("claudeResults:\n%s", formatResults(claudeResults))
+	}
 	pulumiResultsTs := runPulumiBenchmarks(testCases, "converter-ts", runPulumiConvertTS)
 	fmt.Printf("pulumiResultsTs:\n%s", formatResults(pulumiResultsTs))
 	pulumiResultsPy := runPulumiBenchmarks(testCases, "converter-py", runPulumiConvertPy)
@@ -115,10 +128,12 @@ func runBenchmark(skipTF bool, testCases []testCase) {
 	pulumiResultsYaml := runPulumiBenchmarks(testCases, "converter-yaml", runPulumiConvertYaml)
 	fmt.Printf("pulumiResultsYaml:\n%s", formatResults(pulumiResultsYaml))
 	fmt.Println("--------------------------------")
-	if !skipTF {
+	if !opts.skipTF {
 		fmt.Printf("tfResults:\n%s", resultSummary(tfResults))
 	}
-	fmt.Printf("claudeResults:\n%s", resultSummary(claudeResults))
+	if !opts.skipLLM {
+		fmt.Printf("claudeResults:\n%s", resultSummary(claudeResults))
+	}
 	fmt.Printf("pulumiResultsTs:\n%s", resultSummary(pulumiResultsTs))
 	fmt.Printf("pulumiResultsPy:\n%s", resultSummary(pulumiResultsPy))
 	fmt.Printf("pulumiResultsGo:\n%s", resultSummary(pulumiResultsGo))
