@@ -1,0 +1,88 @@
+{
+  "resource_changes": [
+    {
+      "type": "aws_apigatewayv2_api",
+      "name": "lambda"
+    },
+    {
+      "type": "aws_apigatewayv2_integration",
+      "name": "hello_world"
+    },
+    {
+      "type": "aws_apigatewayv2_route",
+      "name": "hello_world"
+    },
+    {
+      "type": "aws_apigatewayv2_stage",
+      "name": "lambda"
+    },
+    {
+      "type": "aws_cloudwatch_log_group",
+      "name": "api_gw"
+    },
+    {
+      "type": "aws_cloudwatch_log_group",
+      "name": "hello_world"
+    },
+    {
+      "type": "aws_iam_role",
+      "name": "lambda_exec"
+    },
+    {
+      "type": "aws_iam_role_policy_attachment",
+      "name": "lambda_policy"
+    },
+    {
+      "type": "aws_lambda_function",
+      "name": "hello_world"
+    },
+    {
+      "type": "aws_lambda_permission",
+      "name": "api_gw"
+    },
+    {
+      "type": "aws_s3_bucket",
+      "name": "lambda_bucket"
+    },
+    {
+      "type": "aws_s3_bucket_acl",
+      "name": "lambda_bucket"
+    },
+    {
+      "type": "aws_s3_bucket_ownership_controls",
+      "name": "lambda_bucket"
+    },
+    {
+      "type": "aws_s3_object",
+      "name": "lambda_hello_world"
+    },
+    {
+      "type": "random_pet",
+      "name": "lambda_bucket_name"
+    },
+    {
+      "type": "random_string",
+      "name": "api_gw_name"
+    },
+    {
+      "type": "random_string",
+      "name": "lambda_name"
+    },
+    {
+      "type": "random_string",
+      "name": "lambda_role_name"
+    }
+  ],
+  "output_changes": {
+    "arn": {
+      "actions": [
+        "create"
+      ]
+    },
+    "url": {
+      "actions": [
+        "create"
+      ]
+    }
+  }
+}

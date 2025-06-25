@@ -1,0 +1,19 @@
+{
+  "resourcePlans": {
+    "urn:pulumi:test::random_simple::pulumi:providers:random::default_4_18_2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::random_simple::pulumi:pulumi:Stack::random_simple-test": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::random_simple::random:index/randomString:RandomString::bucket_name": {
+      "steps": [
+        "create"
+      ]
+    }
+  }
+}

@@ -173,13 +173,13 @@ func getPulumiPlanResourceCount(plan pulumiPlan) int {
 	return count
 }
 
-func comparePulumiPlan(plan pulumiPlan, name string) error {
+func comparePulumiPlan(plan pulumiPlan, convertName, name string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	pulumiPlanFileName := filepath.Join(cwd, "plans", name, "pulumi_plan.out.json")
+	pulumiPlanFileName := filepath.Join(cwd, "plans", name, fmt.Sprintf("pulumi_plan_%s.out.json", convertName))
 
 	err = saveOrCompareFile(pulumiPlanFileName, plan)
 	if err != nil {
@@ -209,7 +209,7 @@ func comparePulumiPlan(plan pulumiPlan, name string) error {
 	return nil
 }
 
-func runPulumiBenchmarks(testCases []testCase, convertFunc func(srcDir, outDir string) error) map[string]*benchmarkResult {
+func runPulumiBenchmarks(testCases []testCase, name string, convertFunc func(srcDir, outDir string) error) map[string]*benchmarkResult {
 	results := map[string]*benchmarkResult{}
 	for _, tc := range testCases {
 		results[tc.name] = &benchmarkResult{
@@ -248,7 +248,7 @@ func runPulumiBenchmarks(testCases []testCase, convertFunc func(srcDir, outDir s
 			}
 			results[tc.name].planSuccess = true
 
-			err = comparePulumiPlan(pulumiPlan, tc.name)
+			err = comparePulumiPlan(pulumiPlan, name, tc.name)
 			if err != nil {
 				log.Printf("compare plan failed: %v", err)
 				continue

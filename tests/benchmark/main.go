@@ -108,7 +108,6 @@ var allTestCases = map[string]testCase{
 					return fmt.Errorf("url is empty")
 				}
 
-				// make an http request to the url
 				resp, err := http.Get(url + "/hello?Name=John")
 				if err != nil {
 					return fmt.Errorf("failed to make http request: %w", err)

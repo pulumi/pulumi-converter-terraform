@@ -92,7 +92,14 @@ func saveOrCompareFile[T any](path string, expected T) error {
 			return err
 		}
 		defer file.Close()
-		err = json.NewEncoder(file).Encode(expected)
+		buf := bytes.Buffer{}
+		enc := json.NewEncoder(&buf)
+		enc.SetIndent("", "  ")
+		err = enc.Encode(expected)
+		if err != nil {
+			return err
+		}
+		_, err = file.Write(buf.Bytes())
 		if err != nil {
 			return err
 		}
