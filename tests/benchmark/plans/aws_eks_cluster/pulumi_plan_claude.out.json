@@ -1,0 +1,244 @@
+{
+  "resourcePlans": {
+    "urn:pulumi:test::terraform-conversion::aws:eks/addon:Addon::aws-ebs-csi-driver": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:eks/cluster:Cluster::eks": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:eks/nodeGroup:NodeGroup::node-group-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:eks/nodeGroup:NodeGroup::node-group-2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:iam/openIdConnectProvider:OpenIdConnectProvider::eks-oidc": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:iam/role:Role::ebs-csi-role": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:iam/role:Role::eks-cluster-role": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:iam/role:Role::node-group-role": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:iam/rolePolicyAttachment:RolePolicyAttachment::ebs-csi-policy": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:iam/rolePolicyAttachment:RolePolicyAttachment::eks-cluster-policy": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:iam/rolePolicyAttachment:RolePolicyAttachment::node-group-cni-policy": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:iam/rolePolicyAttachment:RolePolicyAttachment::node-group-registry-policy": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:iam/rolePolicyAttachment:RolePolicyAttachment::node-group-worker-node-policy": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/internetGateway:InternetGateway::education-vpc": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/eip:Eip::education-vpc-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/natGateway:NatGateway::education-vpc-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable$aws:ec2/route:Route::education-vpc-private-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable$aws:ec2/route:Route::education-vpc-private-2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable$aws:ec2/route:Route::education-vpc-private-3": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable$aws:ec2/route:Route::education-vpc-public-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable$aws:ec2/route:Route::education-vpc-public-2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable$aws:ec2/route:Route::education-vpc-public-3": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable$aws:ec2/routeTableAssociation:RouteTableAssociation::education-vpc-private-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable$aws:ec2/routeTableAssociation:RouteTableAssociation::education-vpc-private-2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable$aws:ec2/routeTableAssociation:RouteTableAssociation::education-vpc-private-3": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable$aws:ec2/routeTableAssociation:RouteTableAssociation::education-vpc-public-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable$aws:ec2/routeTableAssociation:RouteTableAssociation::education-vpc-public-2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable$aws:ec2/routeTableAssociation:RouteTableAssociation::education-vpc-public-3": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable::education-vpc-private-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable::education-vpc-private-2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable::education-vpc-private-3": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable::education-vpc-public-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable::education-vpc-public-2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet$aws:ec2/routeTable:RouteTable::education-vpc-public-3": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet::education-vpc-private-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet::education-vpc-private-2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet::education-vpc-private-3": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet::education-vpc-public-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet::education-vpc-public-2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc$aws:ec2/subnet:Subnet::education-vpc-public-3": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc$aws:ec2/vpc:Vpc::education-vpc": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::awsx:ec2:Vpc::education-vpc": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:providers:aws::aws": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:providers:awsx::default_2_21_1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:providers:pulumi::default": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:providers:random::default_4_18_2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:pulumi:Stack::terraform-conversion-test": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::random:index/randomString:RandomString::suffix": {
+      "steps": [
+        "create"
+      ]
+    }
+  }
+}

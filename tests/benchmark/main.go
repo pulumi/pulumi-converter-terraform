@@ -173,6 +173,12 @@ var allTestCases = map[string]testCase{
 		dir:      "programs/cloudflare_aws_static_website",
 		planOnly: true,
 	},
+	// adapted from https://github.com/hashicorp-education/learn-terraform-provision-eks-cluster
+	"aws_eks_cluster": {
+		name:     "aws_eks_cluster",
+		dir:      "programs/aws_eks_cluster",
+		planOnly: true,
+	},
 }
 
 func main() {
