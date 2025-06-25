@@ -1,0 +1,34 @@
+{
+  "resourcePlans": {
+    "urn:pulumi:test::aws_bucket::aws:s3/bucketObject:BucketObject::object": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_bucket::aws:s3/bucketV2:BucketV2::example": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_bucket::pulumi:providers:aws::default_6_83_0": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_bucket::pulumi:providers:random::default_4_18_2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_bucket::pulumi:pulumi:Stack::aws_bucket-test": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_bucket::random:index/randomString:RandomString::bucket_name": {
+      "steps": [
+        "create"
+      ]
+    }
+  }
+}

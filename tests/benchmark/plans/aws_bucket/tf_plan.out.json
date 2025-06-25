@@ -1,0 +1,28 @@
+{
+  "resource_changes": [
+    {
+      "type": "aws_s3_bucket",
+      "name": "example"
+    },
+    {
+      "type": "aws_s3_bucket_object",
+      "name": "object"
+    },
+    {
+      "type": "random_string",
+      "name": "bucket_name"
+    }
+  ],
+  "output_changes": {
+    "name": {
+      "actions": [
+        "create"
+      ]
+    },
+    "url": {
+      "actions": [
+        "create"
+      ]
+    }
+  }
+}

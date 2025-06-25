@@ -1,0 +1,34 @@
+{
+  "resourcePlans": {
+    "urn:pulumi:test::terraform-conversion::aws:s3/bucket:Bucket::example": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:s3/bucketObject:BucketObject::object": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:providers:aws::aws": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:providers:random::default_4_18_2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:pulumi:Stack::terraform-conversion-test": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::random:index/randomString:RandomString::bucket-name": {
+      "steps": [
+        "create"
+      ]
+    }
+  }
+}

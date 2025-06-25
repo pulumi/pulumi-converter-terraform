@@ -1,0 +1,15 @@
+{
+  "resource_changes": [
+    {
+      "type": "random_string",
+      "name": "bucket_name"
+    }
+  ],
+  "output_changes": {
+    "name": {
+      "actions": [
+        "create"
+      ]
+    }
+  }
+}

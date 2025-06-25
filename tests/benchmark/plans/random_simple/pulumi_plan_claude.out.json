@@ -1,0 +1,19 @@
+{
+  "resourcePlans": {
+    "urn:pulumi:test::terraform-conversion::pulumi:providers:random::default_4_18_2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:pulumi:Stack::terraform-conversion-test": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::random:index/randomString:RandomString::bucket_name": {
+      "steps": [
+        "create"
+      ]
+    }
+  }
+}

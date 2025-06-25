@@ -1,0 +1,119 @@
+{
+  "resourcePlans": {
+    "urn:pulumi:test::aws_lambda_api::aws:apigatewayv2/api:Api::lambda": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:apigatewayv2/integration:Integration::hello_world": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:apigatewayv2/route:Route::hello_world": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:apigatewayv2/stage:Stage::lambda": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:cloudwatch/logGroup:LogGroup::api_gw": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:cloudwatch/logGroup:LogGroup::hello_world": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:iam/role:Role::lambda_exec": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:iam/rolePolicyAttachment:RolePolicyAttachment::lambda_policy": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:lambda/function:Function::hello_world": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:lambda/permission:Permission::api_gw": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:s3/bucketAclV2:BucketAclV2::lambda_bucket": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:s3/bucketObjectv2:BucketObjectv2::lambda_hello_world": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:s3/bucketOwnershipControls:BucketOwnershipControls::lambda_bucket": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::aws:s3/bucketV2:BucketV2::lambda_bucket": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::pulumi:providers:archive::default_0_3_3": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::pulumi:providers:aws::default_6_83_0": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::pulumi:providers:random::default_4_18_2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::pulumi:providers:std::default_2_2_0": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::pulumi:pulumi:Stack::aws_lambda_api-test": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::random:index/randomPet:RandomPet::lambda_bucket_name": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::random:index/randomString:RandomString::api_gw_name": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::random:index/randomString:RandomString::lambda_name": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_lambda_api::random:index/randomString:RandomString::lambda_role_name": {
+      "steps": [
+        "create"
+      ]
+    }
+  }
+}

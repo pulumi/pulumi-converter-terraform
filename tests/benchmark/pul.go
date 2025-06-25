@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 
 	mcp "github.com/metoro-io/mcp-golang"
 	"github.com/metoro-io/mcp-golang/transport/stdio"
@@ -93,16 +95,34 @@ func readMcpPrompt(mcpServer, promptName, outDir string) (string, error) {
 	return prompt, nil
 }
 
-func runPulumiPlan(dir string) error {
+type pulumiPlan struct {
+	ResourcePlans map[string]struct {
+		Steps []string `json:"steps"`
+	} `json:"resourcePlans"`
+}
+
+func runPulumiPlan(dir string) (pulumiPlan, error) {
 	_, err := runPulumi(dir, "stack", "init", "test")
 	if err != nil {
-		return err
+		return pulumiPlan{}, err
 	}
-	_, err = runPulumi(dir, "preview", "--stack", "test")
+	_, err = runPulumi(dir, "preview", "--stack", "test", "--save-plan", "plan.out")
 	if err != nil {
-		return err
+		return pulumiPlan{}, err
 	}
-	return nil
+
+	planFile, err := os.ReadFile(filepath.Join(dir, "plan.out"))
+	if err != nil {
+		return pulumiPlan{}, err
+	}
+
+	var p pulumiPlan
+	err = json.Unmarshal(planFile, &p)
+	if err != nil {
+		return pulumiPlan{}, err
+	}
+
+	return p, nil
 }
 
 func runPulumiApply(dir string) (map[string]any, error) {
@@ -139,11 +159,62 @@ func runPulumiDestroy(dir string) error {
 	return nil
 }
 
-func runPulumiBenchmarks(testCases []testCase, convertFunc func(srcDir, outDir string) error) map[string]*benchmarkResult {
+func getPulumiPlanResourceCount(plan pulumiPlan) int {
+	count := 0
+	for typ := range plan.ResourcePlans {
+		if strings.Contains(typ, "::pulumi:pulumi:Stack::") {
+			continue
+		}
+		if strings.Contains(typ, "::pulumi:providers:") {
+			continue
+		}
+		count++
+	}
+	return count
+}
+
+func comparePulumiPlan(plan pulumiPlan, convertName, name string) error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	pulumiPlanFileName := filepath.Join(cwd, "plans", name, fmt.Sprintf("pulumi_plan_%s.out.json", convertName))
+
+	err = saveOrCompareFile(pulumiPlanFileName, plan)
+	if err != nil {
+		return err
+	}
+
+	tfPlanFile, err := os.ReadFile(filepath.Join(cwd, "plans", name, "tf_plan.out.json"))
+	if err != nil {
+		return err
+	}
+
+	var tfPlanStruct tfPlan
+	err = json.Unmarshal(tfPlanFile, &tfPlanStruct)
+	if err != nil {
+		return err
+	}
+
+	pulumiNumChanges := getPulumiPlanResourceCount(plan)
+	tfNumChanges := len(tfPlanStruct.ResourceChanges)
+
+	if pulumiNumChanges != tfNumChanges {
+		return fmt.Errorf("pulumi num changes (%d) != tf num changes (%d)", pulumiNumChanges, tfNumChanges)
+	}
+
+	// TODO: compare resource types?
+
+	return nil
+}
+
+func runPulumiBenchmarks(testCases []testCase, name string, convertFunc func(srcDir, outDir string) error) map[string]*benchmarkResult {
 	results := map[string]*benchmarkResult{}
 	for _, tc := range testCases {
 		results[tc.name] = &benchmarkResult{
 			assertSuccesses: map[string]bool{},
+			planOnly:        tc.planOnly,
 		}
 		for k := range tc.assertions {
 			results[tc.name].assertSuccesses[k] = false
@@ -170,12 +241,23 @@ func runPulumiBenchmarks(testCases []testCase, convertFunc func(srcDir, outDir s
 
 		defer runPulumiDestroy(dir)
 		{
-			err = runPulumiPlan(dir)
+			pulumiPlan, err := runPulumiPlan(dir)
 			if err != nil {
 				log.Printf("plan failed: %v", err)
 				continue
 			}
 			results[tc.name].planSuccess = true
+
+			err = comparePulumiPlan(pulumiPlan, name, tc.name)
+			if err != nil {
+				log.Printf("compare plan failed: %v", err)
+				continue
+			}
+			results[tc.name].planComparisonSuccess = true
+		}
+
+		if tc.planOnly {
+			continue
 		}
 
 		output := map[string]any{}

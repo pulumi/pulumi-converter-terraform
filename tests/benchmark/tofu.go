@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"path/filepath"
 )
 
-func runTofu(dir string, args ...string) ([]byte, error) {
+func runTF(dir string, args ...string) ([]byte, error) {
 	return run(dir, append([]string{"tofu"}, args...)...)
 }
 
@@ -14,26 +15,48 @@ type tfOutput struct {
 	Value any `json:"value"`
 }
 
-func runTofuPlan(dir string) error {
-	_, err := runTofu(dir, "init")
-	if err != nil {
-		return err
-	}
-	_, err = runTofu(dir, "plan")
-	if err != nil {
-		return err
-	}
-	return nil
+type tfPlan struct {
+	ResourceChanges []struct {
+		Type string `json:"type"`
+		Name string `json:"name"`
+	} `json:"resource_changes"`
+	OutputChanges map[string]struct {
+		Actions []string `json:"actions"`
+	} `json:"output_changes"`
 }
 
-func runTofuApply(dir string) (map[string]any, error) {
-	_, err := runTofu(dir, "apply", "-auto-approve")
+func runTFPlan(dir string) (tfPlan, error) {
+	_, err := runTF(dir, "init")
+	if err != nil {
+		return tfPlan{}, err
+	}
+	_, err = runTF(dir, "plan", "-out", "plan.out")
+	if err != nil {
+		return tfPlan{}, err
+	}
+
+	stdout, err := runTF(dir, "show", "-json", "plan.out")
+	if err != nil {
+		return tfPlan{}, err
+	}
+
+	var plan tfPlan
+	err = json.Unmarshal(stdout, &plan)
+	if err != nil {
+		return tfPlan{}, err
+	}
+
+	return plan, nil
+}
+
+func runTFApply(dir string) (map[string]any, error) {
+	_, err := runTF(dir, "apply", "-auto-approve")
 	if err != nil {
 		return nil, err
 	}
 
 	tfOutput := map[string]tfOutput{}
-	stdout, err := runTofu(dir, "output", "-json")
+	stdout, err := runTF(dir, "output", "-json")
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +73,8 @@ func runTofuApply(dir string) (map[string]any, error) {
 	return output, nil
 }
 
-func runTofuDestroy(dir string) error {
-	_, err := runTofu(dir, "destroy", "-auto-approve")
+func runTFDestroy(dir string) error {
+	_, err := runTF(dir, "destroy", "-auto-approve")
 	if err != nil {
 		return err
 	}
@@ -63,21 +86,36 @@ type assertion func(output map[string]any) error
 type testCase struct {
 	name       string
 	dir        string
+	planOnly   bool
 	assertions map[string]assertion
 }
 
 type benchmarkResult struct {
-	convertSuccess  bool
-	planSuccess     bool
-	applySuccess    bool
-	assertSuccesses map[string]bool
+	convertSuccess        bool
+	planSuccess           bool
+	planComparisonSuccess bool
+	planOnly              bool
+	applySuccess          bool
+	assertSuccesses       map[string]bool
 }
 
-func runTofuBenchmarks(testCases []testCase) map[string]*benchmarkResult {
+func recordTFPlan(name string, plan tfPlan) error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(cwd, "plans", name, "tf_plan.out.json")
+
+	err = saveOrCompareFile(path, plan)
+	return err
+}
+
+func runTFBenchmarks(testCases []testCase) map[string]*benchmarkResult {
 	results := map[string]*benchmarkResult{}
 	for _, tc := range testCases {
 		results[tc.name] = &benchmarkResult{
 			assertSuccesses: map[string]bool{},
+			planOnly:        tc.planOnly,
 		}
 		for k := range tc.assertions {
 			results[tc.name].assertSuccesses[k] = false
@@ -95,19 +133,29 @@ func runTofuBenchmarks(testCases []testCase) map[string]*benchmarkResult {
 		results[tc.name].convertSuccess = true
 
 		{
-			err = runTofuPlan(dir)
+			plan, err := runTFPlan(dir)
 			if err != nil {
 				log.Printf("plan failed: %v", err)
 				continue
 			}
 			results[tc.name].planSuccess = true
+			err = recordTFPlan(tc.name, plan)
+			if err != nil {
+				log.Printf("plan comparison failed: %v", err)
+			} else {
+				results[tc.name].planComparisonSuccess = true
+			}
 		}
 
-		defer runTofuDestroy(dir)
+		if tc.planOnly {
+			continue
+		}
+
+		defer runTFDestroy(dir)
 		output := map[string]any{}
 
 		{
-			output, err = runTofuApply(dir)
+			output, err = runTFApply(dir)
 			if err != nil {
 				log.Printf("apply failed: %v", err)
 				continue
