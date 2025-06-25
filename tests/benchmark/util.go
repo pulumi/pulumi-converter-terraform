@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 )
 
@@ -49,7 +51,6 @@ func copyDirExcept(src, dest, excludeSuffix string) error {
 	})
 }
 
-
 func run(dir string, args ...string) ([]byte, error) {
 	stdoutBuf := bytes.Buffer{}
 	log.Printf("running %s in %s", strings.Join(args, " "), dir)
@@ -65,4 +66,36 @@ func run(dir string, args ...string) ([]byte, error) {
 		return nil, err
 	}
 	return stdoutBuf.Bytes(), nil
+}
+
+func saveOrCompareFile[T any](path string, expected T) error {
+	if _, err := os.Stat(path); err == nil {
+		file, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		var actual T
+		err = json.Unmarshal(file, &actual)
+		if err != nil {
+			return err
+		}
+		if reflect.DeepEqual(actual, expected) {
+			return nil
+		}
+	} else {
+		err = os.MkdirAll(filepath.Dir(path), 0o755)
+		if err != nil {
+			return err
+		}
+		file, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		err = json.NewEncoder(file).Encode(expected)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

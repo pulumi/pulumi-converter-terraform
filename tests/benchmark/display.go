@@ -14,15 +14,25 @@ func formatResults(results map[string]*benchmarkResult) string {
 	return buf.String()
 }
 
+func getPercentage(numerator, denominator int) int {
+	if denominator == 0 {
+		return 100
+	}
+
+	return numerator * 100 / denominator
+}
+
 func resultSummary(results map[string]*benchmarkResult) string {
 	buf := bytes.Buffer{}
 	total := len(results)
 	type summary struct {
-		convertSuccesses int
-		planSuccesses    int
-		applySuccesses   int
-		assertSuccesses  int
-		assertTotal      int
+		convertSuccesses        int
+		planSuccesses           int
+		planComparisonSuccesses int
+		applySuccesses          int
+		assertSuccesses         int
+		applyTotal              int
+		assertTotal             int
 	}
 	res := summary{}
 	for _, v := range results {
@@ -31,6 +41,9 @@ func resultSummary(results map[string]*benchmarkResult) string {
 		}
 		if v.planSuccess {
 			res.planSuccesses++
+		}
+		if v.planComparisonSuccess {
+			res.planComparisonSuccesses++
 		}
 		if v.applySuccess {
 			res.applySuccesses++
@@ -41,12 +54,17 @@ func resultSummary(results map[string]*benchmarkResult) string {
 			}
 		}
 		res.assertTotal += len(v.assertSuccesses)
+		if !v.planOnly {
+			res.applyTotal++
+		}
 	}
+
 	buf.WriteString(fmt.Sprintf("total: %d\n", total))
-	buf.WriteString(fmt.Sprintf("convertSuccesses: %d (%d%%)\n", res.convertSuccesses, res.convertSuccesses*100/total))
-	buf.WriteString(fmt.Sprintf("planSuccesses: %d (%d%%)\n", res.planSuccesses, res.planSuccesses*100/total))
-	buf.WriteString(fmt.Sprintf("applySuccesses: %d (%d%%)\n", res.applySuccesses, res.applySuccesses*100/total))
-	buf.WriteString(fmt.Sprintf("assertSuccesses: %d (%d%%)\n", res.assertSuccesses, res.assertSuccesses*100/res.assertTotal))
+	buf.WriteString(fmt.Sprintf("convertSuccesses: %d (%d%%)\n", res.convertSuccesses, getPercentage(res.convertSuccesses, total)))
+	buf.WriteString(fmt.Sprintf("planSuccesses: %d (%d%%)\n", res.planSuccesses, getPercentage(res.planSuccesses, total)))
+	buf.WriteString(fmt.Sprintf("planComparisonSuccesses: %d (%d%%)\n", res.planComparisonSuccesses, getPercentage(res.planComparisonSuccesses, total)))
+	buf.WriteString(fmt.Sprintf("applySuccesses: %d (%d%%)\n", res.applySuccesses, getPercentage(res.applySuccesses, res.applyTotal)))
+	buf.WriteString(fmt.Sprintf("assertSuccesses: %d (%d%%)\n", res.assertSuccesses, getPercentage(res.assertSuccesses, res.assertTotal)))
 	return buf.String()
 }
 
@@ -55,7 +73,7 @@ func runBenchmarkForLanguage(language string, skipTF bool, testCases []testCase)
 	case "typescript":
 		tfResults := map[string]*benchmarkResult{}
 		if !skipTF {
-			tfResults = runTofuBenchmarks(testCases)
+			tfResults = runTFBenchmarks(testCases)
 			fmt.Printf("tfResults:\n%s", formatResults(tfResults))
 		}
 		claudeResults := runPulumiBenchmarks(testCases, runClaudeConvert)
@@ -78,7 +96,7 @@ func runBenchmarkForLanguage(language string, skipTF bool, testCases []testCase)
 func runBenchmark(skipTF bool, testCases []testCase) {
 	tfResults := map[string]*benchmarkResult{}
 	if !skipTF {
-		tfResults = runTofuBenchmarks(testCases)
+		tfResults = runTFBenchmarks(testCases)
 		fmt.Printf("tfResults:\n%s", formatResults(tfResults))
 	}
 
