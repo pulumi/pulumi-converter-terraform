@@ -300,10 +300,10 @@ func TestExample(t *testing.T) {
 			strict: true,
 		},
 		{
-			example:                       "https://github.com/terraform-aws-modules/terraform-aws-s3-bucket",
-			strict:                        true,
-			testOnlyThisExampleInLanguage: "typescript",
-			commit:                        "f90d8a385e4c70afd048e8997dcccf125b362236",
+			example: "https://github.com/terraform-aws-modules/terraform-aws-s3-bucket",
+			strict:  true,
+			//testOnlyThisExampleInLanguage: "typescript",
+			commit: "f90d8a385e4c70afd048e8997dcccf125b362236",
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-s3-bucket/examples/object",
