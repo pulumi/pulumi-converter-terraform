@@ -167,6 +167,12 @@ var allTestCases = map[string]testCase{
 			},
 		},
 	},
+	// adapted from https://github.com/hashicorp-education/learn-terraform-cloudflare-static-website
+	"cloudflare_aws_static_website": {
+		name:     "cloudflare_aws_static_website",
+		dir:      "programs/cloudflare_aws_static_website",
+		planOnly: true,
+	},
 }
 
 func main() {

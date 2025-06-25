@@ -1,0 +1,48 @@
+{
+  "resource_changes": [
+    {
+      "type": "aws_s3_bucket",
+      "name": "site"
+    },
+    {
+      "type": "aws_s3_bucket_acl",
+      "name": "site"
+    },
+    {
+      "type": "aws_s3_bucket_ownership_controls",
+      "name": "site"
+    },
+    {
+      "type": "aws_s3_bucket_policy",
+      "name": "site"
+    },
+    {
+      "type": "aws_s3_bucket_public_access_block",
+      "name": "site"
+    },
+    {
+      "type": "aws_s3_bucket_website_configuration",
+      "name": "site"
+    },
+    {
+      "type": "cloudflare_dns_record",
+      "name": "site_cname"
+    },
+    {
+      "type": "cloudflare_dns_record",
+      "name": "www"
+    }
+  ],
+  "output_changes": {
+    "bucket_endpoint": {
+      "actions": [
+        "create"
+      ]
+    },
+    "website_bucket_name": {
+      "actions": [
+        "create"
+      ]
+    }
+  }
+}

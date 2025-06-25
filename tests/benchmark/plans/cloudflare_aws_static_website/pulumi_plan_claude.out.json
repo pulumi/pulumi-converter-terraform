@@ -1,0 +1,59 @@
+{
+  "resourcePlans": {
+    "urn:pulumi:test::terraform-conversion::aws:s3/bucket:Bucket::site": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:s3/bucketAclV2:BucketAclV2::site": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:s3/bucketOwnershipControls:BucketOwnershipControls::site": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:s3/bucketPolicy:BucketPolicy::site": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:s3/bucketPublicAccessBlock:BucketPublicAccessBlock::site": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:s3/bucketWebsiteConfigurationV2:BucketWebsiteConfigurationV2::site": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::cloudflare:index/record:Record::site-cname": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::cloudflare:index/record:Record::www": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:providers:aws::aws": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:providers:cloudflare::cloudflare": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:pulumi:Stack::terraform-conversion-test": {
+      "steps": [
+        "create"
+      ]
+    }
+  }
+}
