@@ -120,6 +120,8 @@ func TestExample(t *testing.T) {
 		strict  bool
 		commit  string
 		skip    stringSet
+
+		testOnlyThisExampleInLanguage string
 	}{
 		{
 			example: "https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner",
@@ -245,8 +247,8 @@ func TestExample(t *testing.T) {
 			// TODO(bpollack) this started failing in CI but seems to pass with
 			// pulumi/pulumi changes which are blocked on this package's release.
 			// Disabling temporarily.
-			skip:    stringSet{csharp: struct{}{}},
-			strict:  true,
+			skip:   stringSet{csharp: struct{}{}},
+			strict: true,
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-role-for-service-accounts-eks",
@@ -300,23 +302,26 @@ func TestExample(t *testing.T) {
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-s3-bucket",
 			strict:  true,
+			commit:  "f90d8a385e4c70afd048e8997dcccf125b362236",
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-s3-bucket/examples/object",
 			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
+			skip:   allLanguages,
+			commit: "f90d8a385e4c70afd048e8997dcccf125b362236",
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-s3-bucket/examples/complete",
 			// TODO[pulumi/pulumi-converter-terraform#21]: Crashes in CI (uses too many resources?)
-			skip: allLanguages,
+			skip:   allLanguages,
+			commit: "f90d8a385e4c70afd048e8997dcccf125b362236",
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-rds",
 			// TODO[pulumi/pulumi#18446 strict should work if the plugin is available (std in this case).
 			// strict:  true,
 			// TODO[pulumi/pulumi#18448 when std is required for go conversion fails.
-			skip: newStringSet(golang) ,
+			skip: newStringSet(golang),
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-alb",
@@ -398,10 +403,20 @@ func TestExample(t *testing.T) {
 		}
 	}
 
+	hasNarrowing := false
 	for _, tt := range tests {
-		tt := tt
+		if tt.testOnlyThisExampleInLanguage != "" {
+			hasNarrowing = true
+		}
+	}
+
+	for _, tt := range tests {
 		t.Run(tt.example, func(t *testing.T) {
 			t.Parallel()
+
+			if hasNarrowing && tt.testOnlyThisExampleInLanguage == "" {
+				t.Skip()
+			}
 
 			if tt.skip.Equal(allLanguages) {
 				t.Skip()
@@ -435,6 +450,10 @@ func TestExample(t *testing.T) {
 				language := language
 				t.Run(language, func(t *testing.T) {
 					t.Parallel()
+
+					if hasNarrowing && tt.testOnlyThisExampleInLanguage != language {
+						t.Skip()
+					}
 
 					if tt.skip.Has(language) {
 						t.Skip()
