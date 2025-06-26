@@ -1,0 +1,164 @@
+{
+  "resourcePlans": {
+    "urn:pulumi:test::aws_eks_cluster::pulumi:providers:aws::default_6_83_0": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::pulumi:providers:pulumi::default": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::pulumi:providers:random::default_4_18_2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::pulumi:providers:std::default_2_2_0": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::pulumi:providers:vpcmod::default_5_8_1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::pulumi:pulumi:Stack::aws_eks_cluster-test": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::random:index/randomString:RandomString::suffix": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:index:ModuleState::vpc-state": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_default_network_acl::module.vpc.aws_default_network_acl.this[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_default_route_table::module.vpc.aws_default_route_table.default[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_default_security_group::module.vpc.aws_default_security_group.this[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_eip::module.vpc.aws_eip.nat[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_internet_gateway::module.vpc.aws_internet_gateway.this[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_nat_gateway::module.vpc.aws_nat_gateway.this[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_route::module.vpc.aws_route.private_nat_gateway[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_route::module.vpc.aws_route.public_internet_gateway[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_route_table::module.vpc.aws_route_table.private[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_route_table::module.vpc.aws_route_table.public[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_route_table_association::module.vpc.aws_route_table_association.private[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_route_table_association::module.vpc.aws_route_table_association.private[1]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_route_table_association::module.vpc.aws_route_table_association.private[2]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_route_table_association::module.vpc.aws_route_table_association.public[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_route_table_association::module.vpc.aws_route_table_association.public[1]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_route_table_association::module.vpc.aws_route_table_association.public[2]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_subnet::module.vpc.aws_subnet.private[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_subnet::module.vpc.aws_subnet.private[1]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_subnet::module.vpc.aws_subnet.private[2]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_subnet::module.vpc.aws_subnet.public[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_subnet::module.vpc.aws_subnet.public[1]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_subnet::module.vpc.aws_subnet.public[2]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module$vpcmod:tf:aws_vpc::module.vpc.aws_vpc.this[0]": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::aws_eks_cluster::vpcmod:index:Module::vpc": {
+      "steps": [
+        "create"
+      ]
+    }
+  }
+}

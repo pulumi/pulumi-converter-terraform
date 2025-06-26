@@ -1,0 +1,305 @@
+{
+  "resource_changes": [
+    {
+      "type": "random_string",
+      "name": "suffix"
+    },
+    {
+      "type": "aws_eks_addon_version",
+      "name": "this"
+    },
+    {
+      "type": "tls_certificate",
+      "name": "this"
+    },
+    {
+      "type": "aws_cloudwatch_log_group",
+      "name": "this"
+    },
+    {
+      "type": "aws_eks_access_entry",
+      "name": "this"
+    },
+    {
+      "type": "aws_eks_access_policy_association",
+      "name": "this"
+    },
+    {
+      "type": "aws_eks_addon",
+      "name": "this"
+    },
+    {
+      "type": "aws_eks_cluster",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_openid_connect_provider",
+      "name": "oidc_provider"
+    },
+    {
+      "type": "aws_iam_policy",
+      "name": "cluster_encryption"
+    },
+    {
+      "type": "aws_iam_role",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_role_policy_attachment",
+      "name": "cluster_encryption"
+    },
+    {
+      "type": "aws_iam_role_policy_attachment",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_role_policy_attachment",
+      "name": "this"
+    },
+    {
+      "type": "aws_security_group",
+      "name": "cluster"
+    },
+    {
+      "type": "aws_security_group",
+      "name": "node"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "cluster"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "node"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "node"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "node"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "node"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "node"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "node"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "node"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "node"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "node"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "node"
+    },
+    {
+      "type": "time_sleep",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_policy_document",
+      "name": "assume_role_with_oidc"
+    },
+    {
+      "type": "aws_iam_role",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_role_policy_attachment",
+      "name": "custom"
+    },
+    {
+      "type": "aws_default_network_acl",
+      "name": "this"
+    },
+    {
+      "type": "aws_default_route_table",
+      "name": "default"
+    },
+    {
+      "type": "aws_default_security_group",
+      "name": "this"
+    },
+    {
+      "type": "aws_eip",
+      "name": "nat"
+    },
+    {
+      "type": "aws_internet_gateway",
+      "name": "this"
+    },
+    {
+      "type": "aws_nat_gateway",
+      "name": "this"
+    },
+    {
+      "type": "aws_route",
+      "name": "private_nat_gateway"
+    },
+    {
+      "type": "aws_route",
+      "name": "public_internet_gateway"
+    },
+    {
+      "type": "aws_route_table",
+      "name": "private"
+    },
+    {
+      "type": "aws_route_table",
+      "name": "public"
+    },
+    {
+      "type": "aws_route_table_association",
+      "name": "private"
+    },
+    {
+      "type": "aws_route_table_association",
+      "name": "private"
+    },
+    {
+      "type": "aws_route_table_association",
+      "name": "private"
+    },
+    {
+      "type": "aws_route_table_association",
+      "name": "public"
+    },
+    {
+      "type": "aws_route_table_association",
+      "name": "public"
+    },
+    {
+      "type": "aws_route_table_association",
+      "name": "public"
+    },
+    {
+      "type": "aws_subnet",
+      "name": "private"
+    },
+    {
+      "type": "aws_subnet",
+      "name": "private"
+    },
+    {
+      "type": "aws_subnet",
+      "name": "private"
+    },
+    {
+      "type": "aws_subnet",
+      "name": "public"
+    },
+    {
+      "type": "aws_subnet",
+      "name": "public"
+    },
+    {
+      "type": "aws_subnet",
+      "name": "public"
+    },
+    {
+      "type": "aws_vpc",
+      "name": "this"
+    },
+    {
+      "type": "aws_eks_node_group",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_role",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_role_policy_attachment",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_role_policy_attachment",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_role_policy_attachment",
+      "name": "this"
+    },
+    {
+      "type": "aws_launch_template",
+      "name": "this"
+    },
+    {
+      "type": "aws_eks_node_group",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_role",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_role_policy_attachment",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_role_policy_attachment",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_role_policy_attachment",
+      "name": "this"
+    },
+    {
+      "type": "aws_launch_template",
+      "name": "this"
+    },
+    {
+      "type": "aws_iam_policy_document",
+      "name": "this"
+    },
+    {
+      "type": "aws_kms_alias",
+      "name": "this"
+    },
+    {
+      "type": "aws_kms_key",
+      "name": "this"
+    },
+    {
+      "type": "null_resource",
+      "name": "validate_cluster_service_cidr"
+    },
+    {
+      "type": "null_resource",
+      "name": "validate_cluster_service_cidr"
+    }
+  ],
+  "output_changes": {
+    "cluster_endpoint": {
+      "actions": [
+        "create"
+      ]
+    },
+    "cluster_name": {
+      "actions": [
+        "create"
+      ]
+    },
+    "cluster_security_group_id": {
+      "actions": [
+        "create"
+      ]
+    }
+  }
+}
