@@ -167,6 +167,28 @@ var allTestCases = map[string]testCase{
 			},
 		},
 	},
+	// adapted from https://github.com/corymhall/example-terraform-project
+	"aws_vpc": {
+		name: "aws_vpc",
+		dir:  "programs/aws_vpc",
+		assertions: map[string]assertion{
+			"vpc exists": func(output map[string]any) error {
+				if output["vpc"] == nil {
+					return fmt.Errorf("vpc is nil")
+				}
+				vpcId := output["vpc"].(string)
+
+				if len(vpcId) == 0 {
+					return fmt.Errorf("vpc id is empty")
+				}
+				_, err := run(".", "aws", "ec2", "describe-vpcs", "--filters", "Name=vpc-id,Values="+vpcId)
+				if err != nil {
+					return fmt.Errorf("failed to describe vpc: %w", err)
+				}
+				return nil
+			},
+		},
+	},
 	// adapted from https://github.com/hashicorp-education/learn-terraform-cloudflare-static-website
 	"cloudflare_aws_static_website": {
 		name:     "cloudflare_aws_static_website",

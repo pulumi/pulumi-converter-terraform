@@ -1,0 +1,149 @@
+{
+  "resourcePlans": {
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/eip:Eip::nat-eip": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/internetGateway:InternetGateway::igw": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/natGateway:NatGateway::nat-gw": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/route:Route::private-route": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/route:Route::public-route": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/routeTable:RouteTable::database-rt": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/routeTable:RouteTable::private-rt": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/routeTable:RouteTable::public-rt": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/routeTableAssociation:RouteTableAssociation::database-rta-0": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/routeTableAssociation:RouteTableAssociation::database-rta-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/routeTableAssociation:RouteTableAssociation::database-rta-2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/routeTableAssociation:RouteTableAssociation::private-rta-0": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/routeTableAssociation:RouteTableAssociation::private-rta-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/routeTableAssociation:RouteTableAssociation::private-rta-2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/routeTableAssociation:RouteTableAssociation::public-rta-0": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/routeTableAssociation:RouteTableAssociation::public-rta-1": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/routeTableAssociation:RouteTableAssociation::public-rta-2": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/subnet:Subnet::database-a": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/subnet:Subnet::database-b": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/subnet:Subnet::database-c": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/subnet:Subnet::private-a": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/subnet:Subnet::private-b": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/subnet:Subnet::private-c": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/subnet:Subnet::public-a": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/subnet:Subnet::public-b": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/subnet:Subnet::public-c": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::aws:ec2/vpc:Vpc::vpc": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::pulumi:providers:aws::aws": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-aws-vpc-conversion::pulumi:pulumi:Stack::terraform-aws-vpc-conversion-test": {
+      "steps": [
+        "create"
+      ]
+    }
+  }
+}
