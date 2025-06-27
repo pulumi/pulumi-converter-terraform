@@ -1,0 +1,85 @@
+{
+  "resource_changes": [
+    {
+      "type": "aws_acm_certificate",
+      "name": "cert"
+    },
+    {
+      "type": "aws_ecs_cluster",
+      "name": "main"
+    },
+    {
+      "type": "aws_subnet",
+      "name": "main"
+    },
+    {
+      "type": "aws_vpc",
+      "name": "main"
+    },
+    {
+      "type": "aws_lb",
+      "name": "main"
+    },
+    {
+      "type": "aws_lb_listener",
+      "name": "main"
+    },
+    {
+      "type": "aws_lb_target_group",
+      "name": "main"
+    },
+    {
+      "type": "aws_security_group",
+      "name": "main"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "egress"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "ingress"
+    },
+    {
+      "type": "aws_ecs_service",
+      "name": "main"
+    },
+    {
+      "type": "aws_security_group",
+      "name": "main"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "egress"
+    },
+    {
+      "type": "aws_security_group_rule",
+      "name": "ingress"
+    },
+    {
+      "type": "aws_iam_role_policy",
+      "name": "read_bucket_access"
+    },
+    {
+      "type": "aws_iam_policy_document",
+      "name": "execution_policy"
+    },
+    {
+      "type": "aws_cloudwatch_log_group",
+      "name": "main"
+    },
+    {
+      "type": "aws_ecs_task_definition",
+      "name": "def"
+    },
+    {
+      "type": "aws_iam_role",
+      "name": "execution"
+    },
+    {
+      "type": "aws_iam_role_policy",
+      "name": "execution_policy"
+    }
+  ],
+  "output_changes": null
+}

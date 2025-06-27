@@ -1,0 +1,129 @@
+{
+  "resourcePlans": {
+    "urn:pulumi:test::terraform-conversion::aws:acm/certificate:Certificate::cert": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:ec2/subnet:Subnet::main": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:ec2/vpc:Vpc::main": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::aws:ecs/cluster:Cluster::main": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:Alb$aws:ec2/securityGroup:SecurityGroup::sample-app-alb-sg": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:Alb$aws:ec2/securityGroupRule:SecurityGroupRule::sample-app-alb-egress": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:Alb$aws:ec2/securityGroupRule:SecurityGroupRule::sample-app-alb-ingress": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:Alb$aws:lb/listener:Listener::sample-app-alb-listener": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:Alb$aws:lb/loadBalancer:LoadBalancer::sample-app-alb-lb": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:Alb$aws:lb/targetGroup:TargetGroup::sample-app-alb-tg": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:Alb::sample-app-alb": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:EcsService$aws:ec2/securityGroup:SecurityGroup::sample-app-ecs-service-sg": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:EcsService$aws:ec2/securityGroupRule:SecurityGroupRule::sample-app-ecs-service-egress": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:EcsService$aws:ecs/service:Service::sample-app-ecs-service-service": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:EcsService::sample-app-ecs-service": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:EcsTask$aws:cloudwatch/logGroup:LogGroup::sample-app-task-def-logs": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:EcsTask$aws:ecs/taskDefinition:TaskDefinition::sample-app-task-def-def": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:EcsTask$aws:iam/role:Role::sample-app-task-def-execution": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:EcsTask$aws:iam/rolePolicy:RolePolicy::sample-app-task-def-execution-policy": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:EcsTask::sample-app-task-def": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:S3Iam$aws:iam/rolePolicy:RolePolicy::sample-app-s3-iam-read-bucket-access": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::custom:aws:S3Iam::sample-app-s3-iam": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:providers:aws::aws": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:providers:aws::default_6_83_0": {
+      "steps": [
+        "create"
+      ]
+    },
+    "urn:pulumi:test::terraform-conversion::pulumi:pulumi:Stack::terraform-conversion-test": {
+      "steps": [
+        "create"
+      ]
+    }
+  }
+}

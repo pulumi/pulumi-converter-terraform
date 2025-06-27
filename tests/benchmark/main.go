@@ -189,6 +189,12 @@ var allTestCases = map[string]testCase{
 			},
 		},
 	},
+	// adapted from https://github.com/corymhall/example-terraform-project
+	"aws_project": {
+		name:     "aws_project",
+		dir:      "programs/aws_project",
+		planOnly: true,
+	},
 	// adapted from https://github.com/hashicorp-education/learn-terraform-cloudflare-static-website
 	"cloudflare_aws_static_website": {
 		name:     "cloudflare_aws_static_website",
