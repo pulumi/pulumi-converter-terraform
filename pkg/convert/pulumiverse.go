@@ -118,7 +118,6 @@ var pulumiSupportedProviders = []string{
 	"splunk",
 	"spotinst",
 	"statuscake",
-	"sumologic",
 	"tailscale",
 	"tf-provider-boilerplate",
 	"time",
