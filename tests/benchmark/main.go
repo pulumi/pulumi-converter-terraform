@@ -1,11 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"time"
 )
@@ -34,12 +31,9 @@ var allTestCases = map[string]testCase{
 				if output["url"] == nil {
 					return fmt.Errorf("url is nil")
 				}
-				if len(output["url"].(string)) == 0 {
-					return fmt.Errorf("url is empty")
-				}
-				out, err := run(".", "aws", "s3", "cp", output["url"].(string), "-")
+				out, err := getS3Object(output["url"].(string))
 				if err != nil {
-					return fmt.Errorf("failed to copy object: %w", err)
+					return fmt.Errorf("failed to get s3 object: %w", err)
 				}
 				if string(out) != "hi" {
 					return fmt.Errorf("expected 'hi', got %s", string(out))
@@ -53,31 +47,9 @@ var allTestCases = map[string]testCase{
 				}
 
 				name := output["name"].(string)
-				if len(name) == 0 {
-					return fmt.Errorf("name is empty")
-				}
-
-				out, err := run(".", "aws", "s3api", "get-bucket-tagging", "--bucket", name)
+				tagsMap, err := getS3BucketTags(name)
 				if err != nil {
 					return fmt.Errorf("failed to get bucket tags: %w", err)
-				}
-
-				type response struct {
-					TagSet []struct {
-						Key   string `json:"Key"`
-						Value string `json:"Value"`
-					} `json:"TagSet"`
-				}
-
-				var tags response
-				err = json.Unmarshal(out, &tags)
-				if err != nil {
-					return fmt.Errorf("failed to unmarshal tags: %w", err)
-				}
-
-				tagsMap := make(map[string]string)
-				for _, tag := range tags.TagSet {
-					tagsMap[tag.Key] = tag.Value
 				}
 
 				if tagsMap["Name"] != "My bucket" {
@@ -105,30 +77,14 @@ var allTestCases = map[string]testCase{
 				}
 
 				url := output["url"].(string)
-				if len(url) == 0 {
-					return fmt.Errorf("url is empty")
-				}
-
-				resp, err := http.Get(url + "/hello?Name=John")
+				message, err := callLambda(url + "/hello?Name=John")
 				if err != nil {
-					return fmt.Errorf("failed to make http request: %w", err)
-				}
-				defer resp.Body.Close()
-
-				if resp.StatusCode != 200 {
-					return fmt.Errorf("expected status code 200, got %d", resp.StatusCode)
+					return fmt.Errorf("failed to call lambda: %w", err)
 				}
 
-				body, err := io.ReadAll(resp.Body)
-				if err != nil {
-					return fmt.Errorf("failed to read response body: %w", err)
+				if message != "Hello, John!" {
+					return fmt.Errorf("expected 'Hello, John!', got %s", message)
 				}
-
-				expected := `{"message":"Hello, John!"}`
-				if string(body) != expected {
-					return fmt.Errorf("expected %s, got %s", expected, string(body))
-				}
-
 				return nil
 			},
 			"tags are correct": func(output map[string]any) error {
@@ -136,30 +92,20 @@ var allTestCases = map[string]testCase{
 					return fmt.Errorf("arn is nil")
 				}
 				arn := output["arn"].(string)
-				out, err := run(".", "aws", "lambda", "list-tags", "--resource", arn)
+				tags, err := getLambdaTags(arn)
 				if err != nil {
-					return fmt.Errorf("failed to list tags: %w", err)
+					return fmt.Errorf("failed to get lambda tags: %w", err)
 				}
 
-				type response struct {
-					Tags map[string]string `json:"Tags"`
-				}
-
-				var tags response
-				err = json.Unmarshal(out, &tags)
-				if err != nil {
-					return fmt.Errorf("failed to unmarshal tags: %w", err)
-				}
-
-				if tags.Tags["project"] != "aws_lambda_api" {
+				if tags["project"] != "aws_lambda_api" {
 					return fmt.Errorf("wrong tags: %v", tags)
 				}
 
-				if tags.Tags["environment"] != "test" {
+				if tags["environment"] != "test" {
 					return fmt.Errorf("wrong tags: %v", tags)
 				}
 
-				if tags.Tags["my_tag"] != "my_value" {
+				if tags["my_tag"] != "my_value" {
 					return fmt.Errorf("wrong tags: %v", tags)
 				}
 
@@ -177,13 +123,9 @@ var allTestCases = map[string]testCase{
 					return fmt.Errorf("vpc is nil")
 				}
 				vpcId := output["vpc"].(string)
-
-				if len(vpcId) == 0 {
-					return fmt.Errorf("vpc id is empty")
-				}
-				_, err := run(".", "aws", "ec2", "describe-vpcs", "--filters", "Name=vpc-id,Values="+vpcId)
+				err := checkVpcExists(vpcId)
 				if err != nil {
-					return fmt.Errorf("failed to describe vpc: %w", err)
+					return fmt.Errorf("vpc does not exist: %w", err)
 				}
 				return nil
 			},
