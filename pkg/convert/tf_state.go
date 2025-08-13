@@ -20,6 +20,7 @@ import (
 	"math/big"
 	"os"
 	"strings"
+	"unicode"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
@@ -221,11 +222,33 @@ func TranslateState(info ProviderInfoSource, path string) (*plugin.ConvertStateR
 						name = fmt.Sprintf("%s-%s", name, instanceAddr.Value().AsString())
 					}
 
-					resources = append(resources, plugin.ResourceImport{
+					logicalName := name
+
+					// if the name starts with a digit, prepend an underscore to it
+					if len(name) > 0 && unicode.IsDigit(rune(name[0])) {
+						name = "_" + name
+					}
+
+					// clean special characters from the name to make it a valid identifier
+					// replacing the special characters with underscores
+					name = strings.Map(func(r rune) rune {
+						if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
+							return '_'
+						}
+						return r
+					}, name)
+
+					resource := plugin.ResourceImport{
 						Type: pulumiType,
 						Name: name,
 						ID:   id,
-					})
+					}
+
+					if name != logicalName {
+						resource.LogicalName = logicalName
+					}
+
+					resources = append(resources, resource)
 				}
 			}
 		}

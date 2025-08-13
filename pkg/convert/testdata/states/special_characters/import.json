@@ -1,0 +1,12 @@
+[
+  {
+    "Type": "simple:index:resource",
+    "Name": "simple_resource_a_simple___resource",
+    "ID": "abc123",
+    "LogicalName": "simple_resource-a simple \u0026 resource",
+    "IsComponent": false,
+    "IsRemote": false,
+    "Version": "",
+    "PluginDownloadURL": ""
+  }
+]
