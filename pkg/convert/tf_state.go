@@ -223,7 +223,10 @@ func TranslateState(info ProviderInfoSource, path string) (*plugin.ConvertStateR
 
 					// clean special characters from the name to make it a valid identifier
 					// replacing the special characters with underscores
-					specialRunes := []rune{' ', '-', '.', '/', '\\', '$', '@', '#', '%', '^', '&', '*', '(', ')', '"', '\'', '<', '>', '|'}
+					specialRunes := []rune{
+						' ', '-', '.', '/', '\\', '$', '@', '#', '%',
+						'^', '&', '*', '(', ')', '"', '\'', '<', '>', '|',
+					}
 					name = strings.Map(func(r rune) rune {
 						for _, specialRune := range specialRunes {
 							if r == specialRune {
