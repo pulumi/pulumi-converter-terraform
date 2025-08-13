@@ -221,6 +221,18 @@ func TranslateState(info ProviderInfoSource, path string) (*plugin.ConvertStateR
 						name = fmt.Sprintf("%s-%s", name, instanceAddr.Value().AsString())
 					}
 
+					// clean special characters from the name to make it a valid identifier
+					// replacing the special characters with underscores
+					specialRunes := []rune{' ', '-', '.', '/', '\\', '$', '@', '#', '%', '^', '&', '*', '(', ')', '"', '\'', '<', '>', '|'}
+					name = strings.Map(func(r rune) rune {
+						for _, specialRune := range specialRunes {
+							if r == specialRune {
+								return '_'
+							}
+						}
+						return r
+					}, name)
+
 					resources = append(resources, plugin.ResourceImport{
 						Type: pulumiType,
 						Name: name,

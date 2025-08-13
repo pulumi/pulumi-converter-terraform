@@ -1,7 +1,7 @@
 [
   {
     "Type": "simple:index:resource",
-    "Name": "a_resource-0",
+    "Name": "a_resource_0",
     "ID": "abc123",
     "LogicalName": "",
     "IsComponent": false,
@@ -11,7 +11,7 @@
   },
   {
     "Type": "simple:index:resource",
-    "Name": "a_resource-1",
+    "Name": "a_resource_1",
     "ID": "def456",
     "LogicalName": "",
     "IsComponent": false,

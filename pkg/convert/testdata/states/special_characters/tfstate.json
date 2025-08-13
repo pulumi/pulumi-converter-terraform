@@ -1,0 +1,22 @@
+{
+    "version": 4,
+    "resources": [
+        {
+            "mode": "managed",
+            "type": "simple_resource",
+            "name": "simple_resource",
+            "provider": "provider[\"registry.terraform.io/pulumi/simple\"]",
+            "instances": [
+                {
+                    "index_key": "a simple & resource",
+                    "attributes": {
+                        "id": "abc123",
+                        "input_one": "hello",
+                        "input_two": 42,
+                        "result": "hello42"
+                    }
+                }
+            ]
+        }
+    ]
+}
