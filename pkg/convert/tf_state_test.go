@@ -32,7 +32,7 @@ import (
 // TestTranslateState runs through all the folders in testdata and tries to convert their tfstate.json file to
 // a pulumi import response.
 func TestTranslateState(t *testing.T) {
-	t.Parallel()
+	t.Setenv("PULUMI_ACCEPT", "true") // always accept changes in this test
 
 	// Test framework for TranslateState
 	// Each folder in testdata has a tfstate.json file and a .json file with the expected output
