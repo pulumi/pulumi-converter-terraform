@@ -238,12 +238,17 @@ func TranslateState(info ProviderInfoSource, path string) (*plugin.ConvertStateR
 						return r
 					}, name)
 
-					resources = append(resources, plugin.ResourceImport{
-						Type:        pulumiType,
-						Name:        name,
-						LogicalName: logicalName,
-						ID:          id,
-					})
+					resource := plugin.ResourceImport{
+						Type: pulumiType,
+						Name: name,
+						ID:   id,
+					}
+
+					if name != logicalName {
+						resource.LogicalName = logicalName
+					}
+
+					resources = append(resources, resource)
 				}
 			}
 		}

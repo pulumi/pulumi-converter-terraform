@@ -3,7 +3,7 @@
     "Type": "simple:index:resource",
     "Name": "a_resource",
     "ID": "abc123",
-    "LogicalName": "a_resource",
+    "LogicalName": "",
     "IsComponent": false,
     "IsRemote": false,
     "Version": "",
