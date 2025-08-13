@@ -226,7 +226,7 @@ func TranslateState(info ProviderInfoSource, path string) (*plugin.ConvertStateR
 
 					// if the name starts with a digit, prepend an underscore to it
 					if len(name) > 0 && unicode.IsDigit(rune(name[0])) {
-						name = fmt.Sprintf("_%s", name)
+						name = "_" + name
 					}
 
 					// clean special characters from the name to make it a valid identifier
