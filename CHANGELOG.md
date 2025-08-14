@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+## 1.2.2
+
+### Improvements
+
+ - Sanitize resource names during terraform state conversion to handle special characters and make them valid identifiers.
+
+
 ## 1.2.1
 
 - Support converting remote and local modules to resources parameterized by
