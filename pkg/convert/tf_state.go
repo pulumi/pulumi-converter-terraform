@@ -15,6 +15,7 @@
 package convert
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -43,21 +44,58 @@ func getString(addr addrs.Resource, obj map[string]interface{}, key string) (str
 	return str, nil
 }
 
-func TranslateState(info ProviderInfoSource, path string) (*plugin.ConvertStateResponse, error) {
-	stateFile, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	file, err := statefile.Read(stateFile)
+// readStateFile reads a Terraform state file from the given path,
+// removes the `check_results` field if it exists, and
+// returns the resulting state file. The reason we remove the `check_results` field is that it
+// is not used by the import process and can cause issues with parsing the state file.
+func readStateFile(path string) (*statefile.File, error) {
+	stateFileContents, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
+	var contentJSON map[string]interface{}
+	err = json.Unmarshal(stateFileContents, &contentJSON)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal state file to JSON %q: %w", path, err)
+	}
+
+	// if the state file contains "check_results" field, we remove it so that the state parser
+	// can handle the rest of the file, check_results isn't used by the import process
+	delete(contentJSON, "check_results")
+
+	modifiedStateFileContents, err := json.Marshal(contentJSON)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal state file %q: %w", path, err)
+	}
+
+	stateFile, err := statefile.Read(bytes.NewReader(modifiedStateFileContents))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read state file %w", err)
+	}
+
+	return stateFile, nil
+}
+
+func TranslateState(info ProviderInfoSource, path string) (*plugin.ConvertStateResponse, error) {
 	diagnostics := hcl.Diagnostics{}
 
-	state := file.State
+	file, err := readStateFile(path)
+	if err != nil {
+		return nil, err
+	}
+
 	var resources []plugin.ResourceImport
-	for _, mod := range state.Modules {
+
+	if file.State == nil {
+		// return empty response
+		return &plugin.ConvertStateResponse{
+			Resources:   resources,
+			Diagnostics: diagnostics,
+		}, nil
+	}
+
+	for _, mod := range file.State.Modules {
 		for _, resource := range mod.Resources {
 			// We only care about managed resources, we can't import data sources
 			if resource.Addr.Resource.Mode != addrs.ManagedResourceMode {
