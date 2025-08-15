@@ -15,6 +15,7 @@
 package convert
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -44,13 +45,29 @@ func getString(addr addrs.Resource, obj map[string]interface{}, key string) (str
 }
 
 func TranslateState(info ProviderInfoSource, path string) (*plugin.ConvertStateResponse, error) {
-	stateFile, err := os.Open(path)
+	stateFileContents, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	file, err := statefile.Read(stateFile)
+
+	var contentJSON map[string]interface{}
+	err = json.Unmarshal(stateFileContents, &contentJSON)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal state file to JSON %q: %w", path, err)
+	}
+
+	// if the state file contains "check_results" field, we remove it so that the parser
+	// can handle the rest of the file
+	delete(contentJSON, "check_results")
+
+	modifiedStateFileContents, err := json.Marshal(contentJSON)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal state file %q: %w", path, err)
+	}
+
+	file, err := statefile.Read(bytes.NewReader(modifiedStateFileContents))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read state file %w", err)
 	}
 
 	diagnostics := hcl.Diagnostics{}
