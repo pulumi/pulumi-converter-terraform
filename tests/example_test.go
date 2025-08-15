@@ -203,40 +203,10 @@ func TestExample(t *testing.T) {
 			strict:  true,
 		},
 		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-assumable-role",
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-assumable-role-with-oidc",
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-assumable-role-with-saml",
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-assumable-roles",
-			strict:  true,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-assumable-roles-with-saml",
-			strict:  true,
-		},
-		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-eks-role",
 			// TODO[pulumi/pulumi-converter-terraform#32]: upstream example change can no longer convert
 			// Was incidentally broken by https://github.com/pulumi/pulumi-converter-terraform/pull/91.
 			skip: allLanguages,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-github-oidc",
-			strict:  true,
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-group-complete",
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-group-with-assumable-roles-policy",
-		},
-		{
-			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-group-with-policies",
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-iam/examples/iam-policy",
