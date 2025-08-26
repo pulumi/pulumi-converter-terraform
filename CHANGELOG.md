@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+## 1.2.3
+
+### Bug Fixes
+ - Handle terraform state files that contain `check_results` field by removing it before parsing the rest of the state file.
+
 ## 1.2.2
 
 ### Improvements
