@@ -1220,7 +1220,7 @@ func convertObjectConsExpr(state *convertState, inBlock bool, scopes *scopes,
 					// We either don't know this type, or know it's not a map, so we should try to rename the keys.
 					subQualifiedPath = appendPath(fullyQualifiedPath, *name)
 					if state.rewriteObjectKeys {
-						*name = scopes.pulumiName(subQualifiedPath)
+						*name = scopes.pulumiName(*name, subQualifiedPath)
 					}
 				}
 
@@ -1467,7 +1467,7 @@ func rewriteRelativeTraversal(scopes *scopes, fullyQualifiedPath string, travers
 		var name string
 		if fullyQualifiedPath != "" {
 			fullyQualifiedPath = appendPath(fullyQualifiedPath, attr.Name)
-			name = scopes.pulumiName(fullyQualifiedPath)
+			name = scopes.pulumiName(name, fullyQualifiedPath)
 		} else {
 			name = tfbridge.TerraformToPulumiNameV2(attr.Name, nil, nil)
 		}
@@ -2114,7 +2114,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 		}
 		// If this is a list so add [] to the path
 		isList := !scopes.maxItemsOne(blockPath) && !scopes.isResource(blockPath)
-		name := scopes.pulumiName(blockPath)
+		name := scopes.pulumiName("", blockPath)
 		if isList {
 			blockPath = appendPathArray(blockPath)
 		}
@@ -2236,7 +2236,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 
 		var name string
 		if state.rewriteObjectKeys {
-			name = scopes.pulumiName(attrPath)
+			name = scopes.pulumiName(attr.Name, attrPath)
 		} else {
 			name = attr.Name
 		}

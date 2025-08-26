@@ -225,6 +225,8 @@ func (s *scopes) getOrAddPulumiName(path, prefix, suffix string) string {
 
 // Given a fully typed path (e.g. data.simple_data_source.a_field) returns the final part of that path
 // (a_field) and the either the Resource or Schema, and SchemaInfo for that path (if any).
+//
+// Can return PathInfo{} if the final part cannot be resolved. The caller is then responsible for handling that case.
 func (s *scopes) getInfo(fullyQualifiedPath string) PathInfo {
 	parts := strings.Split(fullyQualifiedPath, ".")
 	contract.Assertf(len(parts) >= 2, "empty path passed into getInfo: %s", fullyQualifiedPath)
@@ -272,40 +274,41 @@ func (s *scopes) getInfo(fullyQualifiedPath string) PathInfo {
 
 		// part was indexed (i.e. something like "part[]" or part[]foo[][]bar), so rather than looking at the
 		// fields we need to look at the elements.
-		for {
-			var resourceOrSchema interface{}
-			if curSch != nil {
-				resourceOrSchema = curSch.Elem()
+		var resourceOrSchema interface{}
+		if curSch != nil {
+			resourceOrSchema = curSch.Elem()
+		}
+		if curInfo != nil {
+			curInfo = curInfo.Elem
+		}
+
+		if rest == "" && len(parts) == 1 {
+			// This element is what we we're looking for
+			res, _ := resourceOrSchema.(shim.Resource)
+			sch, _ := resourceOrSchema.(shim.Schema)
+			return PathInfo{
+				Name:       part,
+				Resource:   res,
+				Schema:     sch,
+				SchemaInfo: curInfo,
+			}
+		} else if rest == "" {
+			// Can recurse into the next set of fields
+			var nextSchema shim.SchemaMap
+			var nextInfo map[string]*tfbridge.SchemaInfo
+			if sch, ok := resourceOrSchema.(shim.Resource); ok {
+				nextSchema = sch.Schema()
 			}
 			if curInfo != nil {
-				curInfo = curInfo.Elem
+				nextInfo = curInfo.Fields
 			}
-
-			if rest == "" && len(parts) == 1 {
-				// This element is what we we're looking for
-				res, _ := resourceOrSchema.(shim.Resource)
-				sch, _ := resourceOrSchema.(shim.Schema)
-				return PathInfo{
-					Name:       part,
-					Resource:   res,
-					Schema:     sch,
-					SchemaInfo: curInfo,
-				}
-			} else if rest == "" {
-				// Can recurse into the next set of fields
-				var nextSchema shim.SchemaMap
-				var nextInfo map[string]*tfbridge.SchemaInfo
-				if sch, ok := resourceOrSchema.(shim.Resource); ok {
-					nextSchema = sch.Schema()
-				}
-				if curInfo != nil {
-					nextInfo = curInfo.Fields
-				}
-				return getInner(nextSchema, nextInfo, parts[1:])
-			}
-
-			panic(fmt.Sprintf("complex indexerParts not implemented: %v", rest))
+			return getInner(nextSchema, nextInfo, parts[1:])
 		}
+
+		// Otherwise we have a complex indexer part that we can't handle yet.
+		// The caller is responsible for handling this, e.g. using the name as is or
+		// camelCasing it, etc.
+		return PathInfo{}
 	}
 
 	if parts[0] == "data" {
@@ -356,7 +359,7 @@ func (s *scopes) getInfo(fullyQualifiedPath string) PathInfo {
 }
 
 // Given a fully typed path (e.g. data.simple_data_source.my_data.a_field) returns the pulumi name for that path.
-func (s *scopes) pulumiName(fullyQualifiedPath string) string {
+func (s *scopes) pulumiName(name, fullyQualifiedPath string) string {
 	info := s.getInfo(fullyQualifiedPath)
 
 	// This should only be called for attribute paths, so panic if this returned a resource
@@ -377,8 +380,14 @@ func (s *scopes) pulumiName(fullyQualifiedPath string) string {
 			map[string]*tfbridge.SchemaInfo{info.Name: schemaInfo})
 	}
 
+	// If we resolved the name then use that, otherwise
+	// the fallback is to use the provided name (e.g. the Terraform name)
+	if info.Name != "" {
+		name = info.Name
+	}
+
 	// Else just return the name camel cased
-	return camelCaseName(info.Name)
+	return camelCaseName(name)
 }
 
 // Given a fully typed path (e.g. data.simple_data_source.my_data.a_field) returns if the schema says it's a map.

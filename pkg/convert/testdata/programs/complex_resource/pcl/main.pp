@@ -8,6 +8,9 @@ resource "aResource" "complex:index/index:resource" {
     a = true
     b = false
   }
+  innerListListObjects = [[{
+    innerString = "hello"
+  }]]
   innerListObject = {
     innerString = "hello again"
   }
