@@ -226,7 +226,8 @@ func (s *scopes) getOrAddPulumiName(path, prefix, suffix string) string {
 // Given a fully typed path (e.g. data.simple_data_source.a_field) returns the final part of that path
 // (a_field) and the either the Resource or Schema, and SchemaInfo for that path (if any).
 //
-// Can return (PathInfo{}, false) if the final part cannot be resolved. The caller is then responsible for handling that case.
+// Can return (PathInfo{}, false) if the final part cannot be resolved.
+// The caller is then responsible for handling that case.
 func (s *scopes) getInfo(fullyQualifiedPath string) (PathInfo, bool) {
 	parts := strings.Split(fullyQualifiedPath, ".")
 	contract.Assertf(len(parts) >= 2, "empty path passed into getInfo: %s", fullyQualifiedPath)
