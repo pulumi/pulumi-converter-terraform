@@ -21,3 +21,4 @@ resource "complex_resource" "a_resource" {
 output "some_output" {
     value = complex_resource.a_resource.result
 }
+
