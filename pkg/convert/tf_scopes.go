@@ -226,15 +226,15 @@ func (s *scopes) getOrAddPulumiName(path, prefix, suffix string) string {
 // Given a fully typed path (e.g. data.simple_data_source.a_field) returns the final part of that path
 // (a_field) and the either the Resource or Schema, and SchemaInfo for that path (if any).
 //
-// Can return PathInfo{} if the final part cannot be resolved. The caller is then responsible for handling that case.
-func (s *scopes) getInfo(fullyQualifiedPath string) PathInfo {
+// Can return (PathInfo{}, false) if the final part cannot be resolved. The caller is then responsible for handling that case.
+func (s *scopes) getInfo(fullyQualifiedPath string) (PathInfo, bool) {
 	parts := strings.Split(fullyQualifiedPath, ".")
 	contract.Assertf(len(parts) >= 2, "empty path passed into getInfo: %s", fullyQualifiedPath)
 	contract.Assertf(parts[0] != "", "empty path part passed into getInfo: %s", fullyQualifiedPath)
 	contract.Assertf(parts[1] != "", "empty path part passed into getInfo: %s", fullyQualifiedPath)
 
-	var getInner func(sch shim.SchemaMap, info map[string]*tfbridge.SchemaInfo, parts []string) PathInfo
-	getInner = func(sch shim.SchemaMap, info map[string]*tfbridge.SchemaInfo, parts []string) PathInfo {
+	var getInner func(sch shim.SchemaMap, info map[string]*tfbridge.SchemaInfo, parts []string) (PathInfo, bool)
+	getInner = func(sch shim.SchemaMap, info map[string]*tfbridge.SchemaInfo, parts []string) (PathInfo, bool) {
 		contract.Assertf(parts[0] != "", "empty path part passed into getInfo")
 
 		// At this point parts[0] may be an property + indexer or just a property. Work that out first.
@@ -253,7 +253,7 @@ func (s *scopes) getInfo(fullyQualifiedPath string) PathInfo {
 				Name:       part,
 				Schema:     curSch,
 				SchemaInfo: curInfo,
-			}
+			}, true
 		}
 
 		// Else recurse into the next part of the type, how we do this depends on if this was indexed or not
@@ -291,7 +291,7 @@ func (s *scopes) getInfo(fullyQualifiedPath string) PathInfo {
 				Resource:   res,
 				Schema:     sch,
 				SchemaInfo: curInfo,
-			}
+			}, true
 		} else if rest == "" {
 			// Can recurse into the next set of fields
 			var nextSchema shim.SchemaMap
@@ -308,7 +308,7 @@ func (s *scopes) getInfo(fullyQualifiedPath string) PathInfo {
 		// Otherwise we have a complex indexer part that we can't handle yet.
 		// The caller is responsible for handling this, e.g. using the name as is or
 		// camelCasing it, etc.
-		return PathInfo{}
+		return PathInfo{}, false
 	}
 
 	if parts[0] == "data" {
@@ -318,10 +318,10 @@ func (s *scopes) getInfo(fullyQualifiedPath string) PathInfo {
 		root, has := s.roots[parts[0]+"."+parts[1]+"."+parts[2]]
 		if len(parts) == 3 {
 			if has {
-				return root
+				return root, true
 			}
 			// If we don't have a root, just return the name
-			return PathInfo{Name: parts[2]}
+			return PathInfo{Name: parts[2]}, true
 		}
 
 		var currentSchema shim.SchemaMap
@@ -340,10 +340,10 @@ func (s *scopes) getInfo(fullyQualifiedPath string) PathInfo {
 
 	if len(parts) == 2 {
 		if has {
-			return root
+			return root, true
 		}
 		// If we don't have a root, just return the name
-		return PathInfo{Name: parts[1]}
+		return PathInfo{Name: parts[1]}, true
 	}
 
 	var currentSchema shim.SchemaMap
@@ -360,7 +360,11 @@ func (s *scopes) getInfo(fullyQualifiedPath string) PathInfo {
 
 // Given a fully typed path (e.g. data.simple_data_source.my_data.a_field) returns the pulumi name for that path.
 func (s *scopes) pulumiName(name, fullyQualifiedPath string) string {
-	info := s.getInfo(fullyQualifiedPath)
+	info, ok := s.getInfo(fullyQualifiedPath)
+	// If we can't resolved the name then fallback to camelCasing the provided name (e.g. the Terraform name)
+	if !ok {
+		return camelCaseName(name)
+	}
 
 	// This should only be called for attribute paths, so panic if this returned a resource
 	contract.Assertf(info.ResourceInfo == nil, "pulumiName must not be called on a resource or data source")
@@ -380,19 +384,16 @@ func (s *scopes) pulumiName(name, fullyQualifiedPath string) string {
 			map[string]*tfbridge.SchemaInfo{info.Name: schemaInfo})
 	}
 
-	// If we resolved the name then use that, otherwise
-	// the fallback is to use the provided name (e.g. the Terraform name)
-	if info.Name != "" {
-		name = info.Name
-	}
-
 	// Else just return the name camel cased
-	return camelCaseName(name)
+	return camelCaseName(info.Name)
 }
 
 // Given a fully typed path (e.g. data.simple_data_source.my_data.a_field) returns if the schema says it's a map.
 func (s *scopes) isMap(fullyQualifiedPath string) *bool {
-	info := s.getInfo(fullyQualifiedPath)
+	info, ok := s.getInfo(fullyQualifiedPath)
+	if !ok {
+		return nil
+	}
 
 	// This should only be called for attribute paths, so panic if this returned a resource
 	contract.Assertf(info.ResourceInfo == nil, "isMap must not be called on a resource or data source")
@@ -415,7 +416,10 @@ func (s *scopes) isMap(fullyQualifiedPath string) *bool {
 
 // Given a fully typed path (e.g. data.simple_data_source.a_field) returns whether a_field is a resource object.
 func (s *scopes) isResource(fullyQualifiedPath string) bool {
-	info := s.getInfo(fullyQualifiedPath)
+	info, ok := s.getInfo(fullyQualifiedPath)
+	if !ok {
+		return false
+	}
 
 	// This should only be called for attribute paths, so panic if this returned a resource
 	contract.Assertf(info.ResourceInfo == nil, "isResource must not be called on a resource or data source")
@@ -442,7 +446,10 @@ func (s *scopes) isResource(fullyQualifiedPath string) bool {
 
 // Given a fully typed path (e.g. data.simple_data_source.a_field) returns whether a_field has maxItemsOne set
 func (s *scopes) maxItemsOne(fullyQualifiedPath string) bool {
-	info := s.getInfo(fullyQualifiedPath)
+	info, ok := s.getInfo(fullyQualifiedPath)
+	if !ok {
+		return false
+	}
 
 	// This should only be called for attribute paths, so panic if this returned a resource
 	contract.Assertf(info.ResourceInfo == nil, "maxItemsOne must not be called on a resource or data source")
@@ -469,7 +476,10 @@ func (s *scopes) maxItemsOne(fullyQualifiedPath string) bool {
 
 // Given a fully typed path (e.g. data.simple_data_source.a_field) returns whether a_field has Asset information set
 func (s *scopes) isAsset(fullyQualifiedPath string) *tfbridge.AssetTranslation {
-	info := s.getInfo(fullyQualifiedPath)
+	info, ok := s.getInfo(fullyQualifiedPath)
+	if !ok {
+		return nil
+	}
 
 	// This should only be called for attribute paths, so panic if this returned a resource
 	contract.Assertf(info.ResourceInfo == nil, "isAsset must not be called on a resource or data source")

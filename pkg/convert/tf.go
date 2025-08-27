@@ -1452,7 +1452,7 @@ func (s *scopes) isPropertyPath(fullyQualifiedPath string) bool {
 	if fullyQualifiedPath == "" {
 		return false
 	}
-	info := s.getInfo(fullyQualifiedPath)
+	info, _ := s.getInfo(fullyQualifiedPath)
 	return info.Resource == nil && info.ResourceInfo == nil && info.DataSourceInfo == nil
 }
 
@@ -1467,7 +1467,7 @@ func rewriteRelativeTraversal(scopes *scopes, fullyQualifiedPath string, travers
 		var name string
 		if fullyQualifiedPath != "" {
 			fullyQualifiedPath = appendPath(fullyQualifiedPath, attr.Name)
-			name = scopes.pulumiName(name, fullyQualifiedPath)
+			name = scopes.pulumiName(attr.Name, fullyQualifiedPath)
 		} else {
 			name = tfbridge.TerraformToPulumiNameV2(attr.Name, nil, nil)
 		}
@@ -2108,13 +2108,15 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 		}
 
 		blockPath := appendPath(fullyQualifiedPath, block.Type)
+		name := block.Type
 		if block.Type == "dynamic" {
+			name = block.Labels[0]
 			// For dynamic blocks the path is the first label, not "dynamic"
-			blockPath = appendPath(fullyQualifiedPath, block.Labels[0])
+			blockPath = appendPath(fullyQualifiedPath, name)
 		}
 		// If this is a list so add [] to the path
 		isList := !scopes.maxItemsOne(blockPath) && !scopes.isResource(blockPath)
-		name := scopes.pulumiName("", blockPath)
+		name = scopes.pulumiName(name, blockPath)
 		if isList {
 			blockPath = appendPathArray(blockPath)
 		}
