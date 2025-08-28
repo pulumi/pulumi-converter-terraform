@@ -1486,7 +1486,7 @@ func rewriteRelativeTraversal(state *convertState,
 			indexOrAttrTraversal = hcl.TraverseIndex{Key: index.Key}
 			// If key is a static string and the container is an object (not a map),
 			// prefer attribute access: myObject.someKey
-			if fullyQualifiedPath != "" && scopes.isPropertyPath(fullyQualifiedPath) {
+			if fullyQualifiedPath != "" && scopes.isPropertyPath(fullyQualifiedPath) && index.Key.Type() == cty.String {
 				if isMap := scopes.isMap(fullyQualifiedPath); !(isMap != nil && *isMap) {
 					if state.rewriteObjectKeys {
 						name := index.Key.AsString()
