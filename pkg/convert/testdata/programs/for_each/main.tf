@@ -1,3 +1,9 @@
+locals {
+    values = {
+        something = { some_key = "some-value" }
+        "something-else" = { some_key = "some-value" }
+    }
+}
 resource "simple_resource" "a_resource_with_foreach_map" {
     for_each = {
         cruel: "world"
@@ -28,6 +34,16 @@ resource "simple_resource" "a_resource_with_foreach_array" {
     for_each = ["cruel", "good"]
     input_one =  "Hello ${each.value} world"
     input_two = true
+}
+
+resource "simple_resource" "a_resource_with_foreach_object_access" {
+    for_each = local.values
+    input_one =  each.value.some_key
+}
+
+resource "simple_resource" "a_resource_with_foreach_object_index" {
+    for_each = local.values
+    input_one =  each.value["some_key"]
 }
 
 output "some_output_c" {

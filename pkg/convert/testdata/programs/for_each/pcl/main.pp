@@ -1,3 +1,11 @@
+values = {
+  something = {
+    someKey = "some-value"
+  }
+  "something-else" = {
+    someKey = "some-value"
+  }
+}
 resource "aResourceWithForeachMap" "simple:index:resource" {
   __logicalName = "a_resource_with_foreach_map"
   options {
@@ -33,6 +41,22 @@ resource "aResourceWithForeachArray" "simple:index:resource" {
   }
   inputOne = "Hello ${range.value} world"
   inputTwo = true
+}
+
+resource "aResourceWithForeachObjectAccess" "simple:index:resource" {
+  __logicalName = "a_resource_with_foreach_object_access"
+  options {
+    range = values
+  }
+  inputOne = range.value.someKey
+}
+
+resource "aResourceWithForeachObjectIndex" "simple:index:resource" {
+  __logicalName = "a_resource_with_foreach_object_index"
+  options {
+    range = values
+  }
+  inputOne = range.value.someKey
 }
 
 output "someOutputC" {

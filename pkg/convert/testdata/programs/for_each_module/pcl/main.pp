@@ -9,7 +9,7 @@ component "aModuleWithForeachMap" "./modules/simple" {
 }
 
 output "someOutputA" {
-  value = aModuleWithForeachMap["cruel"].output
+  value = aModuleWithForeachMap.cruel.output
 }
 
 component "aModuleWithForeachArray" "./modules/simple" {
@@ -20,5 +20,5 @@ component "aModuleWithForeachArray" "./modules/simple" {
 }
 
 output "someOutputB" {
-  value = aModuleWithForeachArray["good"].output
+  value = aModuleWithForeachArray.good.output
 }
