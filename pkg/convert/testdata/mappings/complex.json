@@ -109,6 +109,23 @@
                         }
                     }
                 },
+                "inner_list_list_object": {
+                    "type": 5,
+                    "optional": true,
+                    "element": {
+                        "schema": {
+                            "type": 5,
+                            "element": {
+                                "resource": {
+                                    "inner_string": {
+                                        "type": 4,
+                                        "optional": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "inner_map_object": {
                     "type": 6,
                     "optional": true,

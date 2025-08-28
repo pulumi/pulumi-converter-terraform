@@ -1,4 +1,4 @@
 ### Improvements
 
 ### Bug Fixes
- - Handle terraform state files that contain `check_results` field by removing it before parsing the rest of the state file.
+ - Handle attributes with complex indexer parts by falling back to camelCasing the attribute name if the name cannot be determined.

@@ -7,6 +7,9 @@ resource "complex_resource" "a_resource" {
         a: true
         b: false
     }
+    inner_list_list_object = [[{
+        inner_string = "hello"
+    }]]
     inner_list_object = [{
         inner_string = "hello again"
     }]

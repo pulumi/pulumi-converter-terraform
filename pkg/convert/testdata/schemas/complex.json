@@ -34,6 +34,14 @@
       },
       "type": "object"
     },
+    "complex:index/resourceInnerListListObject:resourceInnerListListObject": {
+      "properties": {
+        "innerString": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "complex:index/resourceInnerListObject:resourceInnerListObject": {
       "properties": {
         "innerString": {
@@ -81,6 +89,15 @@
         "aString": {
           "type": "string"
         },
+        "innerListListObjects": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/complex:index/resourceInnerListListObject:resourceInnerListListObject"
+            }
+          }
+        },
         "innerListObject": {
           "$ref": "#/types/complex:index/resourceInnerListObject:resourceInnerListObject"
         },
@@ -116,6 +133,15 @@
         "aString": {
           "type": "string"
         },
+        "innerListListObjects": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/complex:index/resourceInnerListListObject:resourceInnerListListObject"
+            }
+          }
+        },
         "innerListObject": {
           "$ref": "#/types/complex:index/resourceInnerListObject:resourceInnerListObject"
         },
@@ -146,6 +172,15 @@
           },
           "aString": {
             "type": "string"
+          },
+          "innerListListObjects": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/types/complex:index/resourceInnerListListObject:resourceInnerListListObject"
+              }
+            }
           },
           "innerListObject": {
             "$ref": "#/types/complex:index/resourceInnerListObject:resourceInnerListObject"
