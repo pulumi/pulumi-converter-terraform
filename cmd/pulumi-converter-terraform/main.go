@@ -97,6 +97,7 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
 	providerInfoSource := tfconvert.NewMapperProviderInfoSource(mapper)
+	providerInfoResolver := tfconvert.NewProviderInfoResolver()
 
 	if *convertExamples != "" {
 		examplesBytes, err := os.ReadFile(filepath.Join(req.SourceDirectory, *convertExamples))
@@ -120,7 +121,8 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 			}
 
 			dst := afero.NewMemMapFs()
-			diags := tfconvert.TranslateModule(src, "/", dst, providerInfoSource, req.GeneratedProjectDirectory)
+
+			diags := tfconvert.TranslateModule(src, "/", dst, providerInfoSource, providerInfoResolver, req.GeneratedProjectDirectory)
 
 			pcl, err := afero.ReadFile(dst, "/"+safename+".pp")
 			if err != nil && !os.IsNotExist(err) {
@@ -169,6 +171,7 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 		req.SourceDirectory,
 		afero.NewBasePathFs(fs, req.TargetDirectory),
 		providerInfoSource,
+		providerInfoResolver,
 		req.GeneratedProjectDirectory,
 	)
 	return &plugin.ConvertProgramResponse{

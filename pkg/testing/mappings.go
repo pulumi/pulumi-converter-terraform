@@ -41,11 +41,17 @@ func (l *TestFileMapper) GetMapping(
 		panic("provider and hint cannot both be empty")
 	}
 
+	if provider == "tfe" {
+		// tfe is known terraform provider that doesn't have a Pulumi equivalent, so return early here
+		return nil, nil
+	}
+
 	if pulumiProvider == "unknown" {
 		// 'unknown' is used as a known provider name that will return nothing, so return early here so we
 		// don't hit the standard unknown error below.
 		return nil, nil
 	}
+
 	if pulumiProvider == "error" {
 		// 'error' is used as a known provider name that will cause GetMapping to error, so return early here
 		// so we don't hit the standard unknown error below.
