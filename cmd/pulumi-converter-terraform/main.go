@@ -122,7 +122,10 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 
 			dst := afero.NewMemMapFs()
 
-			diags := tfconvert.TranslateModule(src, "/", dst, providerInfoSource, providerInfoResolver, req.GeneratedProjectDirectory)
+			diags := tfconvert.TranslateModule(src, "/", dst,
+				providerInfoSource,
+				providerInfoResolver,
+				req.GeneratedProjectDirectory)
 
 			pcl, err := afero.ReadFile(dst, "/"+safename+".pp")
 			if err != nil && !os.IsNotExist(err) {
