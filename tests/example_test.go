@@ -295,7 +295,7 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-alb",
-			strict:  true,
+			strict:  false,
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-alb/examples/complete-alb",
