@@ -1,9 +1,0 @@
-{
-    "name": "tfe",
-    "dataSources": {},
-    "resources": {},
-    "provider": {
-        "dataSources": {},
-        "resources": {}
-    }
-}
