@@ -73,5 +73,8 @@ func TestResolveLatestProviderVersion(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "tfe", provider.Name)
 	assert.Equal(t, "registry.terraform.io/hashicorp/tfe", provider.Source)
+	// latest version resolved which unfortunately can change over time
+	// expected that this test may fail in the future alongside the implicit_required_provider
+	// test program
 	assert.Equal(t, "~> 0.70.0", provider.Requirement.Required.String())
 }

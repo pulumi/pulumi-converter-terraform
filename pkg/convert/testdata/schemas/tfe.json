@@ -1,0 +1,8117 @@
+{
+  "name": "tfe",
+  "version": "0.70.0",
+  "attribution": "This Pulumi package is based on the [`tfe` Terraform Provider](https://github.com/terraform-providers/terraform-provider-tfe).",
+  "meta": {
+    "moduleFormat": "(.*)(?:/[^/]*)"
+  },
+  "language": {
+    "nodejs": {
+      "readme": "\u003e This provider is a derived work of the [Terraform Provider](https://github.com/terraform-providers/terraform-provider-tfe)\n\u003e distributed under [MPL 2.0](https://www.mozilla.org/en-US/MPL/2.0/). If you encounter a bug or missing feature,\n\u003e please consult the source [`terraform-provider-tfe` repo](https://github.com/terraform-providers/terraform-provider-tfe/issues).",
+      "compatibility": "tfbridge20",
+      "disableUnionOutputTypes": true
+    },
+    "python": {
+      "readme": "\u003e This provider is a derived work of the [Terraform Provider](https://github.com/terraform-providers/terraform-provider-tfe)\n\u003e distributed under [MPL 2.0](https://www.mozilla.org/en-US/MPL/2.0/). If you encounter a bug or missing feature,\n\u003e please consult the source [`terraform-provider-tfe` repo](https://github.com/terraform-providers/terraform-provider-tfe/issues).",
+      "compatibility": "tfbridge20",
+      "pyproject": {}
+    }
+  },
+  "config": {
+    "variables": {
+      "hostname": {
+        "type": "string"
+      },
+      "organization": {
+        "type": "string"
+      },
+      "sslSkipVerify": {
+        "type": "boolean"
+      },
+      "token": {
+        "type": "string"
+      }
+    }
+  },
+  "types": {
+    "tfe:index/DataRetentionPolicyDeleteOlderThan:DataRetentionPolicyDeleteOlderThan": {
+      "properties": {
+        "days": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "tfe:index/DataRetentionPolicyDontDelete:DataRetentionPolicyDontDelete": {
+      "type": "object"
+    },
+    "tfe:index/NoCodeModuleVariableOption:NoCodeModuleVariableOption": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "name",
+        "options",
+        "type"
+      ]
+    },
+    "tfe:index/OpaVersionArch:OpaVersionArch": {
+      "properties": {
+        "arch": {
+          "type": "string"
+        },
+        "os": {
+          "type": "string"
+        },
+        "sha": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "arch",
+        "os",
+        "sha",
+        "url"
+      ]
+    },
+    "tfe:index/PolicySetVcsRepo:PolicySetVcsRepo": {
+      "properties": {
+        "branch": {
+          "type": "string"
+        },
+        "githubAppInstallationId": {
+          "type": "string"
+        },
+        "identifier": {
+          "type": "string"
+        },
+        "ingressSubmodules": {
+          "type": "boolean"
+        },
+        "oauthTokenId": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "identifier"
+      ]
+    },
+    "tfe:index/ProjectSettingsOverwrites:ProjectSettingsOverwrites": {
+      "properties": {
+        "defaultAgentPoolId": {
+          "type": "boolean"
+        },
+        "defaultExecutionMode": {
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "language": {
+        "nodejs": {
+          "requiredOutputs": [
+            "defaultAgentPoolId",
+            "defaultExecutionMode"
+          ]
+        }
+      }
+    },
+    "tfe:index/RegistryModuleTestConfig:RegistryModuleTestConfig": {
+      "properties": {
+        "testsEnabled": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "tfe:index/RegistryModuleVcsRepo:RegistryModuleVcsRepo": {
+      "properties": {
+        "branch": {
+          "type": "string"
+        },
+        "displayIdentifier": {
+          "type": "string"
+        },
+        "githubAppInstallationId": {
+          "type": "string"
+        },
+        "identifier": {
+          "type": "string"
+        },
+        "oauthTokenId": {
+          "type": "string"
+        },
+        "sourceDirectory": {
+          "type": "string"
+        },
+        "tagPrefix": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "required": [
+        "displayIdentifier",
+        "identifier"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredOutputs": [
+            "displayIdentifier",
+            "identifier",
+            "sourceDirectory",
+            "tagPrefix",
+            "tags"
+          ]
+        }
+      }
+    },
+    "tfe:index/SentinelVersionArch:SentinelVersionArch": {
+      "properties": {
+        "arch": {
+          "type": "string"
+        },
+        "os": {
+          "type": "string"
+        },
+        "sha": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "arch",
+        "os",
+        "sha",
+        "url"
+      ]
+    },
+    "tfe:index/StackVcsRepo:StackVcsRepo": {
+      "properties": {
+        "branch": {
+          "type": "string"
+        },
+        "githubAppInstallationId": {
+          "type": "string"
+        },
+        "identifier": {
+          "type": "string"
+        },
+        "oauthTokenId": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "tfe:index/TeamAccessPermission:TeamAccessPermission": {
+      "properties": {
+        "runTasks": {
+          "type": "boolean"
+        },
+        "runs": {
+          "type": "string"
+        },
+        "sentinelMocks": {
+          "type": "string"
+        },
+        "stateVersions": {
+          "type": "string"
+        },
+        "variables": {
+          "type": "string"
+        },
+        "workspaceLocking": {
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "required": [
+        "runTasks",
+        "runs",
+        "sentinelMocks",
+        "stateVersions",
+        "variables",
+        "workspaceLocking"
+      ]
+    },
+    "tfe:index/TeamOrganizationAccess:TeamOrganizationAccess": {
+      "properties": {
+        "accessSecretTeams": {
+          "type": "boolean"
+        },
+        "manageAgentPools": {
+          "type": "boolean"
+        },
+        "manageMembership": {
+          "type": "boolean"
+        },
+        "manageModules": {
+          "type": "boolean"
+        },
+        "manageOrganizationAccess": {
+          "type": "boolean"
+        },
+        "managePolicies": {
+          "type": "boolean"
+        },
+        "managePolicyOverrides": {
+          "type": "boolean"
+        },
+        "manageProjects": {
+          "type": "boolean"
+        },
+        "manageProviders": {
+          "type": "boolean"
+        },
+        "manageRunTasks": {
+          "type": "boolean"
+        },
+        "manageTeams": {
+          "type": "boolean"
+        },
+        "manageVcsSettings": {
+          "type": "boolean"
+        },
+        "manageWorkspaces": {
+          "type": "boolean"
+        },
+        "readProjects": {
+          "type": "boolean"
+        },
+        "readWorkspaces": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "tfe:index/TeamProjectAccessProjectAccess:TeamProjectAccessProjectAccess": {
+      "properties": {
+        "settings": {
+          "type": "string"
+        },
+        "teams": {
+          "type": "string"
+        },
+        "variableSets": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "language": {
+        "nodejs": {
+          "requiredOutputs": [
+            "settings",
+            "teams",
+            "variableSets"
+          ]
+        }
+      }
+    },
+    "tfe:index/TeamProjectAccessWorkspaceAccess:TeamProjectAccessWorkspaceAccess": {
+      "properties": {
+        "create": {
+          "type": "boolean"
+        },
+        "delete": {
+          "type": "boolean"
+        },
+        "locking": {
+          "type": "boolean"
+        },
+        "move": {
+          "type": "boolean"
+        },
+        "runTasks": {
+          "type": "boolean"
+        },
+        "runs": {
+          "type": "string"
+        },
+        "sentinelMocks": {
+          "type": "string"
+        },
+        "stateVersions": {
+          "type": "string"
+        },
+        "variables": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "language": {
+        "nodejs": {
+          "requiredOutputs": [
+            "create",
+            "delete",
+            "locking",
+            "move",
+            "runTasks",
+            "runs",
+            "sentinelMocks",
+            "stateVersions",
+            "variables"
+          ]
+        }
+      }
+    },
+    "tfe:index/TerraformVersionArch:TerraformVersionArch": {
+      "properties": {
+        "arch": {
+          "type": "string"
+        },
+        "os": {
+          "type": "string"
+        },
+        "sha": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "arch",
+        "os",
+        "sha",
+        "url"
+      ]
+    },
+    "tfe:index/WorkspaceRunApply:WorkspaceRunApply": {
+      "properties": {
+        "manualConfirm": {
+          "type": "boolean"
+        },
+        "retry": {
+          "type": "boolean"
+        },
+        "retryAttempts": {
+          "type": "number"
+        },
+        "retryBackoffMax": {
+          "type": "number"
+        },
+        "retryBackoffMin": {
+          "type": "number"
+        },
+        "waitForRun": {
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "required": [
+        "manualConfirm"
+      ]
+    },
+    "tfe:index/WorkspaceRunDestroy:WorkspaceRunDestroy": {
+      "properties": {
+        "manualConfirm": {
+          "type": "boolean"
+        },
+        "retry": {
+          "type": "boolean"
+        },
+        "retryAttempts": {
+          "type": "number"
+        },
+        "retryBackoffMax": {
+          "type": "number"
+        },
+        "retryBackoffMin": {
+          "type": "number"
+        },
+        "waitForRun": {
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "required": [
+        "manualConfirm"
+      ]
+    },
+    "tfe:index/WorkspaceSettingsOverwrite:WorkspaceSettingsOverwrite": {
+      "properties": {
+        "agentPool": {
+          "type": "boolean"
+        },
+        "executionMode": {
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "required": [
+        "agentPool",
+        "executionMode"
+      ]
+    },
+    "tfe:index/WorkspaceVcsRepo:WorkspaceVcsRepo": {
+      "properties": {
+        "branch": {
+          "type": "string"
+        },
+        "githubAppInstallationId": {
+          "type": "string"
+        },
+        "identifier": {
+          "type": "string"
+        },
+        "ingressSubmodules": {
+          "type": "boolean"
+        },
+        "oauthTokenId": {
+          "type": "string"
+        },
+        "tagsRegex": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "identifier"
+      ]
+    },
+    "tfe:index/getOrganizationMembersMember:getOrganizationMembersMember": {
+      "properties": {
+        "organizationMembershipId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "organizationMembershipId",
+        "userId"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getOrganizationMembersMembersWaiting:getOrganizationMembersMembersWaiting": {
+      "properties": {
+        "organizationMembershipId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "organizationMembershipId",
+        "userId"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getOrganizationTagsTag:getOrganizationTagsTag": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "workspaceCount": {
+          "type": "number"
+        }
+      },
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "workspaceCount"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getPolicySetVcsRepo:getPolicySetVcsRepo": {
+      "properties": {
+        "branch": {
+          "type": "string"
+        },
+        "githubAppInstallationId": {
+          "type": "string"
+        },
+        "identifier": {
+          "type": "string"
+        },
+        "ingressSubmodules": {
+          "type": "boolean"
+        },
+        "oauthTokenId": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "branch",
+        "githubAppInstallationId",
+        "identifier",
+        "ingressSubmodules",
+        "oauthTokenId"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getProjectsProject:getProjectsProject": {
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "description",
+        "id",
+        "name",
+        "organization"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getRegistryGpgKeysKey:getRegistryGpgKeysKey": {
+      "properties": {
+        "asciiArmor": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "asciiArmor",
+        "createdAt",
+        "id",
+        "organization",
+        "updatedAt"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getRegistryModulePermission:getRegistryModulePermission": {
+      "properties": {
+        "canDelete": {
+          "type": "boolean"
+        },
+        "canResync": {
+          "type": "boolean"
+        },
+        "canRetry": {
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "required": [
+        "canDelete",
+        "canResync",
+        "canRetry"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getRegistryModuleTestConfig:getRegistryModuleTestConfig": {
+      "properties": {
+        "testsEnabled": {
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "required": [
+        "testsEnabled"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getRegistryModuleVcsRepo:getRegistryModuleVcsRepo": {
+      "properties": {
+        "branch": {
+          "type": "string"
+        },
+        "displayIdentifier": {
+          "type": "string"
+        },
+        "githubAppInstallationId": {
+          "type": "string"
+        },
+        "identifier": {
+          "type": "string"
+        },
+        "ingressSubmodules": {
+          "type": "boolean"
+        },
+        "oauthTokenId": {
+          "type": "string"
+        },
+        "repositoryHttpUrl": {
+          "type": "string"
+        },
+        "serviceProvider": {
+          "type": "string"
+        },
+        "sourceDirectory": {
+          "type": "string"
+        },
+        "tagPrefix": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "boolean"
+        },
+        "tagsRegex": {
+          "type": "string"
+        },
+        "webhookUrl": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "branch",
+        "displayIdentifier",
+        "githubAppInstallationId",
+        "identifier",
+        "ingressSubmodules",
+        "oauthTokenId",
+        "repositoryHttpUrl",
+        "serviceProvider",
+        "sourceDirectory",
+        "tagPrefix",
+        "tags",
+        "tagsRegex",
+        "webhookUrl"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getRegistryModuleVersionStatus:getRegistryModuleVersionStatus": {
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "error",
+        "status",
+        "version"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getRegistryProvidersProvider:getRegistryProvidersProvider": {
+      "properties": {
+        "createdAt": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "registryName": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "createdAt",
+        "id",
+        "name",
+        "namespace",
+        "organization",
+        "registryName",
+        "updatedAt"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getTeamAccessPermission:getTeamAccessPermission": {
+      "properties": {
+        "runTasks": {
+          "type": "boolean"
+        },
+        "runs": {
+          "type": "string"
+        },
+        "sentinelMocks": {
+          "type": "string"
+        },
+        "stateVersions": {
+          "type": "string"
+        },
+        "variables": {
+          "type": "string"
+        },
+        "workspaceLocking": {
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "required": [
+        "runTasks",
+        "runs",
+        "sentinelMocks",
+        "stateVersions",
+        "variables",
+        "workspaceLocking"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getTeamProjectAccessProjectAccess:getTeamProjectAccessProjectAccess": {
+      "properties": {
+        "settings": {
+          "type": "string"
+        },
+        "teams": {
+          "type": "string"
+        },
+        "variableSets": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "settings",
+        "teams",
+        "variableSets"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getTeamProjectAccessWorkspaceAccess:getTeamProjectAccessWorkspaceAccess": {
+      "properties": {
+        "create": {
+          "type": "boolean"
+        },
+        "delete": {
+          "type": "boolean"
+        },
+        "locking": {
+          "type": "boolean"
+        },
+        "move": {
+          "type": "boolean"
+        },
+        "runTasks": {
+          "type": "boolean"
+        },
+        "runs": {
+          "type": "string"
+        },
+        "sentinelMocks": {
+          "type": "string"
+        },
+        "stateVersions": {
+          "type": "string"
+        },
+        "variables": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "create",
+        "delete",
+        "locking",
+        "move",
+        "runTasks",
+        "runs",
+        "sentinelMocks",
+        "stateVersions",
+        "variables"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getVariablesEnv:getVariablesEnv": {
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "hcl": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "sensitive": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "category",
+        "hcl",
+        "id",
+        "name",
+        "sensitive",
+        "value"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getVariablesTerraform:getVariablesTerraform": {
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "hcl": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "sensitive": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "category",
+        "hcl",
+        "id",
+        "name",
+        "sensitive",
+        "value"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getVariablesVariable:getVariablesVariable": {
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "hcl": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "sensitive": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "category",
+        "hcl",
+        "id",
+        "name",
+        "sensitive",
+        "value"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    },
+    "tfe:index/getWorkspaceIdsTagFilters:getWorkspaceIdsTagFilters": {
+      "properties": {
+        "exclude": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "include": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "type": "object"
+    },
+    "tfe:index/getWorkspaceVcsRepo:getWorkspaceVcsRepo": {
+      "properties": {
+        "branch": {
+          "type": "string"
+        },
+        "githubAppInstallationId": {
+          "type": "string"
+        },
+        "identifier": {
+          "type": "string"
+        },
+        "ingressSubmodules": {
+          "type": "boolean"
+        },
+        "oauthTokenId": {
+          "type": "string"
+        },
+        "tagsRegex": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "branch",
+        "githubAppInstallationId",
+        "identifier",
+        "ingressSubmodules",
+        "oauthTokenId",
+        "tagsRegex"
+      ],
+      "language": {
+        "nodejs": {
+          "requiredInputs": []
+        }
+      }
+    }
+  },
+  "provider": {
+    "description": "The provider type for the tfe package. By default, resources use package-wide configuration\nsettings, however an explicit `Provider` instance may be created and passed during resource\nconstruction to achieve fine-grained programmatic control over provider settings. See the\n[documentation](https://www.pulumi.com/docs/reference/programming-model/#providers) for more information.\n",
+    "properties": {
+      "hostname": {
+        "type": "string"
+      },
+      "organization": {
+        "type": "string"
+      },
+      "sslSkipVerify": {
+        "type": "boolean"
+      },
+      "token": {
+        "type": "string"
+      }
+    },
+    "inputProperties": {
+      "hostname": {
+        "type": "string"
+      },
+      "organization": {
+        "type": "string"
+      },
+      "sslSkipVerify": {
+        "type": "boolean"
+      },
+      "token": {
+        "type": "string"
+      }
+    },
+    "methods": {
+      "terraformConfig": "pulumi:providers:tfe/terraformConfig"
+    }
+  },
+  "resources": {
+    "tfe:index/adminOrganizationSettings:AdminOrganizationSettings": {
+      "properties": {
+        "accessBetaTools": {
+          "type": "boolean"
+        },
+        "adminOrganizationSettingsId": {
+          "type": "string"
+        },
+        "globalModuleSharing": {
+          "type": "boolean"
+        },
+        "moduleSharingConsumerOrganizations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "organization": {
+          "type": "string"
+        },
+        "ssoEnabled": {
+          "type": "boolean"
+        },
+        "workspaceLimit": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "adminOrganizationSettingsId",
+        "moduleSharingConsumerOrganizations",
+        "organization",
+        "ssoEnabled"
+      ],
+      "inputProperties": {
+        "accessBetaTools": {
+          "type": "boolean"
+        },
+        "adminOrganizationSettingsId": {
+          "type": "string"
+        },
+        "globalModuleSharing": {
+          "type": "boolean"
+        },
+        "moduleSharingConsumerOrganizations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "organization": {
+          "type": "string"
+        },
+        "workspaceLimit": {
+          "type": "number"
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering AdminOrganizationSettings resources.\n",
+        "properties": {
+          "accessBetaTools": {
+            "type": "boolean"
+          },
+          "adminOrganizationSettingsId": {
+            "type": "string"
+          },
+          "globalModuleSharing": {
+            "type": "boolean"
+          },
+          "moduleSharingConsumerOrganizations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "organization": {
+            "type": "string"
+          },
+          "ssoEnabled": {
+            "type": "boolean"
+          },
+          "workspaceLimit": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/agentPool:AgentPool": {
+      "properties": {
+        "agentPoolId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "organizationScoped": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "agentPoolId",
+        "name",
+        "organization"
+      ],
+      "inputProperties": {
+        "agentPoolId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "organizationScoped": {
+          "type": "boolean"
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering AgentPool resources.\n",
+        "properties": {
+          "agentPoolId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "organizationScoped": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/agentPoolAllowedProjects:AgentPoolAllowedProjects": {
+      "properties": {
+        "agentPoolAllowedProjectsId": {
+          "type": "string"
+        },
+        "agentPoolId": {
+          "type": "string"
+        },
+        "allowedProjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "agentPoolId",
+        "allowedProjectIds",
+        "agentPoolAllowedProjectsId"
+      ],
+      "inputProperties": {
+        "agentPoolAllowedProjectsId": {
+          "type": "string"
+        },
+        "agentPoolId": {
+          "type": "string"
+        },
+        "allowedProjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "requiredInputs": [
+        "agentPoolId",
+        "allowedProjectIds"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering AgentPoolAllowedProjects resources.\n",
+        "properties": {
+          "agentPoolAllowedProjectsId": {
+            "type": "string"
+          },
+          "agentPoolId": {
+            "type": "string"
+          },
+          "allowedProjectIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/agentPoolAllowedWorkspaces:AgentPoolAllowedWorkspaces": {
+      "properties": {
+        "agentPoolAllowedWorkspacesId": {
+          "type": "string"
+        },
+        "agentPoolId": {
+          "type": "string"
+        },
+        "allowedWorkspaceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "agentPoolId",
+        "allowedWorkspaceIds",
+        "agentPoolAllowedWorkspacesId"
+      ],
+      "inputProperties": {
+        "agentPoolAllowedWorkspacesId": {
+          "type": "string"
+        },
+        "agentPoolId": {
+          "type": "string"
+        },
+        "allowedWorkspaceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "requiredInputs": [
+        "agentPoolId",
+        "allowedWorkspaceIds"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering AgentPoolAllowedWorkspaces resources.\n",
+        "properties": {
+          "agentPoolAllowedWorkspacesId": {
+            "type": "string"
+          },
+          "agentPoolId": {
+            "type": "string"
+          },
+          "allowedWorkspaceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/agentPoolExcludedWorkspaces:AgentPoolExcludedWorkspaces": {
+      "properties": {
+        "agentPoolExcludedWorkspacesId": {
+          "type": "string"
+        },
+        "agentPoolId": {
+          "type": "string"
+        },
+        "excludedWorkspaceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "agentPoolId",
+        "excludedWorkspaceIds",
+        "agentPoolExcludedWorkspacesId"
+      ],
+      "inputProperties": {
+        "agentPoolExcludedWorkspacesId": {
+          "type": "string"
+        },
+        "agentPoolId": {
+          "type": "string"
+        },
+        "excludedWorkspaceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "requiredInputs": [
+        "agentPoolId",
+        "excludedWorkspaceIds"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering AgentPoolExcludedWorkspaces resources.\n",
+        "properties": {
+          "agentPoolExcludedWorkspacesId": {
+            "type": "string"
+          },
+          "agentPoolId": {
+            "type": "string"
+          },
+          "excludedWorkspaceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/agentToken:AgentToken": {
+      "properties": {
+        "agentPoolId": {
+          "type": "string"
+        },
+        "agentTokenId": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "agentPoolId",
+        "description",
+        "agentTokenId",
+        "token"
+      ],
+      "inputProperties": {
+        "agentPoolId": {
+          "type": "string"
+        },
+        "agentTokenId": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "agentPoolId",
+        "description"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering AgentToken resources.\n",
+        "properties": {
+          "agentPoolId": {
+            "type": "string"
+          },
+          "agentTokenId": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/auditTrailToken:AuditTrailToken": {
+      "properties": {
+        "expiredAt": {
+          "type": "string"
+        },
+        "forceRegenerate": {
+          "type": "boolean"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "organization",
+        "token"
+      ],
+      "inputProperties": {
+        "expiredAt": {
+          "type": "string"
+        },
+        "forceRegenerate": {
+          "type": "boolean"
+        },
+        "organization": {
+          "type": "string"
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering AuditTrailToken resources.\n",
+        "properties": {
+          "expiredAt": {
+            "type": "string"
+          },
+          "forceRegenerate": {
+            "type": "boolean"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/dataRetentionPolicy:DataRetentionPolicy": {
+      "properties": {
+        "deleteOlderThan": {
+          "$ref": "#/types/tfe:index/DataRetentionPolicyDeleteOlderThan:DataRetentionPolicyDeleteOlderThan"
+        },
+        "dontDelete": {
+          "$ref": "#/types/tfe:index/DataRetentionPolicyDontDelete:DataRetentionPolicyDontDelete"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "organization"
+      ],
+      "inputProperties": {
+        "deleteOlderThan": {
+          "$ref": "#/types/tfe:index/DataRetentionPolicyDeleteOlderThan:DataRetentionPolicyDeleteOlderThan"
+        },
+        "dontDelete": {
+          "$ref": "#/types/tfe:index/DataRetentionPolicyDontDelete:DataRetentionPolicyDontDelete"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering DataRetentionPolicy resources.\n",
+        "properties": {
+          "deleteOlderThan": {
+            "$ref": "#/types/tfe:index/DataRetentionPolicyDeleteOlderThan:DataRetentionPolicyDeleteOlderThan"
+          },
+          "dontDelete": {
+            "$ref": "#/types/tfe:index/DataRetentionPolicyDontDelete:DataRetentionPolicyDontDelete"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/noCodeModule:NoCodeModule": {
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "noCodeModuleId": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "registryModule": {
+          "type": "string"
+        },
+        "variableOptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/NoCodeModuleVariableOption:NoCodeModuleVariableOption"
+          }
+        },
+        "versionPin": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "noCodeModuleId",
+        "organization",
+        "registryModule",
+        "versionPin"
+      ],
+      "inputProperties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "noCodeModuleId": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "registryModule": {
+          "type": "string"
+        },
+        "variableOptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/NoCodeModuleVariableOption:NoCodeModuleVariableOption"
+          }
+        },
+        "versionPin": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "registryModule"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering NoCodeModule resources.\n",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "noCodeModuleId": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "registryModule": {
+            "type": "string"
+          },
+          "variableOptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/NoCodeModuleVariableOption:NoCodeModuleVariableOption"
+            }
+          },
+          "versionPin": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/notificationConfiguration:NotificationConfiguration": {
+      "properties": {
+        "destinationType": {
+          "type": "string"
+        },
+        "emailAddresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emailUserIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "tokenWo": {
+          "type": "string"
+        },
+        "triggers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "url": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "destinationType",
+        "emailAddresses",
+        "emailUserIds",
+        "enabled",
+        "name",
+        "workspaceId"
+      ],
+      "inputProperties": {
+        "destinationType": {
+          "type": "string"
+        },
+        "emailAddresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emailUserIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "tokenWo": {
+          "type": "string"
+        },
+        "triggers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "url": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "destinationType",
+        "workspaceId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering NotificationConfiguration resources.\n",
+        "properties": {
+          "destinationType": {
+            "type": "string"
+          },
+          "emailAddresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "emailUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "tokenWo": {
+            "type": "string"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "url": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/oauthClient:OauthClient": {
+      "properties": {
+        "agentPoolId": {
+          "type": "string"
+        },
+        "apiUrl": {
+          "type": "string"
+        },
+        "httpUrl": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "oauthClientId": {
+          "type": "string"
+        },
+        "oauthToken": {
+          "type": "string"
+        },
+        "oauthTokenId": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "organizationScoped": {
+          "type": "boolean"
+        },
+        "privateKey": {
+          "type": "string"
+        },
+        "rsaPublicKey": {
+          "type": "string"
+        },
+        "secret": {
+          "type": "string"
+        },
+        "serviceProvider": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "agentPoolId",
+        "apiUrl",
+        "httpUrl",
+        "oauthClientId",
+        "name",
+        "oauthTokenId",
+        "organization",
+        "serviceProvider"
+      ],
+      "inputProperties": {
+        "agentPoolId": {
+          "type": "string"
+        },
+        "apiUrl": {
+          "type": "string"
+        },
+        "httpUrl": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "oauthClientId": {
+          "type": "string"
+        },
+        "oauthToken": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "organizationScoped": {
+          "type": "boolean"
+        },
+        "privateKey": {
+          "type": "string"
+        },
+        "rsaPublicKey": {
+          "type": "string"
+        },
+        "secret": {
+          "type": "string"
+        },
+        "serviceProvider": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "apiUrl",
+        "httpUrl",
+        "serviceProvider"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering OauthClient resources.\n",
+        "properties": {
+          "agentPoolId": {
+            "type": "string"
+          },
+          "apiUrl": {
+            "type": "string"
+          },
+          "httpUrl": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "oauthClientId": {
+            "type": "string"
+          },
+          "oauthToken": {
+            "type": "string"
+          },
+          "oauthTokenId": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "organizationScoped": {
+            "type": "boolean"
+          },
+          "privateKey": {
+            "type": "string"
+          },
+          "rsaPublicKey": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string"
+          },
+          "serviceProvider": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/opaVersion:OpaVersion": {
+      "properties": {
+        "archs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/OpaVersionArch:OpaVersionArch"
+          }
+        },
+        "beta": {
+          "type": "boolean"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "deprecatedReason": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "official": {
+          "type": "boolean"
+        },
+        "sha": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "archs",
+        "beta",
+        "deprecated",
+        "enabled",
+        "official",
+        "sha",
+        "url",
+        "version"
+      ],
+      "inputProperties": {
+        "archs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/OpaVersionArch:OpaVersionArch"
+          }
+        },
+        "beta": {
+          "type": "boolean"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "deprecatedReason": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "official": {
+          "type": "boolean"
+        },
+        "sha": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "version"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering OpaVersion resources.\n",
+        "properties": {
+          "archs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/OpaVersionArch:OpaVersionArch"
+            }
+          },
+          "beta": {
+            "type": "boolean"
+          },
+          "deprecated": {
+            "type": "boolean"
+          },
+          "deprecatedReason": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "official": {
+            "type": "boolean"
+          },
+          "sha": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/organization:Organization": {
+      "properties": {
+        "aggregatedCommitStatusEnabled": {
+          "type": "boolean"
+        },
+        "allowForceDeleteWorkspaces": {
+          "type": "boolean"
+        },
+        "assessmentsEnforced": {
+          "type": "boolean"
+        },
+        "collaboratorAuthPolicy": {
+          "type": "string"
+        },
+        "costEstimationEnabled": {
+          "type": "boolean"
+        },
+        "defaultProjectId": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organizationId": {
+          "type": "string"
+        },
+        "ownersTeamSamlRoleId": {
+          "type": "string"
+        },
+        "sendPassingStatusesForUntriggeredSpeculativePlans": {
+          "type": "boolean"
+        },
+        "sessionRememberMinutes": {
+          "type": "number"
+        },
+        "sessionTimeoutMinutes": {
+          "type": "number"
+        },
+        "speculativePlanManagementEnabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "aggregatedCommitStatusEnabled",
+        "costEstimationEnabled",
+        "defaultProjectId",
+        "email",
+        "organizationId",
+        "name",
+        "sendPassingStatusesForUntriggeredSpeculativePlans"
+      ],
+      "inputProperties": {
+        "aggregatedCommitStatusEnabled": {
+          "type": "boolean"
+        },
+        "allowForceDeleteWorkspaces": {
+          "type": "boolean"
+        },
+        "assessmentsEnforced": {
+          "type": "boolean"
+        },
+        "collaboratorAuthPolicy": {
+          "type": "string"
+        },
+        "costEstimationEnabled": {
+          "type": "boolean"
+        },
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organizationId": {
+          "type": "string"
+        },
+        "ownersTeamSamlRoleId": {
+          "type": "string"
+        },
+        "sendPassingStatusesForUntriggeredSpeculativePlans": {
+          "type": "boolean"
+        },
+        "sessionRememberMinutes": {
+          "type": "number"
+        },
+        "sessionTimeoutMinutes": {
+          "type": "number"
+        },
+        "speculativePlanManagementEnabled": {
+          "type": "boolean"
+        }
+      },
+      "requiredInputs": [
+        "email"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering Organization resources.\n",
+        "properties": {
+          "aggregatedCommitStatusEnabled": {
+            "type": "boolean"
+          },
+          "allowForceDeleteWorkspaces": {
+            "type": "boolean"
+          },
+          "assessmentsEnforced": {
+            "type": "boolean"
+          },
+          "collaboratorAuthPolicy": {
+            "type": "string"
+          },
+          "costEstimationEnabled": {
+            "type": "boolean"
+          },
+          "defaultProjectId": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "ownersTeamSamlRoleId": {
+            "type": "string"
+          },
+          "sendPassingStatusesForUntriggeredSpeculativePlans": {
+            "type": "boolean"
+          },
+          "sessionRememberMinutes": {
+            "type": "number"
+          },
+          "sessionTimeoutMinutes": {
+            "type": "number"
+          },
+          "speculativePlanManagementEnabled": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/organizationDefaultSettings:OrganizationDefaultSettings": {
+      "properties": {
+        "defaultAgentPoolId": {
+          "type": "string"
+        },
+        "defaultExecutionMode": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "defaultExecutionMode",
+        "organization"
+      ],
+      "inputProperties": {
+        "defaultAgentPoolId": {
+          "type": "string"
+        },
+        "defaultExecutionMode": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "defaultExecutionMode"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering OrganizationDefaultSettings resources.\n",
+        "properties": {
+          "defaultAgentPoolId": {
+            "type": "string"
+          },
+          "defaultExecutionMode": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/organizationMembership:OrganizationMembership": {
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "organizationMembershipId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "email",
+        "organizationMembershipId",
+        "organization",
+        "userId",
+        "username"
+      ],
+      "inputProperties": {
+        "email": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "organizationMembershipId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "email"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering OrganizationMembership resources.\n",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "organizationMembershipId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/organizationModuleSharing:OrganizationModuleSharing": {
+      "properties": {
+        "moduleConsumers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "organization": {
+          "type": "string"
+        },
+        "organizationModuleSharingId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "organizationModuleSharingId",
+        "moduleConsumers",
+        "organization"
+      ],
+      "inputProperties": {
+        "moduleConsumers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "organization": {
+          "type": "string"
+        },
+        "organizationModuleSharingId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "moduleConsumers"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering OrganizationModuleSharing resources.\n",
+        "properties": {
+          "moduleConsumers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "organization": {
+            "type": "string"
+          },
+          "organizationModuleSharingId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/organizationRunTask:OrganizationRunTask": {
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "hmacKey": {
+          "type": "string"
+        },
+        "hmacKeyWo": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "category",
+        "description",
+        "enabled",
+        "hmacKey",
+        "name",
+        "organization",
+        "url"
+      ],
+      "inputProperties": {
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "hmacKey": {
+          "type": "string"
+        },
+        "hmacKeyWo": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "url"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering OrganizationRunTask resources.\n",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "hmacKey": {
+            "type": "string"
+          },
+          "hmacKeyWo": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/organizationRunTaskGlobalSettings:OrganizationRunTaskGlobalSettings": {
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "enforcementLevel": {
+          "type": "string"
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "taskId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "enforcementLevel",
+        "stages",
+        "taskId"
+      ],
+      "inputProperties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "enforcementLevel": {
+          "type": "string"
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "taskId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "enforcementLevel",
+        "stages",
+        "taskId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering OrganizationRunTaskGlobalSettings resources.\n",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "enforcementLevel": {
+            "type": "string"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "taskId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/organizationToken:OrganizationToken": {
+      "properties": {
+        "expiredAt": {
+          "type": "string"
+        },
+        "forceRegenerate": {
+          "type": "boolean"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "organizationTokenId": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "organizationTokenId",
+        "organization",
+        "token"
+      ],
+      "inputProperties": {
+        "expiredAt": {
+          "type": "string"
+        },
+        "forceRegenerate": {
+          "type": "boolean"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "organizationTokenId": {
+          "type": "string"
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering OrganizationToken resources.\n",
+        "properties": {
+          "expiredAt": {
+            "type": "string"
+          },
+          "forceRegenerate": {
+            "type": "boolean"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "organizationTokenId": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/policy:Policy": {
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enforceMode": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "policy": {
+          "type": "string"
+        },
+        "policyId": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "enforceMode",
+        "policyId",
+        "name",
+        "organization",
+        "policy"
+      ],
+      "inputProperties": {
+        "description": {
+          "type": "string"
+        },
+        "enforceMode": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "policy": {
+          "type": "string"
+        },
+        "policyId": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "policy"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering Policy resources.\n",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "enforceMode": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "policy": {
+            "type": "string"
+          },
+          "policyId": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/policySet:PolicySet": {
+      "properties": {
+        "agentEnabled": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "global": {
+          "type": "boolean"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "overridable": {
+          "type": "boolean"
+        },
+        "policiesPath": {
+          "type": "string"
+        },
+        "policyIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "policySetId": {
+          "type": "string"
+        },
+        "policyToolVersion": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "vcsRepo": {
+          "$ref": "#/types/tfe:index/PolicySetVcsRepo:PolicySetVcsRepo"
+        },
+        "workspaceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "agentEnabled",
+        "description",
+        "policySetId",
+        "name",
+        "organization",
+        "policyToolVersion",
+        "workspaceIds"
+      ],
+      "inputProperties": {
+        "agentEnabled": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "global": {
+          "type": "boolean"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "overridable": {
+          "type": "boolean"
+        },
+        "policiesPath": {
+          "type": "string"
+        },
+        "policyIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "policySetId": {
+          "type": "string"
+        },
+        "policyToolVersion": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "vcsRepo": {
+          "$ref": "#/types/tfe:index/PolicySetVcsRepo:PolicySetVcsRepo"
+        },
+        "workspaceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering PolicySet resources.\n",
+        "properties": {
+          "agentEnabled": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "global": {
+            "type": "boolean"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "overridable": {
+            "type": "boolean"
+          },
+          "policiesPath": {
+            "type": "string"
+          },
+          "policyIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "policySetId": {
+            "type": "string"
+          },
+          "policyToolVersion": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "vcsRepo": {
+            "$ref": "#/types/tfe:index/PolicySetVcsRepo:PolicySetVcsRepo"
+          },
+          "workspaceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/policySetParameter:PolicySetParameter": {
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "policySetId": {
+          "type": "string"
+        },
+        "sensitive": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "string"
+        },
+        "valueWo": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "policySetId",
+        "sensitive",
+        "value"
+      ],
+      "inputProperties": {
+        "key": {
+          "type": "string"
+        },
+        "policySetId": {
+          "type": "string"
+        },
+        "sensitive": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "string"
+        },
+        "valueWo": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "key",
+        "policySetId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering PolicySetParameter resources.\n",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "policySetId": {
+            "type": "string"
+          },
+          "sensitive": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": "string"
+          },
+          "valueWo": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/project:Project": {
+      "properties": {
+        "autoDestroyActivityDuration": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "ignoreAdditionalTags": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "description",
+        "name",
+        "organization",
+        "tags"
+      ],
+      "inputProperties": {
+        "autoDestroyActivityDuration": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "ignoreAdditionalTags": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering Project resources.\n",
+        "properties": {
+          "autoDestroyActivityDuration": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "ignoreAdditionalTags": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/projectOauthClient:ProjectOauthClient": {
+      "properties": {
+        "oauthClientId": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "projectOauthClientId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectOauthClientId",
+        "oauthClientId",
+        "projectId"
+      ],
+      "inputProperties": {
+        "oauthClientId": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "projectOauthClientId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "oauthClientId",
+        "projectId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering ProjectOauthClient resources.\n",
+        "properties": {
+          "oauthClientId": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "projectOauthClientId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/projectPolicySet:ProjectPolicySet": {
+      "properties": {
+        "policySetId": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "projectPolicySetId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectPolicySetId",
+        "policySetId",
+        "projectId"
+      ],
+      "inputProperties": {
+        "policySetId": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "projectPolicySetId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "policySetId",
+        "projectId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering ProjectPolicySet resources.\n",
+        "properties": {
+          "policySetId": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "projectPolicySetId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/projectSettings:ProjectSettings": {
+      "properties": {
+        "defaultAgentPoolId": {
+          "type": "string"
+        },
+        "defaultExecutionMode": {
+          "type": "string"
+        },
+        "overwrites": {
+          "$ref": "#/types/tfe:index/ProjectSettingsOverwrites:ProjectSettingsOverwrites"
+        },
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "defaultAgentPoolId",
+        "defaultExecutionMode",
+        "overwrites",
+        "projectId"
+      ],
+      "inputProperties": {
+        "defaultAgentPoolId": {
+          "type": "string"
+        },
+        "defaultExecutionMode": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "projectId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering ProjectSettings resources.\n",
+        "properties": {
+          "defaultAgentPoolId": {
+            "type": "string"
+          },
+          "defaultExecutionMode": {
+            "type": "string"
+          },
+          "overwrites": {
+            "$ref": "#/types/tfe:index/ProjectSettingsOverwrites:ProjectSettingsOverwrites"
+          },
+          "projectId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/projectVariableSet:ProjectVariableSet": {
+      "properties": {
+        "projectId": {
+          "type": "string"
+        },
+        "projectVariableSetId": {
+          "type": "string"
+        },
+        "variableSetId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectVariableSetId",
+        "projectId",
+        "variableSetId"
+      ],
+      "inputProperties": {
+        "projectId": {
+          "type": "string"
+        },
+        "projectVariableSetId": {
+          "type": "string"
+        },
+        "variableSetId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "projectId",
+        "variableSetId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering ProjectVariableSet resources.\n",
+        "properties": {
+          "projectId": {
+            "type": "string"
+          },
+          "projectVariableSetId": {
+            "type": "string"
+          },
+          "variableSetId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/registryGpgKey:RegistryGpgKey": {
+      "properties": {
+        "asciiArmor": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "asciiArmor",
+        "createdAt",
+        "organization",
+        "updatedAt"
+      ],
+      "inputProperties": {
+        "asciiArmor": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "asciiArmor"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering RegistryGpgKey resources.\n",
+        "properties": {
+          "asciiArmor": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/registryModule:RegistryModule": {
+      "properties": {
+        "initialVersion": {
+          "type": "string"
+        },
+        "moduleProvider": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "noCode": {
+          "type": "boolean"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "publishingMechanism": {
+          "type": "string"
+        },
+        "registryModuleId": {
+          "type": "string"
+        },
+        "registryName": {
+          "type": "string"
+        },
+        "testConfigs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/RegistryModuleTestConfig:RegistryModuleTestConfig"
+          }
+        },
+        "vcsRepo": {
+          "$ref": "#/types/tfe:index/RegistryModuleVcsRepo:RegistryModuleVcsRepo"
+        }
+      },
+      "required": [
+        "registryModuleId",
+        "moduleProvider",
+        "name",
+        "namespace",
+        "noCode",
+        "organization",
+        "publishingMechanism",
+        "registryName"
+      ],
+      "inputProperties": {
+        "initialVersion": {
+          "type": "string"
+        },
+        "moduleProvider": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "noCode": {
+          "type": "boolean"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "registryModuleId": {
+          "type": "string"
+        },
+        "registryName": {
+          "type": "string"
+        },
+        "testConfigs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/RegistryModuleTestConfig:RegistryModuleTestConfig"
+          }
+        },
+        "vcsRepo": {
+          "$ref": "#/types/tfe:index/RegistryModuleVcsRepo:RegistryModuleVcsRepo"
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering RegistryModule resources.\n",
+        "properties": {
+          "initialVersion": {
+            "type": "string"
+          },
+          "moduleProvider": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "noCode": {
+            "type": "boolean"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "publishingMechanism": {
+            "type": "string"
+          },
+          "registryModuleId": {
+            "type": "string"
+          },
+          "registryName": {
+            "type": "string"
+          },
+          "testConfigs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/RegistryModuleTestConfig:RegistryModuleTestConfig"
+            }
+          },
+          "vcsRepo": {
+            "$ref": "#/types/tfe:index/RegistryModuleVcsRepo:RegistryModuleVcsRepo"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/registryProvider:RegistryProvider": {
+      "properties": {
+        "createdAt": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "registryName": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "createdAt",
+        "name",
+        "namespace",
+        "organization",
+        "registryName",
+        "updatedAt"
+      ],
+      "inputProperties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "registryName": {
+          "type": "string"
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering RegistryProvider resources.\n",
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "registryName": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/runTrigger:RunTrigger": {
+      "properties": {
+        "runTriggerId": {
+          "type": "string"
+        },
+        "sourceableId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "runTriggerId",
+        "sourceableId",
+        "workspaceId"
+      ],
+      "inputProperties": {
+        "runTriggerId": {
+          "type": "string"
+        },
+        "sourceableId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "sourceableId",
+        "workspaceId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering RunTrigger resources.\n",
+        "properties": {
+          "runTriggerId": {
+            "type": "string"
+          },
+          "sourceableId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/samlSettings:SamlSettings": {
+      "properties": {
+        "acsConsumerUrl": {
+          "type": "string"
+        },
+        "attrGroups": {
+          "type": "string"
+        },
+        "attrSiteAdmin": {
+          "type": "string"
+        },
+        "attrUsername": {
+          "type": "string"
+        },
+        "authnRequestsSigned": {
+          "type": "boolean"
+        },
+        "certificate": {
+          "type": "string"
+        },
+        "debug": {
+          "type": "boolean"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "idpCert": {
+          "type": "string"
+        },
+        "metadataUrl": {
+          "type": "string"
+        },
+        "oldIdpCert": {
+          "type": "string"
+        },
+        "privateKey": {
+          "type": "string"
+        },
+        "privateKeyWo": {
+          "type": "string"
+        },
+        "signatureDigestMethod": {
+          "type": "string"
+        },
+        "signatureSigningMethod": {
+          "type": "string"
+        },
+        "siteAdminRole": {
+          "type": "string"
+        },
+        "sloEndpointUrl": {
+          "type": "string"
+        },
+        "ssoApiTokenSessionTimeout": {
+          "type": "number"
+        },
+        "ssoEndpointUrl": {
+          "type": "string"
+        },
+        "teamManagementEnabled": {
+          "type": "boolean"
+        },
+        "wantAssertionsSigned": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "acsConsumerUrl",
+        "attrGroups",
+        "attrSiteAdmin",
+        "attrUsername",
+        "authnRequestsSigned",
+        "certificate",
+        "debug",
+        "enabled",
+        "idpCert",
+        "metadataUrl",
+        "oldIdpCert",
+        "privateKey",
+        "signatureDigestMethod",
+        "signatureSigningMethod",
+        "siteAdminRole",
+        "sloEndpointUrl",
+        "ssoApiTokenSessionTimeout",
+        "ssoEndpointUrl",
+        "teamManagementEnabled",
+        "wantAssertionsSigned"
+      ],
+      "inputProperties": {
+        "attrGroups": {
+          "type": "string"
+        },
+        "attrSiteAdmin": {
+          "type": "string"
+        },
+        "attrUsername": {
+          "type": "string"
+        },
+        "authnRequestsSigned": {
+          "type": "boolean"
+        },
+        "certificate": {
+          "type": "string"
+        },
+        "debug": {
+          "type": "boolean"
+        },
+        "idpCert": {
+          "type": "string"
+        },
+        "privateKey": {
+          "type": "string"
+        },
+        "privateKeyWo": {
+          "type": "string"
+        },
+        "signatureDigestMethod": {
+          "type": "string"
+        },
+        "signatureSigningMethod": {
+          "type": "string"
+        },
+        "siteAdminRole": {
+          "type": "string"
+        },
+        "sloEndpointUrl": {
+          "type": "string"
+        },
+        "ssoApiTokenSessionTimeout": {
+          "type": "number"
+        },
+        "ssoEndpointUrl": {
+          "type": "string"
+        },
+        "teamManagementEnabled": {
+          "type": "boolean"
+        },
+        "wantAssertionsSigned": {
+          "type": "boolean"
+        }
+      },
+      "requiredInputs": [
+        "idpCert",
+        "sloEndpointUrl",
+        "ssoEndpointUrl"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering SamlSettings resources.\n",
+        "properties": {
+          "acsConsumerUrl": {
+            "type": "string"
+          },
+          "attrGroups": {
+            "type": "string"
+          },
+          "attrSiteAdmin": {
+            "type": "string"
+          },
+          "attrUsername": {
+            "type": "string"
+          },
+          "authnRequestsSigned": {
+            "type": "boolean"
+          },
+          "certificate": {
+            "type": "string"
+          },
+          "debug": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "idpCert": {
+            "type": "string"
+          },
+          "metadataUrl": {
+            "type": "string"
+          },
+          "oldIdpCert": {
+            "type": "string"
+          },
+          "privateKey": {
+            "type": "string"
+          },
+          "privateKeyWo": {
+            "type": "string"
+          },
+          "signatureDigestMethod": {
+            "type": "string"
+          },
+          "signatureSigningMethod": {
+            "type": "string"
+          },
+          "siteAdminRole": {
+            "type": "string"
+          },
+          "sloEndpointUrl": {
+            "type": "string"
+          },
+          "ssoApiTokenSessionTimeout": {
+            "type": "number"
+          },
+          "ssoEndpointUrl": {
+            "type": "string"
+          },
+          "teamManagementEnabled": {
+            "type": "boolean"
+          },
+          "wantAssertionsSigned": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/sentinelPolicy:SentinelPolicy": {
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enforceMode": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "policy": {
+          "type": "string"
+        },
+        "sentinelPolicyId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "description",
+        "sentinelPolicyId",
+        "name",
+        "organization",
+        "policy"
+      ],
+      "inputProperties": {
+        "description": {
+          "type": "string"
+        },
+        "enforceMode": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "policy": {
+          "type": "string"
+        },
+        "sentinelPolicyId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "policy"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering SentinelPolicy resources.\n",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "enforceMode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "policy": {
+            "type": "string"
+          },
+          "sentinelPolicyId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/sentinelVersion:SentinelVersion": {
+      "properties": {
+        "archs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/SentinelVersionArch:SentinelVersionArch"
+          }
+        },
+        "beta": {
+          "type": "boolean"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "deprecatedReason": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "official": {
+          "type": "boolean"
+        },
+        "sha": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "archs",
+        "beta",
+        "deprecated",
+        "enabled",
+        "official",
+        "sha",
+        "url",
+        "version"
+      ],
+      "inputProperties": {
+        "archs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/SentinelVersionArch:SentinelVersionArch"
+          }
+        },
+        "beta": {
+          "type": "boolean"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "deprecatedReason": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "official": {
+          "type": "boolean"
+        },
+        "sha": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "version"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering SentinelVersion resources.\n",
+        "properties": {
+          "archs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/SentinelVersionArch:SentinelVersionArch"
+            }
+          },
+          "beta": {
+            "type": "boolean"
+          },
+          "deprecated": {
+            "type": "boolean"
+          },
+          "deprecatedReason": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "official": {
+            "type": "boolean"
+          },
+          "sha": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/sshKey:SshKey": {
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "keyWo": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "organization"
+      ],
+      "inputProperties": {
+        "key": {
+          "type": "string"
+        },
+        "keyWo": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering SshKey resources.\n",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "keyWo": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/stack:Stack": {
+      "properties": {
+        "agentPoolId": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "vcsRepo": {
+          "$ref": "#/types/tfe:index/StackVcsRepo:StackVcsRepo"
+        }
+      },
+      "required": [
+        "createdAt",
+        "name",
+        "projectId",
+        "updatedAt"
+      ],
+      "inputProperties": {
+        "agentPoolId": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "vcsRepo": {
+          "$ref": "#/types/tfe:index/StackVcsRepo:StackVcsRepo"
+        }
+      },
+      "requiredInputs": [
+        "projectId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering Stack resources.\n",
+        "properties": {
+          "agentPoolId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "vcsRepo": {
+            "$ref": "#/types/tfe:index/StackVcsRepo:StackVcsRepo"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/team:Team": {
+      "properties": {
+        "allowMemberTokenManagement": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "organizationAccess": {
+          "$ref": "#/types/tfe:index/TeamOrganizationAccess:TeamOrganizationAccess"
+        },
+        "ssoTeamId": {
+          "type": "string"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "visibility": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "teamId",
+        "name",
+        "organization",
+        "visibility"
+      ],
+      "inputProperties": {
+        "allowMemberTokenManagement": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "organizationAccess": {
+          "$ref": "#/types/tfe:index/TeamOrganizationAccess:TeamOrganizationAccess"
+        },
+        "ssoTeamId": {
+          "type": "string"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "visibility": {
+          "type": "string"
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering Team resources.\n",
+        "properties": {
+          "allowMemberTokenManagement": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "organizationAccess": {
+            "$ref": "#/types/tfe:index/TeamOrganizationAccess:TeamOrganizationAccess"
+          },
+          "ssoTeamId": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/teamAccess:TeamAccess": {
+      "properties": {
+        "access": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/TeamAccessPermission:TeamAccessPermission"
+          }
+        },
+        "teamAccessId": {
+          "type": "string"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "access",
+        "teamAccessId",
+        "teamId",
+        "workspaceId"
+      ],
+      "inputProperties": {
+        "access": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/TeamAccessPermission:TeamAccessPermission"
+          }
+        },
+        "teamAccessId": {
+          "type": "string"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "teamId",
+        "workspaceId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering TeamAccess resources.\n",
+        "properties": {
+          "access": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/TeamAccessPermission:TeamAccessPermission"
+            }
+          },
+          "teamAccessId": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/teamMember:TeamMember": {
+      "properties": {
+        "teamId": {
+          "type": "string"
+        },
+        "teamMemberId": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "teamMemberId",
+        "teamId",
+        "username"
+      ],
+      "inputProperties": {
+        "teamId": {
+          "type": "string"
+        },
+        "teamMemberId": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "teamId",
+        "username"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering TeamMember resources.\n",
+        "properties": {
+          "teamId": {
+            "type": "string"
+          },
+          "teamMemberId": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/teamMembers:TeamMembers": {
+      "properties": {
+        "teamId": {
+          "type": "string"
+        },
+        "teamMembersId": {
+          "type": "string"
+        },
+        "usernames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "teamMembersId",
+        "teamId",
+        "usernames"
+      ],
+      "inputProperties": {
+        "teamId": {
+          "type": "string"
+        },
+        "teamMembersId": {
+          "type": "string"
+        },
+        "usernames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "requiredInputs": [
+        "teamId",
+        "usernames"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering TeamMembers resources.\n",
+        "properties": {
+          "teamId": {
+            "type": "string"
+          },
+          "teamMembersId": {
+            "type": "string"
+          },
+          "usernames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/teamNotificationConfiguration:TeamNotificationConfiguration": {
+      "properties": {
+        "destinationType": {
+          "type": "string"
+        },
+        "emailAddresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emailUserIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "tokenWo": {
+          "type": "string"
+        },
+        "triggers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "destinationType",
+        "emailAddresses",
+        "emailUserIds",
+        "enabled",
+        "name",
+        "teamId"
+      ],
+      "inputProperties": {
+        "destinationType": {
+          "type": "string"
+        },
+        "emailAddresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emailUserIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "tokenWo": {
+          "type": "string"
+        },
+        "triggers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "destinationType",
+        "teamId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering TeamNotificationConfiguration resources.\n",
+        "properties": {
+          "destinationType": {
+            "type": "string"
+          },
+          "emailAddresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "emailUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "tokenWo": {
+            "type": "string"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/teamOrganizationMember:TeamOrganizationMember": {
+      "properties": {
+        "organizationMembershipId": {
+          "type": "string"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "teamOrganizationMemberId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "teamOrganizationMemberId",
+        "organizationMembershipId",
+        "teamId"
+      ],
+      "inputProperties": {
+        "organizationMembershipId": {
+          "type": "string"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "teamOrganizationMemberId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "organizationMembershipId",
+        "teamId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering TeamOrganizationMember resources.\n",
+        "properties": {
+          "organizationMembershipId": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "teamOrganizationMemberId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/teamOrganizationMembers:TeamOrganizationMembers": {
+      "properties": {
+        "organizationMembershipIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "teamOrganizationMembersId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "teamOrganizationMembersId",
+        "organizationMembershipIds",
+        "teamId"
+      ],
+      "inputProperties": {
+        "organizationMembershipIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "teamOrganizationMembersId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "organizationMembershipIds",
+        "teamId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering TeamOrganizationMembers resources.\n",
+        "properties": {
+          "organizationMembershipIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "teamOrganizationMembersId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/teamProjectAccess:TeamProjectAccess": {
+      "properties": {
+        "access": {
+          "type": "string"
+        },
+        "projectAccesses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/TeamProjectAccessProjectAccess:TeamProjectAccessProjectAccess"
+          }
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "teamProjectAccessId": {
+          "type": "string"
+        },
+        "workspaceAccesses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/TeamProjectAccessWorkspaceAccess:TeamProjectAccessWorkspaceAccess"
+          }
+        }
+      },
+      "required": [
+        "access",
+        "teamProjectAccessId",
+        "projectId",
+        "teamId"
+      ],
+      "inputProperties": {
+        "access": {
+          "type": "string"
+        },
+        "projectAccesses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/TeamProjectAccessProjectAccess:TeamProjectAccessProjectAccess"
+          }
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "teamProjectAccessId": {
+          "type": "string"
+        },
+        "workspaceAccesses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/TeamProjectAccessWorkspaceAccess:TeamProjectAccessWorkspaceAccess"
+          }
+        }
+      },
+      "requiredInputs": [
+        "access",
+        "projectId",
+        "teamId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering TeamProjectAccess resources.\n",
+        "properties": {
+          "access": {
+            "type": "string"
+          },
+          "projectAccesses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/TeamProjectAccessProjectAccess:TeamProjectAccessProjectAccess"
+            }
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "teamProjectAccessId": {
+            "type": "string"
+          },
+          "workspaceAccesses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/TeamProjectAccessWorkspaceAccess:TeamProjectAccessWorkspaceAccess"
+            }
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/teamToken:TeamToken": {
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "expiredAt": {
+          "type": "string"
+        },
+        "forceRegenerate": {
+          "type": "boolean"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "teamId",
+        "token"
+      ],
+      "inputProperties": {
+        "description": {
+          "type": "string"
+        },
+        "expiredAt": {
+          "type": "string"
+        },
+        "forceRegenerate": {
+          "type": "boolean"
+        },
+        "teamId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "teamId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering TeamToken resources.\n",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "expiredAt": {
+            "type": "string"
+          },
+          "forceRegenerate": {
+            "type": "boolean"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/terraformVersion:TerraformVersion": {
+      "properties": {
+        "archs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/TerraformVersionArch:TerraformVersionArch"
+          }
+        },
+        "beta": {
+          "type": "boolean"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "deprecatedReason": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "official": {
+          "type": "boolean"
+        },
+        "sha": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "archs",
+        "beta",
+        "deprecated",
+        "enabled",
+        "official",
+        "sha",
+        "url",
+        "version"
+      ],
+      "inputProperties": {
+        "archs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/TerraformVersionArch:TerraformVersionArch"
+          }
+        },
+        "beta": {
+          "type": "boolean"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "deprecatedReason": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "official": {
+          "type": "boolean"
+        },
+        "sha": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "version"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering TerraformVersion resources.\n",
+        "properties": {
+          "archs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/TerraformVersionArch:TerraformVersionArch"
+            }
+          },
+          "beta": {
+            "type": "boolean"
+          },
+          "deprecated": {
+            "type": "boolean"
+          },
+          "deprecatedReason": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "official": {
+            "type": "boolean"
+          },
+          "sha": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/testVariable:TestVariable": {
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "hcl": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "moduleName": {
+          "type": "string"
+        },
+        "moduleProvider": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "readableValue": {
+          "type": "string"
+        },
+        "sensitive": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "string"
+        },
+        "valueWo": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "category",
+        "description",
+        "hcl",
+        "key",
+        "moduleName",
+        "moduleProvider",
+        "organization",
+        "readableValue",
+        "sensitive",
+        "value"
+      ],
+      "inputProperties": {
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "hcl": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "moduleName": {
+          "type": "string"
+        },
+        "moduleProvider": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "sensitive": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "string"
+        },
+        "valueWo": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "category",
+        "key",
+        "moduleName",
+        "moduleProvider",
+        "organization"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering TestVariable resources.\n",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "hcl": {
+            "type": "boolean"
+          },
+          "key": {
+            "type": "string"
+          },
+          "moduleName": {
+            "type": "string"
+          },
+          "moduleProvider": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "readableValue": {
+            "type": "string"
+          },
+          "sensitive": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": "string"
+          },
+          "valueWo": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/variable:Variable": {
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "hcl": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "readableValue": {
+          "type": "string"
+        },
+        "sensitive": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "string"
+        },
+        "valueWo": {
+          "type": "string"
+        },
+        "variableSetId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "category",
+        "description",
+        "hcl",
+        "key",
+        "readableValue",
+        "sensitive",
+        "value"
+      ],
+      "inputProperties": {
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "hcl": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "sensitive": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "string"
+        },
+        "valueWo": {
+          "type": "string"
+        },
+        "variableSetId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "category",
+        "key"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering Variable resources.\n",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "hcl": {
+            "type": "boolean"
+          },
+          "key": {
+            "type": "string"
+          },
+          "readableValue": {
+            "type": "string"
+          },
+          "sensitive": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": "string"
+          },
+          "valueWo": {
+            "type": "string"
+          },
+          "variableSetId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/variableSet:VariableSet": {
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "global": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "parentProjectId": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "boolean"
+        },
+        "variableSetId": {
+          "type": "string"
+        },
+        "workspaceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "variableSetId",
+        "name",
+        "organization",
+        "parentProjectId",
+        "workspaceIds"
+      ],
+      "inputProperties": {
+        "description": {
+          "type": "string"
+        },
+        "global": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "parentProjectId": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "boolean"
+        },
+        "variableSetId": {
+          "type": "string"
+        },
+        "workspaceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering VariableSet resources.\n",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "global": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "parentProjectId": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "boolean"
+          },
+          "variableSetId": {
+            "type": "string"
+          },
+          "workspaceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/workspace:Workspace": {
+      "properties": {
+        "agentPoolId": {
+          "type": "string",
+          "deprecationMessage": "Deprecated"
+        },
+        "allowDestroyPlan": {
+          "type": "boolean"
+        },
+        "assessmentsEnabled": {
+          "type": "boolean"
+        },
+        "autoApply": {
+          "type": "boolean"
+        },
+        "autoApplyRunTrigger": {
+          "type": "boolean"
+        },
+        "autoDestroyActivityDuration": {
+          "type": "string"
+        },
+        "autoDestroyAt": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "effectiveTags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "executionMode": {
+          "type": "string",
+          "deprecationMessage": "Deprecated"
+        },
+        "fileTriggersEnabled": {
+          "type": "boolean"
+        },
+        "forceDelete": {
+          "type": "boolean"
+        },
+        "globalRemoteState": {
+          "type": "boolean",
+          "deprecationMessage": "Deprecated"
+        },
+        "htmlUrl": {
+          "type": "string"
+        },
+        "ignoreAdditionalTagNames": {
+          "type": "boolean"
+        },
+        "ignoreAdditionalTags": {
+          "type": "boolean"
+        },
+        "inheritsProjectAutoDestroy": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "operations": {
+          "type": "boolean",
+          "deprecationMessage": "Deprecated"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "queueAllRuns": {
+          "type": "boolean"
+        },
+        "remoteStateConsumerIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "deprecationMessage": "Deprecated"
+        },
+        "resourceCount": {
+          "type": "number"
+        },
+        "sourceName": {
+          "type": "string"
+        },
+        "sourceUrl": {
+          "type": "string"
+        },
+        "speculativeEnabled": {
+          "type": "boolean"
+        },
+        "sshKeyId": {
+          "type": "string"
+        },
+        "structuredRunOutputEnabled": {
+          "type": "boolean"
+        },
+        "tagNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "terraformVersion": {
+          "type": "string"
+        },
+        "triggerPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "triggerPrefixes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vcsRepo": {
+          "$ref": "#/types/tfe:index/WorkspaceVcsRepo:WorkspaceVcsRepo"
+        },
+        "workingDirectory": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "agentPoolId",
+        "assessmentsEnabled",
+        "autoApply",
+        "autoDestroyActivityDuration",
+        "autoDestroyAt",
+        "description",
+        "effectiveTags",
+        "executionMode",
+        "globalRemoteState",
+        "htmlUrl",
+        "workspaceId",
+        "inheritsProjectAutoDestroy",
+        "name",
+        "operations",
+        "organization",
+        "projectId",
+        "remoteStateConsumerIds",
+        "resourceCount",
+        "tagNames",
+        "tags",
+        "terraformVersion"
+      ],
+      "inputProperties": {
+        "agentPoolId": {
+          "type": "string",
+          "deprecationMessage": "Deprecated"
+        },
+        "allowDestroyPlan": {
+          "type": "boolean"
+        },
+        "assessmentsEnabled": {
+          "type": "boolean"
+        },
+        "autoApply": {
+          "type": "boolean"
+        },
+        "autoApplyRunTrigger": {
+          "type": "boolean"
+        },
+        "autoDestroyActivityDuration": {
+          "type": "string"
+        },
+        "autoDestroyAt": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "executionMode": {
+          "type": "string",
+          "deprecationMessage": "Deprecated"
+        },
+        "fileTriggersEnabled": {
+          "type": "boolean"
+        },
+        "forceDelete": {
+          "type": "boolean"
+        },
+        "globalRemoteState": {
+          "type": "boolean",
+          "deprecationMessage": "Deprecated"
+        },
+        "ignoreAdditionalTagNames": {
+          "type": "boolean"
+        },
+        "ignoreAdditionalTags": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "operations": {
+          "type": "boolean",
+          "deprecationMessage": "Deprecated"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "queueAllRuns": {
+          "type": "boolean"
+        },
+        "remoteStateConsumerIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "deprecationMessage": "Deprecated"
+        },
+        "sourceName": {
+          "type": "string"
+        },
+        "sourceUrl": {
+          "type": "string"
+        },
+        "speculativeEnabled": {
+          "type": "boolean"
+        },
+        "sshKeyId": {
+          "type": "string"
+        },
+        "structuredRunOutputEnabled": {
+          "type": "boolean"
+        },
+        "tagNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "terraformVersion": {
+          "type": "string"
+        },
+        "triggerPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "triggerPrefixes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vcsRepo": {
+          "$ref": "#/types/tfe:index/WorkspaceVcsRepo:WorkspaceVcsRepo"
+        },
+        "workingDirectory": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering Workspace resources.\n",
+        "properties": {
+          "agentPoolId": {
+            "type": "string",
+            "deprecationMessage": "Deprecated"
+          },
+          "allowDestroyPlan": {
+            "type": "boolean"
+          },
+          "assessmentsEnabled": {
+            "type": "boolean"
+          },
+          "autoApply": {
+            "type": "boolean"
+          },
+          "autoApplyRunTrigger": {
+            "type": "boolean"
+          },
+          "autoDestroyActivityDuration": {
+            "type": "string"
+          },
+          "autoDestroyAt": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "effectiveTags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "executionMode": {
+            "type": "string",
+            "deprecationMessage": "Deprecated"
+          },
+          "fileTriggersEnabled": {
+            "type": "boolean"
+          },
+          "forceDelete": {
+            "type": "boolean"
+          },
+          "globalRemoteState": {
+            "type": "boolean",
+            "deprecationMessage": "Deprecated"
+          },
+          "htmlUrl": {
+            "type": "string"
+          },
+          "ignoreAdditionalTagNames": {
+            "type": "boolean"
+          },
+          "ignoreAdditionalTags": {
+            "type": "boolean"
+          },
+          "inheritsProjectAutoDestroy": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "operations": {
+            "type": "boolean",
+            "deprecationMessage": "Deprecated"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "queueAllRuns": {
+            "type": "boolean"
+          },
+          "remoteStateConsumerIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "deprecationMessage": "Deprecated"
+          },
+          "resourceCount": {
+            "type": "number"
+          },
+          "sourceName": {
+            "type": "string"
+          },
+          "sourceUrl": {
+            "type": "string"
+          },
+          "speculativeEnabled": {
+            "type": "boolean"
+          },
+          "sshKeyId": {
+            "type": "string"
+          },
+          "structuredRunOutputEnabled": {
+            "type": "boolean"
+          },
+          "tagNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "terraformVersion": {
+            "type": "string"
+          },
+          "triggerPatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "triggerPrefixes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "vcsRepo": {
+            "$ref": "#/types/tfe:index/WorkspaceVcsRepo:WorkspaceVcsRepo"
+          },
+          "workingDirectory": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/workspacePolicySet:WorkspacePolicySet": {
+      "properties": {
+        "policySetId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        },
+        "workspacePolicySetId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspacePolicySetId",
+        "policySetId",
+        "workspaceId"
+      ],
+      "inputProperties": {
+        "policySetId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        },
+        "workspacePolicySetId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "policySetId",
+        "workspaceId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering WorkspacePolicySet resources.\n",
+        "properties": {
+          "policySetId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "workspacePolicySetId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/workspacePolicySetExclusion:WorkspacePolicySetExclusion": {
+      "properties": {
+        "policySetId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        },
+        "workspacePolicySetExclusionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspacePolicySetExclusionId",
+        "policySetId",
+        "workspaceId"
+      ],
+      "inputProperties": {
+        "policySetId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        },
+        "workspacePolicySetExclusionId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "policySetId",
+        "workspaceId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering WorkspacePolicySetExclusion resources.\n",
+        "properties": {
+          "policySetId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "workspacePolicySetExclusionId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/workspaceRun:WorkspaceRun": {
+      "properties": {
+        "apply": {
+          "$ref": "#/types/tfe:index/WorkspaceRunApply:WorkspaceRunApply"
+        },
+        "destroy": {
+          "$ref": "#/types/tfe:index/WorkspaceRunDestroy:WorkspaceRunDestroy"
+        },
+        "workspaceId": {
+          "type": "string"
+        },
+        "workspaceRunId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspaceRunId",
+        "workspaceId"
+      ],
+      "inputProperties": {
+        "apply": {
+          "$ref": "#/types/tfe:index/WorkspaceRunApply:WorkspaceRunApply"
+        },
+        "destroy": {
+          "$ref": "#/types/tfe:index/WorkspaceRunDestroy:WorkspaceRunDestroy"
+        },
+        "workspaceId": {
+          "type": "string"
+        },
+        "workspaceRunId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "workspaceId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering WorkspaceRun resources.\n",
+        "properties": {
+          "apply": {
+            "$ref": "#/types/tfe:index/WorkspaceRunApply:WorkspaceRunApply"
+          },
+          "destroy": {
+            "$ref": "#/types/tfe:index/WorkspaceRunDestroy:WorkspaceRunDestroy"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "workspaceRunId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/workspaceRunTask:WorkspaceRunTask": {
+      "properties": {
+        "enforcementLevel": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string",
+          "deprecationMessage": "Deprecated"
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "taskId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "enforcementLevel",
+        "stage",
+        "stages",
+        "taskId",
+        "workspaceId"
+      ],
+      "inputProperties": {
+        "enforcementLevel": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string",
+          "deprecationMessage": "Deprecated"
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "taskId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "enforcementLevel",
+        "taskId",
+        "workspaceId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering WorkspaceRunTask resources.\n",
+        "properties": {
+          "enforcementLevel": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string",
+            "deprecationMessage": "Deprecated"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "taskId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/workspaceSettings:WorkspaceSettings": {
+      "properties": {
+        "agentPoolId": {
+          "type": "string"
+        },
+        "assessmentsEnabled": {
+          "type": "boolean"
+        },
+        "autoApply": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "effectiveTags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "executionMode": {
+          "type": "string"
+        },
+        "globalRemoteState": {
+          "type": "boolean"
+        },
+        "overwrites": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/tfe:index/WorkspaceSettingsOverwrite:WorkspaceSettingsOverwrite"
+          }
+        },
+        "remoteStateConsumerIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "agentPoolId",
+        "assessmentsEnabled",
+        "autoApply",
+        "description",
+        "effectiveTags",
+        "executionMode",
+        "globalRemoteState",
+        "overwrites",
+        "remoteStateConsumerIds",
+        "tags",
+        "workspaceId"
+      ],
+      "inputProperties": {
+        "agentPoolId": {
+          "type": "string"
+        },
+        "assessmentsEnabled": {
+          "type": "boolean"
+        },
+        "autoApply": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "effectiveTags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "executionMode": {
+          "type": "string"
+        },
+        "globalRemoteState": {
+          "type": "boolean"
+        },
+        "remoteStateConsumerIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "workspaceId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "workspaceId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering WorkspaceSettings resources.\n",
+        "properties": {
+          "agentPoolId": {
+            "type": "string"
+          },
+          "assessmentsEnabled": {
+            "type": "boolean"
+          },
+          "autoApply": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "effectiveTags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "executionMode": {
+            "type": "string"
+          },
+          "globalRemoteState": {
+            "type": "boolean"
+          },
+          "overwrites": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/WorkspaceSettingsOverwrite:WorkspaceSettingsOverwrite"
+            }
+          },
+          "remoteStateConsumerIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "tfe:index/workspaceVariableSet:WorkspaceVariableSet": {
+      "properties": {
+        "variableSetId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        },
+        "workspaceVariableSetId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspaceVariableSetId",
+        "variableSetId",
+        "workspaceId"
+      ],
+      "inputProperties": {
+        "variableSetId": {
+          "type": "string"
+        },
+        "workspaceId": {
+          "type": "string"
+        },
+        "workspaceVariableSetId": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "variableSetId",
+        "workspaceId"
+      ],
+      "stateInputs": {
+        "description": "Input properties used for looking up and filtering WorkspaceVariableSet resources.\n",
+        "properties": {
+          "variableSetId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "workspaceVariableSetId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "functions": {
+    "pulumi:providers:tfe/terraformConfig": {
+      "description": "This function returns a Terraform config object with terraform-namecased keys,to be used with the Terraform Module Provider.",
+      "inputs": {
+        "properties": {
+          "__self__": {
+            "type": "ref",
+            "$ref": "#/resources/pulumi:providers:tfe"
+          }
+        },
+        "type": "pulumi:providers:tfe/terraformConfig",
+        "required": [
+          "__self__"
+        ]
+      },
+      "outputs": {
+        "properties": {
+          "result": {
+            "additionalProperties": {
+              "$ref": "pulumi.json#/Any"
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "type": "object"
+      }
+    },
+    "tfe:index/getAgentPool:getAgentPool": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getAgentPool.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getAgentPool.\n",
+        "properties": {
+          "allowedProjectIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowedWorkspaceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "excludedWorkspaceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "organizationScoped": {
+            "type": "boolean"
+          }
+        },
+        "type": "object",
+        "required": [
+          "allowedProjectIds",
+          "allowedWorkspaceIds",
+          "excludedWorkspaceIds",
+          "id",
+          "name",
+          "organizationScoped"
+        ]
+      }
+    },
+    "tfe:index/getGithubAppInstallation:getGithubAppInstallation": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getGithubAppInstallation.\n",
+        "properties": {
+          "installationId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getGithubAppInstallation.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "installationId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ]
+      }
+    },
+    "tfe:index/getIpRanges:getIpRanges": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getIpRanges.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getIpRanges.\n",
+        "properties": {
+          "apis": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "id": {
+            "type": "string"
+          },
+          "notifications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sentinels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "vcs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "apis",
+          "id",
+          "notifications",
+          "sentinels",
+          "vcs"
+        ]
+      }
+    },
+    "tfe:index/getNoCodeModule:getNoCodeModule": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getNoCodeModule.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getNoCodeModule.\n",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "registryModuleId": {
+            "type": "string"
+          },
+          "versionPin": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled",
+          "id",
+          "namespace",
+          "organization",
+          "registryModuleId",
+          "versionPin"
+        ]
+      }
+    },
+    "tfe:index/getOauthClient:getOauthClient": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getOauthClient.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "oauthClientId": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "serviceProvider": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getOauthClient.\n",
+        "properties": {
+          "apiUrl": {
+            "type": "string"
+          },
+          "callbackUrl": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "httpUrl": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "oauthClientId": {
+            "type": "string"
+          },
+          "oauthTokenId": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "organizationScoped": {
+            "type": "boolean"
+          },
+          "projectIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "serviceProvider": {
+            "type": "string"
+          },
+          "serviceProviderDisplayName": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "apiUrl",
+          "callbackUrl",
+          "createdAt",
+          "httpUrl",
+          "id",
+          "oauthTokenId",
+          "organizationScoped",
+          "projectIds",
+          "serviceProviderDisplayName"
+        ]
+      }
+    },
+    "tfe:index/getOrganization:getOrganization": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getOrganization.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getOrganization.\n",
+        "properties": {
+          "aggregatedCommitStatusEnabled": {
+            "type": "boolean"
+          },
+          "assessmentsEnforced": {
+            "type": "boolean"
+          },
+          "collaboratorAuthPolicy": {
+            "type": "string"
+          },
+          "costEstimationEnabled": {
+            "type": "boolean"
+          },
+          "defaultProjectId": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "ownersTeamSamlRoleId": {
+            "type": "string"
+          },
+          "sendPassingStatusesForUntriggeredSpeculativePlans": {
+            "type": "boolean"
+          },
+          "speculativePlanManagementEnabled": {
+            "type": "boolean"
+          },
+          "twoFactorConformant": {
+            "type": "boolean"
+          }
+        },
+        "type": "object",
+        "required": [
+          "aggregatedCommitStatusEnabled",
+          "assessmentsEnforced",
+          "collaboratorAuthPolicy",
+          "costEstimationEnabled",
+          "defaultProjectId",
+          "email",
+          "externalId",
+          "id",
+          "ownersTeamSamlRoleId",
+          "sendPassingStatusesForUntriggeredSpeculativePlans",
+          "speculativePlanManagementEnabled",
+          "twoFactorConformant"
+        ]
+      }
+    },
+    "tfe:index/getOrganizationMembers:getOrganizationMembers": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getOrganizationMembers.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getOrganizationMembers.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getOrganizationMembersMember:getOrganizationMembersMember"
+            }
+          },
+          "membersWaitings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getOrganizationMembersMembersWaiting:getOrganizationMembersMembersWaiting"
+            }
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "members",
+          "membersWaitings"
+        ]
+      }
+    },
+    "tfe:index/getOrganizationMembership:getOrganizationMembership": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getOrganizationMembership.\n",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "organizationMembershipId": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getOrganizationMembership.\n",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "organizationMembershipId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organizationMembershipId",
+          "userId",
+          "username"
+        ]
+      }
+    },
+    "tfe:index/getOrganizationRunTask:getOrganizationRunTask": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getOrganizationRunTask.\n",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getOrganizationRunTask.\n",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ]
+      }
+    },
+    "tfe:index/getOrganizationRunTaskGlobalSettings:getOrganizationRunTaskGlobalSettings": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getOrganizationRunTaskGlobalSettings.\n",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "enforcementLevel": {
+            "type": "string"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "taskId": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "taskId"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getOrganizationRunTaskGlobalSettings.\n",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "enforcementLevel": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "taskId": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "taskId"
+        ]
+      }
+    },
+    "tfe:index/getOrganizationTags:getOrganizationTags": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getOrganizationTags.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getOrganizationTags.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getOrganizationTagsTag:getOrganizationTagsTag"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tags"
+        ]
+      }
+    },
+    "tfe:index/getOrganizations:getOrganizations": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getOrganizations.\n",
+        "properties": {
+          "admin": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getOrganizations.\n",
+        "properties": {
+          "admin": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "ids": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "ids",
+          "names"
+        ]
+      }
+    },
+    "tfe:index/getOutputs:getOutputs": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getOutputs.\n",
+        "properties": {
+          "organization": {
+            "type": "string"
+          },
+          "workspace": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workspace"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getOutputs.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nonsensitiveValues": {
+            "$ref": "pulumi.json#/Any"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "values": {
+            "$ref": "pulumi.json#/Any"
+          },
+          "workspace": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nonsensitiveValues",
+          "values",
+          "workspace"
+        ]
+      }
+    },
+    "tfe:index/getPolicySet:getPolicySet": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getPolicySet.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "overridable": {
+            "type": "boolean"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getPolicySet.\n",
+        "properties": {
+          "agentEnabled": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "excludedWorkspaceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "global": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "overridable": {
+            "type": "boolean"
+          },
+          "policiesPath": {
+            "type": "string"
+          },
+          "policyIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "policyToolVersion": {
+            "type": "string"
+          },
+          "projectIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "vcsRepos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getPolicySetVcsRepo:getPolicySetVcsRepo"
+            }
+          },
+          "workspaceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "agentEnabled",
+          "description",
+          "excludedWorkspaceIds",
+          "global",
+          "id",
+          "name",
+          "policiesPath",
+          "policyIds",
+          "policyToolVersion",
+          "projectIds",
+          "vcsRepos",
+          "workspaceIds"
+        ]
+      }
+    },
+    "tfe:index/getProject:getProject": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getProject.\n",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getProject.\n",
+        "properties": {
+          "autoDestroyActivityDuration": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "effectiveTags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "workspaceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "workspaceNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "autoDestroyActivityDuration",
+          "description",
+          "effectiveTags",
+          "id",
+          "name",
+          "organization",
+          "workspaceIds",
+          "workspaceNames"
+        ]
+      }
+    },
+    "tfe:index/getProjects:getProjects": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getProjects.\n",
+        "properties": {
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getProjects.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getProjectsProject:getProjectsProject"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organization",
+          "projects"
+        ]
+      }
+    },
+    "tfe:index/getRegistryGpgKey:getRegistryGpgKey": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getRegistryGpgKey.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getRegistryGpgKey.\n",
+        "properties": {
+          "asciiArmor": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "asciiArmor",
+          "createdAt",
+          "id",
+          "organization",
+          "updatedAt"
+        ]
+      }
+    },
+    "tfe:index/getRegistryGpgKeys:getRegistryGpgKeys": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getRegistryGpgKeys.\n",
+        "properties": {
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getRegistryGpgKeys.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "keys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getRegistryGpgKeysKey:getRegistryGpgKeysKey"
+            }
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "keys",
+          "organization"
+        ]
+      }
+    },
+    "tfe:index/getRegistryModule:getRegistryModule": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getRegistryModule.\n",
+        "properties": {
+          "moduleProvider": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getRegistryModulePermission:getRegistryModulePermission"
+            }
+          },
+          "registryName": {
+            "type": "string"
+          },
+          "testConfigs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getRegistryModuleTestConfig:getRegistryModuleTestConfig"
+            }
+          },
+          "vcsRepos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getRegistryModuleVcsRepo:getRegistryModuleVcsRepo"
+            }
+          },
+          "versionStatuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getRegistryModuleVersionStatus:getRegistryModuleVersionStatus"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "moduleProvider",
+          "name",
+          "organization"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getRegistryModule.\n",
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "moduleProvider": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "noCode": {
+            "type": "boolean"
+          },
+          "noCodeModuleId": {
+            "type": "string"
+          },
+          "noCodeModuleSource": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getRegistryModulePermission:getRegistryModulePermission"
+            }
+          },
+          "publishingMechanism": {
+            "type": "string"
+          },
+          "registryName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "testConfigs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getRegistryModuleTestConfig:getRegistryModuleTestConfig"
+            }
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "vcsRepos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getRegistryModuleVcsRepo:getRegistryModuleVcsRepo"
+            }
+          },
+          "versionStatuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getRegistryModuleVersionStatus:getRegistryModuleVersionStatus"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "createdAt",
+          "id",
+          "moduleProvider",
+          "name",
+          "namespace",
+          "noCode",
+          "noCodeModuleId",
+          "noCodeModuleSource",
+          "organization",
+          "publishingMechanism",
+          "registryName",
+          "status",
+          "updatedAt"
+        ]
+      }
+    },
+    "tfe:index/getRegistryProvider:getRegistryProvider": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getRegistryProvider.\n",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "registryName": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getRegistryProvider.\n",
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "registryName": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "createdAt",
+          "id",
+          "name",
+          "namespace",
+          "organization",
+          "registryName",
+          "updatedAt"
+        ]
+      }
+    },
+    "tfe:index/getRegistryProviders:getRegistryProviders": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getRegistryProviders.\n",
+        "properties": {
+          "organization": {
+            "type": "string"
+          },
+          "registryName": {
+            "type": "string"
+          },
+          "search": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getRegistryProviders.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getRegistryProvidersProvider:getRegistryProvidersProvider"
+            }
+          },
+          "registryName": {
+            "type": "string"
+          },
+          "search": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organization",
+          "providers"
+        ]
+      }
+    },
+    "tfe:index/getSamlSettings:getSamlSettings": {
+      "outputs": {
+        "description": "A collection of values returned by getSamlSettings.\n",
+        "properties": {
+          "acsConsumerUrl": {
+            "type": "string"
+          },
+          "attrGroups": {
+            "type": "string"
+          },
+          "attrSiteAdmin": {
+            "type": "string"
+          },
+          "attrUsername": {
+            "type": "string"
+          },
+          "authnRequestsSigned": {
+            "type": "boolean"
+          },
+          "certificate": {
+            "type": "string"
+          },
+          "debug": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "idpCert": {
+            "type": "string"
+          },
+          "metadataUrl": {
+            "type": "string"
+          },
+          "oldIdpCert": {
+            "type": "string"
+          },
+          "privateKey": {
+            "type": "string"
+          },
+          "signatureDigestMethod": {
+            "type": "string"
+          },
+          "signatureSigningMethod": {
+            "type": "string"
+          },
+          "siteAdminRole": {
+            "type": "string"
+          },
+          "sloEndpointUrl": {
+            "type": "string"
+          },
+          "ssoApiTokenSessionTimeout": {
+            "type": "number"
+          },
+          "ssoEndpointUrl": {
+            "type": "string"
+          },
+          "teamManagementEnabled": {
+            "type": "boolean"
+          },
+          "wantAssertionsSigned": {
+            "type": "boolean"
+          }
+        },
+        "type": "object",
+        "required": [
+          "acsConsumerUrl",
+          "attrGroups",
+          "attrSiteAdmin",
+          "attrUsername",
+          "authnRequestsSigned",
+          "certificate",
+          "debug",
+          "enabled",
+          "id",
+          "idpCert",
+          "metadataUrl",
+          "oldIdpCert",
+          "privateKey",
+          "signatureDigestMethod",
+          "signatureSigningMethod",
+          "siteAdminRole",
+          "sloEndpointUrl",
+          "ssoApiTokenSessionTimeout",
+          "ssoEndpointUrl",
+          "teamManagementEnabled",
+          "wantAssertionsSigned"
+        ]
+      }
+    },
+    "tfe:index/getSlug:getSlug": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getSlug.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sourcePath": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sourcePath"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getSlug.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sourcePath": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "sourcePath"
+        ]
+      }
+    },
+    "tfe:index/getSshKey:getSshKey": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getSshKey.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getSshKey.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ]
+      }
+    },
+    "tfe:index/getTeam:getTeam": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getTeam.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getTeam.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "ssoTeamId": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "ssoTeamId"
+        ]
+      }
+    },
+    "tfe:index/getTeamAccess:getTeamAccess": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getTeamAccess.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "teamId",
+          "workspaceId"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getTeamAccess.\n",
+        "properties": {
+          "access": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getTeamAccessPermission:getTeamAccessPermission"
+            }
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access",
+          "id",
+          "permissions",
+          "teamId",
+          "workspaceId"
+        ]
+      }
+    },
+    "tfe:index/getTeamProjectAccess:getTeamProjectAccess": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getTeamProjectAccess.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "projectId",
+          "teamId"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getTeamProjectAccess.\n",
+        "properties": {
+          "access": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "projectAccesses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getTeamProjectAccessProjectAccess:getTeamProjectAccessProjectAccess"
+            }
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "workspaceAccesses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getTeamProjectAccessWorkspaceAccess:getTeamProjectAccessWorkspaceAccess"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "access",
+          "id",
+          "projectAccesses",
+          "projectId",
+          "teamId",
+          "workspaceAccesses"
+        ]
+      }
+    },
+    "tfe:index/getTeams:getTeams": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getTeams.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getTeams.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ids": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "organization": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "ids",
+          "names"
+        ]
+      }
+    },
+    "tfe:index/getVariableSet:getVariableSet": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getVariableSet.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "parentProjectId": {
+            "type": "string"
+          },
+          "projectIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variableIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "workspaceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getVariableSet.\n",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "global": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "parentProjectId": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "boolean"
+          },
+          "projectIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variableIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "workspaceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "description",
+          "global",
+          "id",
+          "name",
+          "parentProjectId",
+          "priority",
+          "projectIds",
+          "variableIds",
+          "workspaceIds"
+        ]
+      }
+    },
+    "tfe:index/getVariables:getVariables": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getVariables.\n",
+        "properties": {
+          "variableSetId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getVariables.\n",
+        "properties": {
+          "envs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getVariablesEnv:getVariablesEnv"
+            }
+          },
+          "id": {
+            "type": "string"
+          },
+          "terraforms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getVariablesTerraform:getVariablesTerraform"
+            }
+          },
+          "variableSetId": {
+            "type": "string"
+          },
+          "variables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getVariablesVariable:getVariablesVariable"
+            }
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "envs",
+          "id",
+          "terraforms",
+          "variables"
+        ]
+      }
+    },
+    "tfe:index/getWorkspace:getWorkspace": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getWorkspace.\n",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "tagNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getWorkspace.\n",
+        "properties": {
+          "allowDestroyPlan": {
+            "type": "boolean"
+          },
+          "assessmentsEnabled": {
+            "type": "boolean"
+          },
+          "autoApply": {
+            "type": "boolean"
+          },
+          "autoApplyRunTrigger": {
+            "type": "boolean"
+          },
+          "autoDestroyActivityDuration": {
+            "type": "string"
+          },
+          "autoDestroyAt": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "effectiveTags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "executionMode": {
+            "type": "string"
+          },
+          "fileTriggersEnabled": {
+            "type": "boolean"
+          },
+          "globalRemoteState": {
+            "type": "boolean"
+          },
+          "htmlUrl": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "inheritsProjectAutoDestroy": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "operations": {
+            "type": "boolean"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "policyCheckFailures": {
+            "type": "number"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "queueAllRuns": {
+            "type": "boolean"
+          },
+          "remoteStateConsumerIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "resourceCount": {
+            "type": "number"
+          },
+          "runFailures": {
+            "type": "number"
+          },
+          "runsCount": {
+            "type": "number"
+          },
+          "sourceName": {
+            "type": "string"
+          },
+          "sourceUrl": {
+            "type": "string"
+          },
+          "speculativeEnabled": {
+            "type": "boolean"
+          },
+          "sshKeyId": {
+            "type": "string"
+          },
+          "structuredRunOutputEnabled": {
+            "type": "boolean"
+          },
+          "tagNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "terraformVersion": {
+            "type": "string"
+          },
+          "triggerPatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "triggerPrefixes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "vcsRepos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/types/tfe:index/getWorkspaceVcsRepo:getWorkspaceVcsRepo"
+            }
+          },
+          "workingDirectory": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "allowDestroyPlan",
+          "assessmentsEnabled",
+          "autoApply",
+          "autoApplyRunTrigger",
+          "autoDestroyActivityDuration",
+          "autoDestroyAt",
+          "description",
+          "effectiveTags",
+          "executionMode",
+          "fileTriggersEnabled",
+          "globalRemoteState",
+          "htmlUrl",
+          "id",
+          "inheritsProjectAutoDestroy",
+          "name",
+          "operations",
+          "policyCheckFailures",
+          "projectId",
+          "queueAllRuns",
+          "remoteStateConsumerIds",
+          "resourceCount",
+          "runFailures",
+          "runsCount",
+          "sourceName",
+          "sourceUrl",
+          "speculativeEnabled",
+          "sshKeyId",
+          "structuredRunOutputEnabled",
+          "tagNames",
+          "terraformVersion",
+          "triggerPatterns",
+          "triggerPrefixes",
+          "vcsRepos",
+          "workingDirectory"
+        ]
+      }
+    },
+    "tfe:index/getWorkspaceIds:getWorkspaceIds": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getWorkspaceIds.\n",
+        "properties": {
+          "excludeTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "id": {
+            "type": "string"
+          },
+          "names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "organization": {
+            "type": "string"
+          },
+          "tagFilters": {
+            "$ref": "#/types/tfe:index/getWorkspaceIdsTagFilters:getWorkspaceIdsTagFilters"
+          },
+          "tagNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "description": "A collection of values returned by getWorkspaceIds.\n",
+        "properties": {
+          "excludeTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fullNames": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "id": {
+            "type": "string"
+          },
+          "ids": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "organization": {
+            "type": "string"
+          },
+          "tagFilters": {
+            "$ref": "#/types/tfe:index/getWorkspaceIdsTagFilters:getWorkspaceIdsTagFilters"
+          },
+          "tagNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "fullNames",
+          "id",
+          "ids"
+        ]
+      }
+    },
+    "tfe:index/getWorkspaceRunTask:getWorkspaceRunTask": {
+      "inputs": {
+        "description": "A collection of arguments for invoking getWorkspaceRunTask.\n",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "taskId",
+          "workspaceId"
+        ]
+      },
+      "outputs": {
+        "description": "A collection of values returned by getWorkspaceRunTask.\n",
+        "properties": {
+          "enforcementLevel": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string",
+            "deprecationMessage": "Deprecated"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "taskId": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enforcementLevel",
+          "id",
+          "stage",
+          "stages",
+          "taskId",
+          "workspaceId"
+        ]
+      }
+    }
+  }
+}

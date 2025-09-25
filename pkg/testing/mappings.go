@@ -42,8 +42,8 @@ func (l *TestFileMapper) GetMapping(
 	}
 
 	if provider == "tfe" {
-		// tfe is known terraform provider that doesn't have a Pulumi equivalent, so return early here
-		return nil, nil
+		// a known parameterized provider for whuch we have local mappings for
+		pulumiProvider = "tfe"
 	}
 
 	if pulumiProvider == "unknown" {

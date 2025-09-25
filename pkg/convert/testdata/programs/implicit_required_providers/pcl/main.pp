@@ -11,12 +11,12 @@ package "tfe" {
 // A program that uses the tfe provider without explicitly declaring it in required_providers.
 // Since this is _not_ a Pulumi provider, the converter should emit a parameterized package block
 // with the provider name and a version constraint of "~> <latest version>".
-resource "test-organization" "tfe:index:Organization" {
+resource "test-organization" "tfe:index/organization:Organization" {
   name  = "my-org-name"
   email = "admin@company.com"
 }
 
-resource "test-agent-pool" "tfe:index:AgentPool" {
+resource "test-agent-pool" "tfe:index/agentPool:AgentPool" {
   name               = "my-agent-pool-name"
   organization       = test-organization.name
   organizationScoped = true
