@@ -22,11 +22,15 @@ import (
 	"sync"
 
 	"github.com/blang/semver"
+	version "github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-svchost/disco"
 	"github.com/opentofu/opentofu/shim"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
+	"github.com/pulumi/terraform/pkg/addrs"
 	"github.com/pulumi/terraform/pkg/configs"
+	"github.com/pulumi/terraform/pkg/getproviders"
 )
 
 // ProviderInfoSource is an interface for retrieving information about a bridged Terraform provider.
@@ -173,4 +177,68 @@ func (s *CachingProviderInfoSource) getFromCache(provider string) (*tfbridge.Pro
 
 	info, ok := s.entries[provider]
 	return info, ok
+}
+
+type ProviderInfoResolver interface {
+	ResolveLatest(name string) (*configs.RequiredProvider, error)
+}
+
+func NewProviderInfoResolver() ProviderInfoResolver {
+	return &defaultProviderInfoResolver{}
+}
+
+type defaultProviderInfoResolver struct{}
+
+// resolveRequiredProvider resolves the latest version of the given provider name from the registry
+// and returns a provider spec with a version constraint of "~> <latest version>".
+// Used when terraform modules use providers that don't have a corresponding required_providers block.
+func resolveRequiredProvider(providerName string) (*configs.RequiredProvider, error) {
+	source := getproviders.NewRegistrySource(disco.New())
+	providerAddress, diagnostics := addrs.ParseProviderSourceString(providerName)
+	if diagnostics.HasErrors() {
+		return nil, fmt.Errorf("failed to parse provider source %q when resolving latest version: %w",
+			providerName,
+			diagnostics.Err())
+	}
+
+	versions, _, err := source.AvailableVersions(context.TODO(), providerAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve available versions for provider %s: %w", providerName, err)
+	}
+
+	if len(versions) == 0 {
+		return nil, fmt.Errorf("no available versions found for provider %s", providerName)
+	}
+
+	latestVersion := versions[0]
+	for _, v := range versions {
+		if v.GreaterThan(latestVersion) {
+			latestVersion = v
+		}
+	}
+
+	versionConstraint, err := version.NewConstraint("~> " + latestVersion.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create version constraint for provider %s version %s: %w",
+			providerName,
+			latestVersion.String(),
+			err)
+	}
+
+	requiredProvider := &configs.RequiredProvider{
+		Name:   providerName,
+		Source: providerAddress.String(),
+		Requirement: configs.VersionConstraint{
+			Required: versionConstraint,
+		},
+	}
+
+	if providerAddress.HasKnownNamespace() {
+		requiredProvider.Type = providerAddress
+	}
+	return requiredProvider, nil
+}
+
+func (r *defaultProviderInfoResolver) ResolveLatest(name string) (*configs.RequiredProvider, error) {
+	return resolveRequiredProvider(name)
 }

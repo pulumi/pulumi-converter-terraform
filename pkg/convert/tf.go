@@ -2920,6 +2920,7 @@ func translateRemoteModule(
 	destinationRoot afero.Fs, // The root of the destination filesystem to write PCL to.
 	destinationDirectory string, // A path in destination to write the translated code to.
 	info ProviderInfoSource,
+	providerInfoResolver ProviderInfoResolver,
 	requiredProviders map[string]*configs.RequiredProvider,
 	sandboxedModules map[string]*PulumiTerraformModule,
 	generatedProjectDirectory string,
@@ -2966,6 +2967,7 @@ func translateRemoteModule(
 		sourceRoot, "/",
 		destinationRoot, destinationDirectory,
 		info,
+		providerInfoResolver,
 		requiredProviders,
 		sandboxedModules,
 		/*topLevelModule*/ false,
@@ -3058,6 +3060,7 @@ func translateModuleSourceCode(
 	destinationRoot afero.Fs, // The root of the destination filesystem to write PCL to.
 	destinationDirectory string, // A path in destination to write the translated code to.
 	info ProviderInfoSource,
+	providerInfoResolver ProviderInfoResolver,
 	requiredProviders map[string]*configs.RequiredProvider,
 	sandboxedModules map[string]*PulumiTerraformModule,
 	topLevelModule bool,
@@ -3193,6 +3196,24 @@ func translateModuleSourceCode(
 			key := managedResource.Type + "." + managedResource.Name
 			// Try to grab the info for this resource type
 			provider := impliedProvider(managedResource.Type)
+
+			// for non-Pulumi TF providers that don't have a corresponding declaration in required_providers
+			// we try to resolve the latest version from the registry and add it ourselves
+			// so that they can be parameterized via terraform-provider (any TF provider feature)
+			if _, seen := requiredProviders[provider]; !seen && isTerraformProvider(provider) {
+				providerSpec, err := providerInfoResolver.ResolveLatest(provider)
+				if err != nil {
+					state.appendDiagnostic(&hcl.Diagnostic{
+						Subject:  &managedResource.DeclRange,
+						Severity: hcl.DiagWarning,
+						Summary:  "Failed to resolve provider",
+						Detail:   fmt.Sprintf("Failed to resolve provider %q for resource %q: %v", provider, managedResource.Type, err),
+					})
+				} else if providerSpec != nil {
+					requiredProviders[provider] = providerSpec
+				}
+			}
+
 			providerInfo, err := info.GetProviderInfo(provider, requiredProviders[provider])
 			if err != nil {
 				state.appendDiagnostic(&hcl.Diagnostic{
@@ -3313,6 +3334,7 @@ func translateModuleSourceCode(
 						destinationRoot,
 						destinationPath,
 						info,
+						providerInfoResolver,
 						requiredProviders,
 						sandboxedModules,
 						/*topLevelModule*/ false,
@@ -3349,6 +3371,7 @@ func translateModuleSourceCode(
 						destinationRoot,
 						destinationPath,
 						info,
+						providerInfoResolver,
 						requiredProviders,
 						sandboxedModules,
 						generatedProjectDirectory,
@@ -3478,6 +3501,7 @@ func translateModuleSourceCode(
 						destinationRoot,
 						destinationPath,
 						info,
+						providerInfoResolver,
 						requiredProviders,
 						sandboxedModules,
 						generatedProjectDirectory,
@@ -3986,6 +4010,7 @@ func TranslateModule(
 	source afero.Fs, sourceDirectory string,
 	destination afero.Fs,
 	info ProviderInfoSource,
+	providerInfoResolver ProviderInfoResolver,
 	generatedProjectDirectory string,
 ) hcl.Diagnostics {
 	modules := make(map[moduleKey]string)
@@ -3995,6 +4020,7 @@ func TranslateModule(
 		destination,
 		"/",
 		info,
+		providerInfoResolver,
 		/*requiredProviders*/ map[string]*configs.RequiredProvider{},
 		/*sanboxedModules*/ map[string]*PulumiTerraformModule{},
 		/*topLevelModule*/ true,

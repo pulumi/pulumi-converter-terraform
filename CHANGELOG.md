@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+## 1.2.4
+
+### Bug Fixes
+ - Handle attributes with complex indexer parts by falling back to camelCasing the attribute name if the name cannot be determined.
+
 ## 1.2.3
 
 ### Bug Fixes

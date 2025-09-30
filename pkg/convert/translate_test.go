@@ -23,6 +23,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -39,6 +40,7 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/common/diag/colors"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/cmdutil"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
+	"github.com/pulumi/terraform/pkg/configs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -92,6 +94,28 @@ func (l *testLoader) LoadPackageReference(pkg string, version *semver.Version) (
 		return nil, err
 	}
 	return schemaPackage.Reference(), nil
+}
+
+type testProviderInfoResolver struct{}
+
+func (r *testProviderInfoResolver) ResolveLatest(provider string) (*configs.RequiredProvider, error) {
+	providersUnderTest := []string{
+		"simple",
+		"complex",
+		"archive",
+		"assets",
+		"blocks",
+		"maxItemsOne",
+		"renames",
+		"configured",
+	}
+
+	if slices.Contains(providersUnderTest, provider) {
+		// returning nil here means that the provider under test should not be resolved from real registry
+		return nil, nil
+	}
+
+	return NewProviderInfoResolver().ResolveLatest(provider)
 }
 
 // TestTranslate runs through all the folders in testdata (except for "schemas" and "mappings") and tries to
@@ -198,7 +222,8 @@ func TestTranslate(t *testing.T) {
 			pclFs := afero.NewBasePathFs(osFs, pclPath)
 
 			providerInfoSource := NewMapperProviderInfoSource(mapper)
-			diagnostics := TranslateModule(osFs, hclPath, pclFs, providerInfoSource, pclPath)
+			testProviderInfoResolver := &testProviderInfoResolver{}
+			diagnostics := TranslateModule(osFs, hclPath, pclFs, providerInfoSource, testProviderInfoResolver, pclPath)
 
 			// If PULUMI_ACCEPT is set then clear the PCL folder and copy the generated files out. Note we
 			// copy these out even if this returned errors, this makes it easy in the local dev loop to see
@@ -457,8 +482,9 @@ func TestTranslateParameterized(t *testing.T) {
 		},
 	}
 
+	testProviderInfoResolver := &testProviderInfoResolver{}
 	// Act.
-	diagnostics := TranslateModule(osFs, testPath, pclFs, providerInfoSource, "/")
+	diagnostics := TranslateModule(osFs, testPath, pclFs, providerInfoSource, testProviderInfoResolver, "/")
 
 	// Assert.
 	require.False(t, diagnostics.HasErrors(), "translate diagnostics should not have errors: %v", diagnostics)

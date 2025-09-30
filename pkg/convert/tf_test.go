@@ -65,3 +65,16 @@ func TestProjectListToSingleton(t *testing.T) {
 		})
 	}
 }
+
+func TestResolveLatestProviderVersion(t *testing.T) {
+	t.Parallel()
+	name := impliedProvider("tfe_organization")
+	provider, err := resolveRequiredProvider(name)
+	assert.NoError(t, err)
+	assert.Equal(t, "tfe", provider.Name)
+	assert.Equal(t, "registry.terraform.io/hashicorp/tfe", provider.Source)
+	// latest version resolved which unfortunately can change over time
+	// expected that this test may fail in the future alongside the implicit_required_provider
+	// test program
+	assert.Equal(t, "~> 0.70.0", provider.Requirement.Required.String())
+}
