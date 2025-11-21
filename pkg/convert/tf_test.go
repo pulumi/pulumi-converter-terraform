@@ -76,5 +76,5 @@ func TestResolveLatestProviderVersion(t *testing.T) {
 	// latest version resolved which unfortunately can change over time
 	// expected that this test may fail in the future alongside the implicit_required_provider
 	// test program
-	assert.Equal(t, "~> 0.70.0", provider.Requirement.Required.String())
+	assert.Equal(t, "~> 0.71.0", provider.Requirement.Required.String())
 }
