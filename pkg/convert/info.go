@@ -194,6 +194,10 @@ type defaultProviderInfoResolver struct{}
 // Used when terraform modules use providers that don't have a corresponding required_providers block.
 func resolveRequiredProvider(providerName string) (*configs.RequiredProvider, error) {
 	source := getproviders.NewRegistrySource(disco.New())
+	return resolveRequiredProviderWithRegistrySource(source, providerName)
+}
+
+func resolveRequiredProviderWithRegistrySource(source getproviders.Source, providerName string) (*configs.RequiredProvider, error) {
 	providerAddress, diagnostics := addrs.ParseProviderSourceString(providerName)
 	if diagnostics.HasErrors() {
 		return nil, fmt.Errorf("failed to parse provider source %q when resolving latest version: %w",

@@ -27,6 +27,7 @@ import (
 	"strings"
 	"testing"
 
+	version "github.com/hashicorp/go-version"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/spf13/afero"
 
@@ -115,6 +116,26 @@ func (r *testProviderInfoResolver) ResolveLatest(provider string) (*configs.Requ
 		return nil, nil
 	}
 
+	// Hardcode tfe version to 0.70.0 not to have to update the testdata/schemas folder every time the tfe
+	// version is released.
+	// Why we cannot return a hardcoded version from LoadPackage()? Because the version fetched from the
+	// registry will make the binder call fail with a version mismatch error since ResolveLatest() returns
+	// a different version (the actual latest version) than the one hardcoded in LoadPackage() function.
+	// By setting it here, we replace the registry ResolveLatest() call with a hardcoded version (0.70.0).
+	if provider == "tfe" {
+		constraint, err := version.NewConstraint("~> 0.70.0")
+		if err != nil {
+			return nil, err
+		}
+		return &configs.RequiredProvider{
+			Name:   provider,
+			Source: "registry.terraform.io/hashicorp/tfe",
+			Requirement: configs.VersionConstraint{
+				Required: constraint,
+			},
+		}, nil
+	}
+
 	return NewProviderInfoResolver().ResolveLatest(provider)
 }
 
@@ -154,8 +175,6 @@ func TestTranslate(t *testing.T) {
 	mapper := &bridgetesting.TestFileMapper{Path: filepath.Join(testDir, "mappings")}
 
 	for _, tt := range tests {
-		tt := tt // avoid capturing loop variable in the closure
-
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -411,8 +430,6 @@ func Test_GenerateTestDataSchemas(t *testing.T) {
 	infos, err := os.ReadDir(mappingsPath)
 	require.NoError(t, err)
 	for _, info := range infos {
-		info := info
-
 		t.Run(info.Name(), func(t *testing.T) {
 			t.Parallel()
 

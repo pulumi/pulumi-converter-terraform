@@ -15,10 +15,13 @@
 package convert
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/pulumi/terraform/pkg/addrs"
+	"github.com/pulumi/terraform/pkg/getproviders"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -56,7 +59,6 @@ func TestProjectListToSingleton(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -66,10 +68,32 @@ func TestProjectListToSingleton(t *testing.T) {
 	}
 }
 
+type TestRegistrySource struct{}
+
+func (s *TestRegistrySource) AvailableVersions(ctx context.Context, provider addrs.Provider) (getproviders.VersionList, getproviders.Warnings, error) {
+	return getproviders.VersionList{
+		getproviders.Version{
+			Major: 0,
+			Minor: 70,
+			Patch: 0,
+		},
+	}, getproviders.Warnings{}, nil
+}
+
+func (s *TestRegistrySource) ForDisplay(provider addrs.Provider) string {
+	return "registry.terraform.io/hashicorp/tfe"
+}
+
+func (s *TestRegistrySource) PackageMeta(ctx context.Context, provider addrs.Provider, version getproviders.Version, target getproviders.Platform) (getproviders.PackageMeta, error) {
+	return getproviders.PackageMeta{
+		Version: version,
+	}, nil
+}
+
 func TestResolveLatestProviderVersion(t *testing.T) {
 	t.Parallel()
 	name := impliedProvider("tfe_organization")
-	provider, err := resolveRequiredProvider(name)
+	provider, err := resolveRequiredProviderWithRegistrySource(&TestRegistrySource{}, name)
 	assert.NoError(t, err)
 	assert.Equal(t, "tfe", provider.Name)
 	assert.Equal(t, "registry.terraform.io/hashicorp/tfe", provider.Source)
