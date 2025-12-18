@@ -76,7 +76,7 @@ func (s *TestRegistrySource) AvailableVersions(
 	return getproviders.VersionList{
 		getproviders.Version{
 			Major: 0,
-			Minor: 70,
+			Minor: 71,
 			Patch: 0,
 		},
 	}, getproviders.Warnings{}, nil
