@@ -197,7 +197,9 @@ func resolveRequiredProvider(providerName string) (*configs.RequiredProvider, er
 	return resolveRequiredProviderWithRegistrySource(source, providerName)
 }
 
-func resolveRequiredProviderWithRegistrySource(source getproviders.Source, providerName string) (*configs.RequiredProvider, error) {
+func resolveRequiredProviderWithRegistrySource(
+	source getproviders.Source, providerName string,
+) (*configs.RequiredProvider, error) {
 	providerAddress, diagnostics := addrs.ParseProviderSourceString(providerName)
 	if diagnostics.HasErrors() {
 		return nil, fmt.Errorf("failed to parse provider source %q when resolving latest version: %w",

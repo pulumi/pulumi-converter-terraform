@@ -70,7 +70,9 @@ func TestProjectListToSingleton(t *testing.T) {
 
 type TestRegistrySource struct{}
 
-func (s *TestRegistrySource) AvailableVersions(ctx context.Context, provider addrs.Provider) (getproviders.VersionList, getproviders.Warnings, error) {
+func (s *TestRegistrySource) AvailableVersions(
+	ctx context.Context, provider addrs.Provider,
+) (getproviders.VersionList, getproviders.Warnings, error) {
 	return getproviders.VersionList{
 		getproviders.Version{
 			Major: 0,
@@ -84,7 +86,9 @@ func (s *TestRegistrySource) ForDisplay(provider addrs.Provider) string {
 	return "registry.terraform.io/hashicorp/tfe"
 }
 
-func (s *TestRegistrySource) PackageMeta(ctx context.Context, provider addrs.Provider, version getproviders.Version, target getproviders.Platform) (getproviders.PackageMeta, error) {
+func (s *TestRegistrySource) PackageMeta(
+	ctx context.Context, provider addrs.Provider, version getproviders.Version, target getproviders.Platform,
+) (getproviders.PackageMeta, error) {
 	return getproviders.PackageMeta{
 		Version: version,
 	}, nil
