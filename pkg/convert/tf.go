@@ -998,9 +998,10 @@ func convertFunctionCallExpr(state *convertState,
 
 	args := []hclwrite.Tokens{}
 	for _, arg := range call.Args {
-		if call.Name == "jsonencode" {
-			// when encountering a jsonencode function, we need to convert the underlying content without
-			// rewriting the object keys to camelCase (for example when converting JSON policy document of an IAM role)
+		if call.Name == "jsonencode" || call.Name == "lookup" {
+			// when encountering a jsonencode or lookup function, we need to convert the underlying content without
+			// rewriting the object keys to camelCase. For jsonencode, this preserves keys in JSON policy documents.
+			// For lookup, this ensures the map keys match the key argument being looked up (fixes #372).
 			state.disableRewritingObjectKeys(func() {
 				args = append(args, convertExpression(state, false, scopes, "", arg))
 			})
