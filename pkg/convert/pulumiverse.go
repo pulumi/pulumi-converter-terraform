@@ -127,7 +127,6 @@ var pulumiSupportedProviders = []string{
 	"venafi",
 	"vra",
 	"vsphere",
-	"wavefront",
 	"xyz",
 	"zitadel",
 }
