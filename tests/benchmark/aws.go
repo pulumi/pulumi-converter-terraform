@@ -1,7 +1,22 @@
+// Copyright 2026, Pulumi Corporation.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,7 +36,7 @@ func getS3Object(url string) (string, error) {
 
 func getS3BucketTags(bucket string) (map[string]string, error) {
 	if bucket == "" {
-		return nil, fmt.Errorf("bucket name is empty")
+		return nil, errors.New("bucket name is empty")
 	}
 
 	out, err := run(".", "aws", "s3api", "get-bucket-tagging", "--bucket", bucket)
@@ -52,10 +67,10 @@ func getS3BucketTags(bucket string) (map[string]string, error) {
 
 func callLambda(url string) (string, error) {
 	if url == "" {
-		return "", fmt.Errorf("url is empty")
+		return "", errors.New("url is empty")
 	}
 
-	resp, err := http.Get(url)
+	resp, err := http.Get(url) //nolint:gosec
 	if err != nil {
 		return "", fmt.Errorf("failed to make http request: %w", err)
 	}
@@ -85,7 +100,7 @@ func callLambda(url string) (string, error) {
 
 func getLambdaTags(arn string) (map[string]string, error) {
 	if arn == "" {
-		return nil, fmt.Errorf("arn is empty")
+		return nil, errors.New("arn is empty")
 	}
 
 	out, err := run(".", "aws", "lambda", "list-tags", "--resource", arn)
@@ -106,12 +121,12 @@ func getLambdaTags(arn string) (map[string]string, error) {
 	return tags.Tags, nil
 }
 
-func checkVpcExists(vpcId string) error {
-	if vpcId == "" {
-		return fmt.Errorf("vpc id is empty")
+func checkVpcExists(vpcID string) error {
+	if vpcID == "" {
+		return errors.New("vpc id is empty")
 	}
 
-	_, err := run(".", "aws", "ec2", "describe-vpcs", "--filters", "Name=vpc-id,Values="+vpcId)
+	_, err := run(".", "aws", "ec2", "describe-vpcs", "--filters", "Name=vpc-id,Values="+vpcID)
 	if err != nil {
 		return fmt.Errorf("failed to describe vpc: %w", err)
 	}

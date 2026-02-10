@@ -1,6 +1,21 @@
+// Copyright 2026, Pulumi Corporation.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -14,10 +29,10 @@ var allTestCases = map[string]testCase{
 		assertions: map[string]assertion{
 			"name is not empty": func(output map[string]any) error {
 				if output["name"] == nil {
-					return fmt.Errorf("name is nil")
+					return errors.New("name is nil")
 				}
 				if len(output["name"].(string)) == 0 {
-					return fmt.Errorf("name is empty")
+					return errors.New("name is empty")
 				}
 				return nil
 			},
@@ -29,21 +44,21 @@ var allTestCases = map[string]testCase{
 		assertions: map[string]assertion{
 			"s3 object content is correct": func(output map[string]any) error {
 				if output["url"] == nil {
-					return fmt.Errorf("url is nil")
+					return errors.New("url is nil")
 				}
 				out, err := getS3Object(output["url"].(string))
 				if err != nil {
 					return fmt.Errorf("failed to get s3 object: %w", err)
 				}
-				if string(out) != "hi" {
-					return fmt.Errorf("expected 'hi', got %s", string(out))
+				if out != "hi" {
+					return fmt.Errorf("expected 'hi', got %s", out)
 				}
 
 				return nil
 			},
 			"tags are correct": func(output map[string]any) error {
 				if output["name"] == nil {
-					return fmt.Errorf("name is nil")
+					return errors.New("name is nil")
 				}
 
 				name := output["name"].(string)
@@ -73,7 +88,7 @@ var allTestCases = map[string]testCase{
 				time.Sleep(2 * time.Second)
 
 				if output["url"] == nil {
-					return fmt.Errorf("url is nil")
+					return errors.New("url is nil")
 				}
 
 				url := output["url"].(string)
@@ -89,7 +104,7 @@ var allTestCases = map[string]testCase{
 			},
 			"tags are correct": func(output map[string]any) error {
 				if output["arn"] == nil {
-					return fmt.Errorf("arn is nil")
+					return errors.New("arn is nil")
 				}
 				arn := output["arn"].(string)
 				tags, err := getLambdaTags(arn)
@@ -120,10 +135,10 @@ var allTestCases = map[string]testCase{
 		assertions: map[string]assertion{
 			"vpc exists": func(output map[string]any) error {
 				if output["vpc"] == nil {
-					return fmt.Errorf("vpc is nil")
+					return errors.New("vpc is nil")
 				}
-				vpcId := output["vpc"].(string)
-				err := checkVpcExists(vpcId)
+				vpcID := output["vpc"].(string)
+				err := checkVpcExists(vpcID)
 				if err != nil {
 					return fmt.Errorf("vpc does not exist: %w", err)
 				}
