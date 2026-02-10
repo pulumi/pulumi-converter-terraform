@@ -24,7 +24,6 @@ import (
 	"github.com/blang/semver"
 	version "github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-svchost/disco"
-	"github.com/opentofu/opentofu/shim"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
@@ -81,7 +80,7 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 	// provider, and thus provide a hint that asks the mapper to boot up the terraform-provider plugin and parameterize it
 	// with the relevant Terraform provider details before retrieving a mapping.
 	if isTerraformProvider(pulumiProvider) && requiredProvider != nil {
-		tfVersion, diags := shim.FindTfPackageVersion(requiredProvider)
+		tfVersion, diags := findTfPackageVersion(requiredProvider)
 		if diags.HasErrors() {
 			mappingMessage = fmt.Sprintf("could not find Terraform version for package %s; "+
 				"continuing with the assumption that the specified package exists.", tfProvider)
