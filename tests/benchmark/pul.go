@@ -1,3 +1,17 @@
+// Copyright 2026, Pulumi Corporation.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
@@ -12,6 +26,7 @@ import (
 
 	mcp "github.com/metoro-io/mcp-golang"
 	"github.com/metoro-io/mcp-golang/transport/stdio"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 )
 
 func runPulumi(dir string, args ...string) ([]byte, error) {
@@ -75,7 +90,7 @@ func readMcpPrompt(mcpServer, promptName, outDir string) (string, error) {
 	if err := cmd.Start(); err != nil {
 		return "", err
 	}
-	defer cmd.Process.Kill()
+	defer func() { contract.IgnoreError(cmd.Process.Kill()) }()
 	transport := stdio.NewStdioServerTransportWithIO(stdout, stdin)
 	client := mcp.NewClient(transport)
 	if _, err := client.Initialize(context.Background()); err != nil {
@@ -209,7 +224,11 @@ func comparePulumiPlan(plan pulumiPlan, convertName, name string) error {
 	return nil
 }
 
-func runPulumiBenchmarks(testCases []testCase, name string, convertFunc func(srcDir, outDir string) error) map[string]*benchmarkResult {
+func runPulumiBenchmarks(
+	testCases []testCase,
+	name string,
+	convertFunc func(srcDir, outDir string) error,
+) map[string]*benchmarkResult {
 	results := map[string]*benchmarkResult{}
 	for _, tc := range testCases {
 		results[tc.name] = &benchmarkResult{
@@ -239,7 +258,7 @@ func runPulumiBenchmarks(testCases []testCase, name string, convertFunc func(src
 			results[tc.name].convertSuccess = true
 		}
 
-		defer runPulumiDestroy(dir)
+		defer contract.IgnoreError(runPulumiDestroy(dir))
 		{
 			pulumiPlan, err := runPulumiPlan(dir)
 			if err != nil {
@@ -260,7 +279,7 @@ func runPulumiBenchmarks(testCases []testCase, name string, convertFunc func(src
 			continue
 		}
 
-		output := map[string]any{}
+		var output map[string]any
 
 		{
 			output, err = runPulumiApply(dir)

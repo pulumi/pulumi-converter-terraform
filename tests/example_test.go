@@ -343,10 +343,13 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/aztfmod/terraform-azurerm-caf",
-			// TODO[pulumi/pulumi-converter-terraform#186]: Should use terraform bridge, error details in pulumi/pulumi-terraform-bridge#205
+			// TODO[pulumi/pulumi-converter-terraform#186]: Should use terraform bridge,
+			// error details in pulumi/pulumi-terraform-bridge#205
 			// TODO[pulumi/pulumi-converter-terraform#206]: missing attributes vcores and clientConfig
-			// TODO[pulumi/pulumi-terraform-bridge#1303]: panic: fatal: An assertion has failed: empty path part passed into getInfo: .recurrence.hours
-			// TODO[pulumi/pulumi-converter-terraform#112]:  empty path part passed into getInfo: .recurrence.hours (same as above)
+			// TODO[pulumi/pulumi-terraform-bridge#1303]: panic: fatal: An assertion has failed:
+			// empty path part passed into getInfo: .recurrence.hours
+			// TODO[pulumi/pulumi-converter-terraform#112]: empty path part passed into getInfo:
+			// .recurrence.hours (same as above)
 			skip: allLanguages,
 		},
 		{
