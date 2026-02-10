@@ -295,7 +295,8 @@ func TestExample(t *testing.T) {
 			// TODO[pulumi/pulumi#18446 strict should work if the plugin is available (std in this case).
 			// strict:  true,
 			// TODO[pulumi/pulumi#18448 when std is required for go conversion fails.
-			skip: newStringSet(golang),
+			skip:   newStringSet(golang),
+			commit: "578c95b19abf30b9b1068dd54025ac8e6df3212f",
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-alb",
