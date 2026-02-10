@@ -1,4 +1,4 @@
-// Copyright 2016-2024, Pulumi Corporation.
+// Copyright 2026, Pulumi Corporation.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package shim
+package convert
 
 import (
 	"context"
@@ -27,17 +27,15 @@ import (
 	"github.com/pulumi/terraform/pkg/getproviders"
 )
 
-// A simple shim to access internals of opentofu for resolving versions.
-
-// FindTfPackageVersion finds an appropriate version of an opentofu/tf package.
-func FindTfPackageVersion(prov *configs.RequiredProvider) (versions.Version, hcl.Diagnostics) {
+// findTfPackageVersion finds an appropriate version of an opentofu/tf package.
+func findTfPackageVersion(prov *configs.RequiredProvider) (versions.Version, hcl.Diagnostics) {
 	diags := hcl.Diagnostics{}
 	p, err := tfaddr.ParseProviderSource(prov.Source)
 	if err != nil {
 		diags = append(diags, &hcl.Diagnostic{
 			Severity: hcl.DiagError,
 			Summary:  "invalid terraform provider name",
-			Detail:   fmt.Sprintf("invalid provider name: %s", err.Error()),
+			Detail:   "invalid provider name: " + err.Error(),
 			Subject:  &prov.DeclRange,
 		})
 	}
@@ -46,7 +44,7 @@ func FindTfPackageVersion(prov *configs.RequiredProvider) (versions.Version, hcl
 		diags = append(diags, &hcl.Diagnostic{
 			Severity: hcl.DiagError,
 			Summary:  "invalid terraform provider version",
-			Detail:   fmt.Sprintf("invalid provider version: %s", err.Error()),
+			Detail:   "invalid provider version: " + err.Error(),
 			Subject:  &prov.DeclRange,
 		})
 	}
