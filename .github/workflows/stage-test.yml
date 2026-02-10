@@ -78,10 +78,6 @@ jobs:
         run: make install
 
       - name: Test
-        run: make test
-
-      # Run tests with nice formatting. Save the original log in /tmp/gotest.log
-      - name: Test examples
         run: |
           set -euo pipefail
           cd tests && go test -json -v -timeout 2h -parallel 10 ./... 2>&1 | tee /tmp/gotest.log | gotestfmt

@@ -106,6 +106,10 @@ var allLanguages = newStringSet(csharp, golang, python, typescript)
 func TestExample(t *testing.T) {
 	t.Parallel()
 
+	if testing.Short() {
+		t.Skip("Skipping for -short")
+	}
+
 	km := keyedMutex{}
 
 	languages := []string{

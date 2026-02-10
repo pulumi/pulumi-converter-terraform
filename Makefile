@@ -9,27 +9,27 @@ GOPATH          := $(shell go env GOPATH)
 # Additional arguments to pass to golangci-lint.
 GOLANGCI_LINT_ARGS ?=
 
-ensure::
+.PHONY: ensure format lint build test install
+
+ensure:
 	go mod tidy
 
-format::
+format:
 	gofumpt -w cmd pkg
 
-lint::
-	cd "pkg" && golangci-lint run $(GOLANGCI_LINT_ARGS) -c ../.golangci.yml --timeout 10m
-	cd "cmd" && golangci-lint run $(GOLANGCI_LINT_ARGS) -c ../.golangci.yml --timeout 10m
+lint:
+	golangci-lint run $(GOLANGCI_LINT_ARGS) -c ./.golangci.yml --timeout 10m
 
-build::
+build:
 	(cd cmd && go build -o $(WORKING_DIR)/bin/${BINARY} -ldflags "-X ${PROJECT}/${VERSION_PATH}=${VERSION}" $(PROJECT)/cmd/$(BINARY))
 
-test::
-	cd pkg && go test -short -v -count=1 -cover -timeout 2h -parallel ${TESTPARALLELISM} ./...
-	cd cmd && go test -short -v -count=1 -cover -timeout 2h -parallel ${TESTPARALLELISM} ./...
+test:
+	go test -v -count=1 -cover -timeout 2h -parallel ${TESTPARALLELISM} ./...
 
-install:: build
+install: build
 	cp $(WORKING_DIR)/bin/${BINARY} ${GOPATH}/bin
 
-generate_builtins_test::
+generate_builtins_test:
 	if [ ! -d ./scripts/venv ]; then python -m venv ./scripts/venv; fi
 	. ./scripts/venv/*/activate && python -m pip install -r ./scripts/requirements.txt
 	. ./scripts/venv/*/activate &&  python ./scripts/generate_builtins.py
