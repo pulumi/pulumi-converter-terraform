@@ -106,6 +106,10 @@ var allLanguages = newStringSet(csharp, golang, python, typescript)
 func TestExample(t *testing.T) {
 	t.Parallel()
 
+	if testing.Short() {
+		t.Skip("Skipping for -short")
+	}
+
 	km := keyedMutex{}
 
 	languages := []string{
@@ -291,7 +295,8 @@ func TestExample(t *testing.T) {
 			// TODO[pulumi/pulumi#18446 strict should work if the plugin is available (std in this case).
 			// strict:  true,
 			// TODO[pulumi/pulumi#18448 when std is required for go conversion fails.
-			skip: newStringSet(golang),
+			skip:   newStringSet(golang),
+			commit: "578c95b19abf30b9b1068dd54025ac8e6df3212f",
 		},
 		{
 			example: "https://github.com/terraform-aws-modules/terraform-aws-alb",
@@ -338,10 +343,13 @@ func TestExample(t *testing.T) {
 		},
 		{
 			example: "https://github.com/aztfmod/terraform-azurerm-caf",
-			// TODO[pulumi/pulumi-converter-terraform#186]: Should use terraform bridge, error details in pulumi/pulumi-terraform-bridge#205
+			// TODO[pulumi/pulumi-converter-terraform#186]: Should use terraform bridge,
+			// error details in pulumi/pulumi-terraform-bridge#205
 			// TODO[pulumi/pulumi-converter-terraform#206]: missing attributes vcores and clientConfig
-			// TODO[pulumi/pulumi-terraform-bridge#1303]: panic: fatal: An assertion has failed: empty path part passed into getInfo: .recurrence.hours
-			// TODO[pulumi/pulumi-converter-terraform#112]:  empty path part passed into getInfo: .recurrence.hours (same as above)
+			// TODO[pulumi/pulumi-terraform-bridge#1303]: panic: fatal: An assertion has failed:
+			// empty path part passed into getInfo: .recurrence.hours
+			// TODO[pulumi/pulumi-converter-terraform#112]: empty path part passed into getInfo:
+			// .recurrence.hours (same as above)
 			skip: allLanguages,
 		},
 		{

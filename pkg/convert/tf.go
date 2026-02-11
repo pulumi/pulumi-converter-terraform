@@ -34,7 +34,6 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-svchost/disco"
-	"github.com/opentofu/opentofu/shim"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/pulumi/pulumi/pkg/v3/codegen"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/tokens"
@@ -3909,12 +3908,10 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 		body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-provider"))
 		body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.8.1"))
 
-		// Right now we use the shim  of the opentofu implementation of getting the
-		// TF Package version to access an internal API.
 		// This is a bit of a hack and a future option may be to depend on the TF
 		// bridge to provide this functionality.
 		var desiredVersion versions.Version
-		desiredVersion, diags = shim.FindTfPackageVersion(prov)
+		desiredVersion, diags = findTfPackageVersion(prov)
 
 		// Right now this json string is just a remote source with url and version,
 		// but it could be more complex in the future.
