@@ -19,8 +19,27 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestParsingVariablesWithArgumentEphemeral(t *testing.T) {
+	t.Parallel()
+	input := `
+variable "foo_wo" {
+	type = string
+	sensitive = true
+	ephemeral = true
+}`
+
+	fs := afero.NewMemMapFs()
+	err := afero.WriteFile(fs, "input.tf", []byte(input), 0o644)
+	assert.NoError(t, err)
+
+	_, mod, diagnostics := loadConfigDir(fs, ".")
+	assert.NotNil(t, mod)
+	assert.Empty(t, diagnostics)
+}
 
 func TestGetTriviaFromIndex(t *testing.T) {
 	t.Parallel()

@@ -10,17 +10,17 @@ require (
 	github.com/apparentlymart/go-versions v1.0.3
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/hashicorp/go-version v1.7.0
-	github.com/hashicorp/hcl/v2 v2.23.0
+	github.com/hashicorp/hcl/v2 v2.24.0
 	github.com/hashicorp/terraform-svchost v0.1.1
 	github.com/opentofu/opentofu/shim v0.0.0-00010101000000-000000000000
 	github.com/pulumi/pulumi-terraform-bridge/v3 v3.110.0
 	github.com/pulumi/pulumi/pkg/v3 v3.197.0
 	github.com/pulumi/pulumi/sdk/v3 v3.197.0
-	github.com/pulumi/terraform v0.12.1-0.20230322133416-a268cd0892c9
+	github.com/pulumi/terraform v0.13.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
-	github.com/zclconf/go-cty v1.16.2
+	github.com/zclconf/go-cty v1.16.3
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	google.golang.org/grpc v1.72.1
 	gopkg.in/yaml.v3 v3.0.1
