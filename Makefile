@@ -21,7 +21,7 @@ lint:
 	golangci-lint run $(GOLANGCI_LINT_ARGS) -c ./.golangci.yml --timeout 10m
 
 build:
-	(cd cmd && go build -o $(WORKING_DIR)/bin/${BINARY} -ldflags "-X ${PROJECT}/${VERSION_PATH}=${VERSION}" $(PROJECT)/cmd/$(BINARY))
+	go build -o $(WORKING_DIR)/bin/${BINARY} -ldflags "-X ${PROJECT}/${VERSION_PATH}=${VERSION}" $(PROJECT)/cmd/$(BINARY)
 
 test:
 	go test -v -count=1 -cover -timeout 2h -parallel ${TESTPARALLELISM} ./...
