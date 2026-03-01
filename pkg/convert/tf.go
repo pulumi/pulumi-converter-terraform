@@ -1479,8 +1479,13 @@ func rewriteRelativeTraversal(scopes *scopes, fullyQualifiedPath string, travers
 			// then we skip the index altogether and return traversal as is
 			newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, fullyQualifiedPath, traversal[1:])...)
 		} else {
-			// Index just translates as is
-			newTraversal = append(newTraversal, hcl.TraverseIndex{Key: index.Key})
+			// For string index keys, apply camelCase transformation
+			// This handles cases like `each.value["aws_region"]` -> `range.value["awsRegion"]`
+			key := index.Key
+			if key.Type() == cty.String {
+				key = cty.StringVal(camelCaseName(key.AsString()))
+			}
+			newTraversal = append(newTraversal, hcl.TraverseIndex{Key: key})
 			newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, fullyQualifiedPath, traversal[1:])...)
 		}
 	} else {
@@ -1896,7 +1901,18 @@ func convertIndexExpr(state *convertState, inBlock bool, scopes *scopes,
 	fullyQualifiedPath string, expr *hclsyntax.IndexExpr,
 ) hclwrite.Tokens {
 	collection := convertExpression(state, inBlock, scopes, fullyQualifiedPath, expr.Collection)
-	key := convertExpression(state, false, scopes, "", expr.Key)
+
+	// Check if the key is a string literal - if so, apply camelCase transformation
+	// This handles cases like `each.value["aws_region"]` -> `range.value["awsRegion"]`
+	var key hclwrite.Tokens
+	if litExpr, ok := expr.Key.(*hclsyntax.LiteralValueExpr); ok && litExpr.Val.Type() == cty.String {
+		// Get the string value and apply camelCase transformation
+		strVal := litExpr.Val.AsString()
+		camelCased := camelCaseName(strVal)
+		key = hclwrite.TokensForValue(cty.StringVal(camelCased))
+	} else {
+		key = convertExpression(state, false, scopes, "", expr.Key)
+	}
 
 	tokens := collection
 	tokens = append(tokens, makeToken(hclsyntax.TokenOBrack, "["))
