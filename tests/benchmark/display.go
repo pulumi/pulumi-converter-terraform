@@ -23,7 +23,7 @@ import (
 func formatResults(results map[string]*benchmarkResult) string {
 	buf := bytes.Buffer{}
 	for k, v := range results {
-		buf.WriteString(fmt.Sprintf("%s: %+v\n", k, v))
+		fmt.Fprintf(&buf, "%s: %+v\n", k, v)
 	}
 	return buf.String()
 }
@@ -73,27 +73,22 @@ func resultSummary(results map[string]*benchmarkResult) string {
 		}
 	}
 
-	buf.WriteString(fmt.Sprintf("total: %d\n", total))
-	buf.WriteString(fmt.Sprintf(
-		"convertSuccesses: %d (%d%%)\n",
+	fmt.Fprintf(&buf, "total: %d\n", total)
+	fmt.Fprintf(&buf, "convertSuccesses: %d (%d%%)\n",
 		res.convertSuccesses,
-		getPercentage(res.convertSuccesses, total)))
-	buf.WriteString(fmt.Sprintf(
-		"planSuccesses: %d (%d%%)\n",
+		getPercentage(res.convertSuccesses, total))
+	fmt.Fprintf(&buf, "planSuccesses: %d (%d%%)\n",
 		res.planSuccesses,
-		getPercentage(res.planSuccesses, total)))
-	buf.WriteString(fmt.Sprintf(
-		"planComparisonSuccesses: %d (%d%%)\n",
+		getPercentage(res.planSuccesses, total))
+	fmt.Fprintf(&buf, "planComparisonSuccesses: %d (%d%%)\n",
 		res.planComparisonSuccesses,
-		getPercentage(res.planComparisonSuccesses, total)))
-	buf.WriteString(fmt.Sprintf(
-		"applySuccesses: %d (%d%%)\n",
+		getPercentage(res.planComparisonSuccesses, total))
+	fmt.Fprintf(&buf, "applySuccesses: %d (%d%%)\n",
 		res.applySuccesses,
-		getPercentage(res.applySuccesses, res.applyTotal)))
-	buf.WriteString(fmt.Sprintf(
-		"assertSuccesses: %d (%d%%)\n",
+		getPercentage(res.applySuccesses, res.applyTotal))
+	fmt.Fprintf(&buf, "assertSuccesses: %d (%d%%)\n",
 		res.assertSuccesses,
-		getPercentage(res.assertSuccesses, res.assertTotal)))
+		getPercentage(res.assertSuccesses, res.assertTotal))
 	return buf.String()
 }
 

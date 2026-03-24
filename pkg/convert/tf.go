@@ -136,13 +136,15 @@ func convertCtyType(typ cty.Type) string {
 
 		attributePairs := ""
 		length := len(attributes)
+		var attributePairsSb139 strings.Builder
 		for i, attribute := range attributes {
-			attributePairs = attributePairs + attribute
+			attributePairsSb139.WriteString(attribute)
 			if i < length-1 {
 				// add a comma to all pairs but the last one
-				attributePairs = attributePairs + ", "
+				attributePairsSb139.WriteString(", ")
 			}
 		}
+		attributePairs += attributePairsSb139.String()
 
 		if len(attributes) == 0 {
 			// empty object, treat it as dynamic
@@ -915,7 +917,7 @@ func (s *convertState) sourceCode(rng hcl.Range) string {
 	buffer := bytes.NewBufferString("")
 	_, err := getTokensForRange(s.sources, rng).WriteTo(buffer)
 	contract.AssertNoErrorf(err, "Failed to write tokens for range %v", rng)
-	return strings.Replace(buffer.String(), "\r\n", "\n", -1)
+	return strings.ReplaceAll(buffer.String(), "\r\n", "\n")
 }
 
 func (s *convertState) renamePclOverlap(
@@ -1624,7 +1626,8 @@ func rewriteTraversal(
 				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: localName})
 				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[1:])...)
 			} else {
-				if maybeFirstAttr.Name == "key" {
+				switch maybeFirstAttr.Name {
+				case "key":
 					if scopes.eachKey != nil {
 						newTraversal = append(newTraversal, scopes.eachKey...)
 						newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[2:])...)
@@ -1639,7 +1642,7 @@ func rewriteTraversal(
 						})
 						return nil
 					}
-				} else if maybeFirstAttr.Name == "value" {
+				case "value":
 					if scopes.eachValue != nil {
 						newTraversal = append(newTraversal, scopes.eachValue...)
 						newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[2:])...)
@@ -1655,7 +1658,7 @@ func rewriteTraversal(
 						})
 						return nil
 					}
-				} else {
+				default:
 					state.appendDiagnostic(&hcl.Diagnostic{
 						Severity: hcl.DiagError,
 						Summary:  `Invalid "each" attribute`,

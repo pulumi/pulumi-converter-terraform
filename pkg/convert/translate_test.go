@@ -379,8 +379,8 @@ func TestTranslate(t *testing.T) {
 				assert.NoError(t, err, "generated source file must be on disk")
 				sourceInMemory, err := afero.ReadFile(pclFs, path)
 				assert.NoError(t, err, "should be able to read %s", path)
-				expectedPcl := strings.Replace(string(sourceOnDisk), "\r\n", "\n", -1)
-				actualPcl := strings.Replace(string(sourceInMemory), "\r\n", "\n", -1)
+				expectedPcl := strings.ReplaceAll(string(sourceOnDisk), "\r\n", "\n")
+				actualPcl := strings.ReplaceAll(string(sourceInMemory), "\r\n", "\n")
 				assert.Equal(t, expectedPcl, actualPcl)
 				return nil
 			})
@@ -434,7 +434,7 @@ func Test_GenerateTestDataSchemas(t *testing.T) {
 			t.Parallel()
 
 			// Strip off the .json part to make the package name
-			pkg := strings.Replace(info.Name(), filepath.Ext(info.Name()), "", -1)
+			pkg := strings.ReplaceAll(info.Name(), filepath.Ext(info.Name()), "")
 			provInfo, err := providerInfoSource.GetProviderInfo(pkg, nil /*requiredProvider*/)
 			require.NoError(t, err)
 
