@@ -199,7 +199,7 @@ func TestTranslate(t *testing.T) {
 					}
 
 					if !d.IsDir() && (strings.HasSuffix(d.Name(), suffix) || suffix == "") {
-						src, err := os.Open(path)
+						src, err := os.Open(path) //nolint:gosec // test code, path comes from controlled test fixtures
 						if err != nil {
 							return fmt.Errorf("open src: %w", err)
 						}

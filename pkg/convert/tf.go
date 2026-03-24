@@ -430,6 +430,7 @@ var tfFunctionRenames = map[string]string{
 	"element":    "element",
 }
 
+//nolint:gosec // G101: these are not credentials, they are Pulumi resource tokens
 var tfFunctionStd = map[string]struct {
 	token  string
 	inputs []string
@@ -1127,7 +1128,7 @@ func convertFunctionCallExpr(state *convertState,
 func convertTupleConsExpr(state *convertState, inBlock bool, scopes *scopes,
 	fullyQualifiedPath string, expr *hclsyntax.TupleConsExpr,
 ) hclwrite.Tokens {
-	elems := []hclwrite.Tokens{}
+	elems := make([]hclwrite.Tokens, 0, len(expr.Exprs))
 	for _, expr := range expr.Exprs {
 		elems = append(elems, convertExpression(state, false, scopes, appendPathArray(fullyQualifiedPath), expr))
 	}
@@ -1192,7 +1193,7 @@ func matchStaticString(expr hclsyntax.Expression) (*string, bool) {
 func convertObjectConsExpr(state *convertState, inBlock bool, scopes *scopes,
 	fullyQualifiedPath string, expr *hclsyntax.ObjectConsExpr,
 ) hclwrite.Tokens {
-	items := []hclwrite.ObjectAttrTokens{}
+	items := make([]hclwrite.ObjectAttrTokens, 0, len(expr.Items))
 
 	// If the object has at least one key that is not an identifier, it must be a map.
 	hasNonIdentifierKey := false
@@ -1280,10 +1281,11 @@ func makeToken(typ hclsyntax.TokenType, str string) *hclwrite.Token {
 func convertTemplateWrapExpr(state *convertState,
 	scopes *scopes, fullyQualifiedPath string, expr *hclsyntax.TemplateWrapExpr,
 ) hclwrite.Tokens {
-	tokens := []*hclwrite.Token{}
+	inner := convertExpression(state, false, scopes, "", expr.Wrapped)
+	tokens := make([]*hclwrite.Token, 0, 4+len(inner))
 	tokens = append(tokens, makeToken(hclsyntax.TokenOQuote, "\""))
 	tokens = append(tokens, makeToken(hclsyntax.TokenTemplateInterp, "${"))
-	tokens = append(tokens, convertExpression(state, false, scopes, "", expr.Wrapped)...)
+	tokens = append(tokens, inner...)
 	tokens = append(tokens, makeToken(hclsyntax.TokenTemplateSeqEnd, "}"))
 	tokens = append(tokens, makeToken(hclsyntax.TokenCQuote, "\""))
 	return tokens
@@ -1742,8 +1744,8 @@ func convertScopeTraversalExpr(
 			// because the outputs maintain their casing
 			// so we only rewrite the module name
 			// i.e. module.my_vpc.something_else (tf) becomes myVpc.something_else (PCL)
-			var traversal hcl.Traversal
 			newRoot := hcl.TraverseRoot{Name: name}
+			traversal := make(hcl.Traversal, 0, 1+len(expr.Traversal)-2)
 			traversal = append(traversal, newRoot)
 			traversal = append(traversal, expr.Traversal[2:]...)
 			return hclwrite.TokensForTraversal(traversal)
@@ -1803,16 +1805,19 @@ func convertBinaryOpExpr(state *convertState, inBlock bool, scopes *scopes,
 func convertUnaryOpExpr(state *convertState, inBlock bool, scopes *scopes,
 	fullyQualifiedPath string, expr *hclsyntax.UnaryOpExpr,
 ) hclwrite.Tokens {
-	var tokens hclwrite.Tokens
+	var prefix *hclwrite.Token
 	switch expr.Op {
 	case hclsyntax.OpLogicalNot:
-		tokens = hclwrite.Tokens{makeToken(hclsyntax.TokenBang, "!")}
+		prefix = makeToken(hclsyntax.TokenBang, "!")
 	case hclsyntax.OpNegate:
-		tokens = hclwrite.Tokens{makeToken(hclsyntax.TokenMinus, "-")}
+		prefix = makeToken(hclsyntax.TokenMinus, "-")
 	default:
 		contract.Failf("unknown unary operation: %T", expr)
 	}
-	tokens = append(tokens, convertExpression(state, false, scopes, fullyQualifiedPath, expr.Val)...)
+	valTokens := convertExpression(state, false, scopes, fullyQualifiedPath, expr.Val)
+	tokens := make(hclwrite.Tokens, 0, 1+len(valTokens))
+	tokens = append(tokens, prefix)
+	tokens = append(tokens, valTokens...)
 	return tokens
 }
 
@@ -2473,11 +2478,13 @@ func convertDataResource(state *convertState,
 	dataResourceExpression := functionCall
 	// If count is set then we need to turn this into a for array expression
 	if dataResource.Count != nil {
-		dataResourceExpression = hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
+		rangeCall := hclwrite.TokensForFunctionCall("range", countExpr)
+		dataResourceExpression = make(hclwrite.Tokens, 0, 6+len(rangeCall)+len(functionCall))
+		dataResourceExpression = append(dataResourceExpression, makeToken(hclsyntax.TokenOBrack, "["))
 		dataResourceExpression = append(dataResourceExpression, makeToken(hclsyntax.TokenIdent, "for"))
 		dataResourceExpression = append(dataResourceExpression, makeToken(hclsyntax.TokenIdent, "__index"))
 		dataResourceExpression = append(dataResourceExpression, makeToken(hclsyntax.TokenIdent, "in"))
-		dataResourceExpression = append(dataResourceExpression, hclwrite.TokensForFunctionCall("range", countExpr)...)
+		dataResourceExpression = append(dataResourceExpression, rangeCall...)
 		dataResourceExpression = append(dataResourceExpression, makeToken(hclsyntax.TokenColon, ":"))
 		dataResourceExpression = append(dataResourceExpression, functionCall...)
 		dataResourceExpression = append(dataResourceExpression, makeToken(hclsyntax.TokenCBrack, "]"))
@@ -2485,7 +2492,8 @@ func convertDataResource(state *convertState,
 
 	// If for_each is set then we need to turn this into a for object expression
 	if dataResource.ForEach != nil {
-		dataResourceExpression = hclwrite.Tokens{makeToken(hclsyntax.TokenOBrace, "{")}
+		dataResourceExpression = make(hclwrite.Tokens, 0, 10+len(forEachExpr)+len(functionCall))
+		dataResourceExpression = append(dataResourceExpression, makeToken(hclsyntax.TokenOBrace, "{"))
 		dataResourceExpression = append(dataResourceExpression, makeToken(hclsyntax.TokenIdent, "for"))
 		dataResourceExpression = append(dataResourceExpression, makeToken(hclsyntax.TokenIdent, "__key"))
 		dataResourceExpression = append(dataResourceExpression, makeToken(hclsyntax.TokenComma, ","))

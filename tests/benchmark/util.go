@@ -48,7 +48,7 @@ func copyDirExcept(src, dest, excludeSuffix string) error {
 			return nil
 		}
 
-		srcFile, err := os.Open(path)
+		srcFile, err := os.Open(path) //nolint:gosec // benchmark code, path comes from controlled test fixtures
 		if err != nil {
 			return err
 		}
