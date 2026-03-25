@@ -80,7 +80,7 @@ jobs:
       - name: Test
         run: |
           set -euo pipefail
-          cd tests && go test -json -v -timeout 2h -parallel 10 ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
+          go test -json -v -timeout 2h -parallel 10 ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
 
       # Upload the original go test log as an artifact for later review
       - name: Upload test log
