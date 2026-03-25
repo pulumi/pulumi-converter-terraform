@@ -144,7 +144,7 @@
           },
           "id": {
             "type": "string",
-            "description": "The provider-assigned unique ID for this managed resource.\n"
+            "description": "The provider-assigned unique ID for this managed resource."
           },
           "innerResource": {
             "$ref": "#/types/maxItemsOne:index/dataSourceInnerResource:dataSourceInnerResource"
@@ -166,7 +166,7 @@
         "properties": {
           "__self__": {
             "type": "ref",
-            "$ref": "#/resources/pulumi:providers:maxItemsOne"
+            "$ref": "#/provider"
           }
         },
         "type": "pulumi:providers:maxItemsOne/terraformConfig",

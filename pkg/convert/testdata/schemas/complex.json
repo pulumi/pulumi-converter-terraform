@@ -257,7 +257,7 @@
           },
           "id": {
             "type": "string",
-            "description": "The provider-assigned unique ID for this managed resource.\n"
+            "description": "The provider-assigned unique ID for this managed resource."
           },
           "innerListObject": {
             "$ref": "#/types/complex:index/dataSourceInnerListObject:dataSourceInnerListObject"
@@ -282,7 +282,7 @@
         "properties": {
           "__self__": {
             "type": "ref",
-            "$ref": "#/resources/pulumi:providers:complex"
+            "$ref": "#/provider"
           }
         },
         "type": "pulumi:providers:complex/terraformConfig",
