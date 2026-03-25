@@ -101,7 +101,7 @@
         "properties": {
           "__self__": {
             "type": "ref",
-            "$ref": "#/resources/pulumi:providers:simple"
+            "$ref": "#/provider"
           }
         },
         "type": "pulumi:providers:simple/terraformConfig",
@@ -142,7 +142,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "The provider-assigned unique ID for this managed resource.\n"
+            "description": "The provider-assigned unique ID for this managed resource."
           },
           "inputOne": {
             "type": "string"
