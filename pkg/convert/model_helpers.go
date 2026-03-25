@@ -62,7 +62,7 @@ func setConfigBlockType(block *model.Block, variableType model.Type) error {
 
 	if typeExpr == nil || diags.HasErrors() {
 		return fmt.Errorf(
-			"Type %s prints as '%s' but cannot be parsed back. Diagnostics: %v",
+			"type %s prints as '%s' but cannot be parsed back. Diagnostics: %v",
 			variableType.String(),
 			typeString,
 			diags)
@@ -70,7 +70,7 @@ func setConfigBlockType(block *model.Block, variableType model.Type) error {
 
 	if variableType.String() != typeExpr.Type().String() {
 		return fmt.Errorf(
-			"Type T1=%s prints as '%s' which parses as T2=%s, expected T1=T2",
+			"type T1=%s prints as '%s' which parses as T2=%s, expected T1=T2",
 			variableType.String(),
 			typeString,
 			typeExpr.Type(),
@@ -100,7 +100,7 @@ func typeTransform(t model.Type, transform func(model.Type) model.Type) model.Ty
 		return typeTransform(t, transform)
 	}
 	recSlice := func(ts []model.Type) []model.Type {
-		var result []model.Type
+		result := make([]model.Type, 0, len(ts))
 		for _, t := range ts {
 			result = append(result, rec(t))
 		}

@@ -100,6 +100,7 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	providerInfoResolver := tfconvert.NewProviderInfoResolver()
 
 	if *convertExamples != "" {
+		//nolint:gosec // path is user-provided input from the CLI
 		examplesBytes, err := os.ReadFile(filepath.Join(req.SourceDirectory, *convertExamples))
 		if err != nil {
 			return nil, fmt.Errorf("read examples.json: %w", err)

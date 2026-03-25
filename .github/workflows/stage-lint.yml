@@ -16,15 +16,14 @@ env:
 
 jobs:
   lint:
-    container: golangci/golangci-lint:latest
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
-      - name: Set up Go 1.23.x
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.23.x
+          go-version: 1.24.x
       - run: go mod tidy
       - name: Fail if go.mod not tidy
         run: |
@@ -33,15 +32,13 @@ jobs:
             exit 1
           fi
 
-      # We leverage the golangci-lint action to install and maintain the cache, but we want to run the command
-      # ourselves. The action doesn't have an install-only mode, so we'll ask it to print its help output instead.
       - name: Install golangci-lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          version: v2.11.4
           args: --help
 
       - name: Lint
         env:
           GOFLAGS: "-buildvcs=false"
-        run: make lint GOLANGCI_LINT_ARGS=--out-format=colored-line-number
+        run: make lint
