@@ -13,3 +13,5 @@ jobs:
     uses: ./.github/workflows/stage-test.yml
     with:
       live-test: true
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
