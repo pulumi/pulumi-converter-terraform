@@ -2670,6 +2670,27 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 		})
 	}
 
+	if managedResource.Managed != nil && len(managedResource.Managed.IgnoreChanges) > 0 {
+		if options == nil {
+			options = hclwrite.NewBlock("options", nil)
+		}
+		elems := make([]hclwrite.Tokens, len(managedResource.Managed.IgnoreChanges))
+		for idx, ic := range managedResource.Managed.IgnoreChanges {
+			// ignore_changes traversals are relative to the resource, so the
+			// first element is always a TraverseAttr.
+			first, ok := ic[0].(hcl.TraverseAttr)
+			contract.Assertf(ok, "expected TraverseAttr, got %T", ic[0])
+			tfName := first.Name
+			fqPath := appendPath(path, tfName)
+			pulumiAttrName := scopes.pulumiName(tfName, fqPath)
+			newTraversal := hcl.Traversal{hcl.TraverseRoot{Name: pulumiAttrName}}
+			newTraversal = append(newTraversal,
+				rewriteRelativeTraversal(scopes, fqPath, ic[1:])...)
+			elems[idx] = hclwrite.TokensForTraversal(newTraversal)
+		}
+		options.Body().SetAttributeRaw("ignoreChanges", hclwrite.TokensForTuple(elems))
+	}
+
 	// Does this resource have a count? If so set the "range" attribute
 	if managedResource.Count != nil {
 		if options == nil {

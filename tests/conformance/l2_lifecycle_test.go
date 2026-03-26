@@ -24,8 +24,6 @@ import (
 )
 
 func TestL2Lifecycle(t *testing.T) {
-	// TODO[pulumi/pulumi-converter-terraform#NNN]: converter drops lifecycle.ignore_changes
-	t.Skip("converter silently drops lifecycle.ignore_changes — IgnoreChanges is nil in Pulumi state")
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
 		Providers: []conformance.Provider{
