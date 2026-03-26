@@ -1,4 +1,4 @@
-package "subnets" {
+package {
   baseProviderName    = "terraform-module"
   baseProviderVersion = "0.1.4"
   parameterization {

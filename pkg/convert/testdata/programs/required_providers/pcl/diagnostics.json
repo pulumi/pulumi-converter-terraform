@@ -1,4 +1,0 @@
-[
-  "warning:main.pp:0,8-14:package block label is deprecated:Package block labels should be replaced by baseProviderName.",
-  "warning:main.pp:4,9-17:package block label is deprecated:Package block labels should be replaced by baseProviderName."
-]
