@@ -1013,17 +1013,7 @@ func convertFunctionCallExpr(state *convertState,
 
 	// First see if this is `list`
 	if call.Name == "list" {
-		listTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
-		first := true
-		for _, arg := range args {
-			if !first {
-				listTokens = append(listTokens, makeToken(hclsyntax.TokenComma, ", "))
-			}
-			first = false
-			listTokens = append(listTokens, arg...)
-		}
-		listTokens = append(listTokens, makeToken(hclsyntax.TokenCBrack, "]"))
-		return listTokens
+		return hclwrite.TokensForTuple(args)
 	}
 
 	// Translate tolist(x) as x - in TF this normalizes sets to lists, but in Pulumi everything is represented as a
@@ -1064,18 +1054,9 @@ func convertFunctionCallExpr(state *convertState,
 				})
 			}
 
-			listTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
-			for j := i; j < len(args); j++ {
-				if j > i {
-					listTokens = append(listTokens, makeToken(hclsyntax.TokenComma, ","))
-				}
-				listTokens = append(listTokens, args[j]...)
-			}
-			listTokens = append(listTokens, makeToken(hclsyntax.TokenCBrack, "]"))
-
 			invokeArgs = append(invokeArgs, hclwrite.ObjectAttrTokens{
 				Name:  hclwrite.TokensForIdentifier(invoke.inputs[i]),
-				Value: listTokens,
+				Value: hclwrite.TokensForTuple(args[i:]),
 			})
 		} else {
 			if len(args) > len(invoke.inputs) {
@@ -2637,16 +2618,11 @@ func convertManagedResources(state *convertState,
 	// Does this resource have dependencies? If so set the "dependsOn" attribute
 	if len(managedResource.DependsOn) > 0 {
 		options = hclwrite.NewBlock("options", nil)
-		dependsOn := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
+		elems := make([]hclwrite.Tokens, len(managedResource.DependsOn))
 		for idx, dep := range managedResource.DependsOn {
-			if idx > 0 {
-				dependsOn = append(dependsOn, makeToken(hclsyntax.TokenComma, ","))
-			}
-			tokens := rewriteTraversal(state, scopes, "", dep)
-			dependsOn = append(dependsOn, tokens...)
+			elems[idx] = rewriteTraversal(state, scopes, "", dep)
 		}
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenCBrack, "]"))
-		options.Body().SetAttributeRaw("dependsOn", dependsOn)
+		options.Body().SetAttributeRaw("dependsOn", hclwrite.TokensForTuple(elems))
 	}
 
 	if managedResource.Managed != nil && managedResource.Managed.CreateBeforeDestroySet {
