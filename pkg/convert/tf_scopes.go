@@ -415,6 +415,22 @@ func (s *scopes) isMap(fullyQualifiedPath string) *bool {
 	return nil
 }
 
+// isInput returns whether the attribute at the given path is an input (not computed-only).
+// Returns true if the attribute is Optional, Required, or if the schema is unknown.
+func (s *scopes) isInput(fullyQualifiedPath string) bool {
+	info, ok := s.getInfo(fullyQualifiedPath)
+	if !ok {
+		// No schema info — assume it's an input.
+		return true
+	}
+	sch := info.Schema
+	if sch == nil {
+		return true
+	}
+	// Computed-only attributes are not inputs.
+	return sch.Optional() || sch.Required()
+}
+
 // Given a fully typed path (e.g. data.simple_data_source.a_field) returns whether a_field is a resource object.
 func (s *scopes) isResource(fullyQualifiedPath string) bool {
 	info, ok := s.getInfo(fullyQualifiedPath)

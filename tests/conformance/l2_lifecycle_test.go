@@ -37,6 +37,13 @@ resource "test_resource" "example" {
   }
 }
 
+resource "test_resource" "computed_only" {
+  value = "world"
+  lifecycle {
+    ignore_changes = [computed_value]
+  }
+}
+
 output "result" {
   value = test_resource.example.computed_value
 }
@@ -48,6 +55,12 @@ output "result" {
 				t.Fatal("resource 'example' not found in state")
 			}
 			assert.Equal(t, []string{"value"}, example.IgnoreChanges)
+
+			computedOnly := findResource(resources, "computed_only")
+			if computedOnly == nil {
+				t.Fatal("resource 'computed_only' not found in state")
+			}
+			assert.Empty(t, computedOnly.IgnoreChanges)
 		},
 	})
 }

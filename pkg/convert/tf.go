@@ -2647,24 +2647,41 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 	}
 
 	if managedResource.Managed != nil && len(managedResource.Managed.IgnoreChanges) > 0 {
-		if options == nil {
-			options = hclwrite.NewBlock("options", nil)
-		}
-		elems := make([]hclwrite.Tokens, len(managedResource.Managed.IgnoreChanges))
-		for idx, ic := range managedResource.Managed.IgnoreChanges {
+		var elems []hclwrite.Tokens
+		for _, ic := range managedResource.Managed.IgnoreChanges {
 			// ignore_changes traversals are relative to the resource, so the
 			// first element is always a TraverseAttr.
 			first, ok := ic[0].(hcl.TraverseAttr)
 			contract.Assertf(ok, "expected TraverseAttr, got %T", ic[0])
 			tfName := first.Name
 			fqPath := appendPath(path, tfName)
+
+			// Skip computed-only attributes since PCL only binds ignoreChanges
+			// against input properties.
+			if !scopes.isInput(fqPath) {
+				state.appendDiagnostic(&hcl.Diagnostic{
+					Severity: hcl.DiagWarning,
+					Summary:  "ignore_changes for computed-only attribute is not supported",
+					Detail:   fmt.Sprintf("The attribute %q is computed-only and cannot be used in ignoreChanges", tfName),
+					Subject:  managedResource.DeclRange.Ptr(),
+					Context:  managedResource.DeclRange.Ptr(),
+				})
+				continue
+			}
+
 			pulumiAttrName := scopes.pulumiName(tfName, fqPath)
-			newTraversal := hcl.Traversal{hcl.TraverseRoot{Name: pulumiAttrName}}
-			newTraversal = append(newTraversal,
-				rewriteRelativeTraversal(scopes, fqPath, ic[1:])...)
-			elems[idx] = hclwrite.TokensForTraversal(newTraversal)
+			remaining := rewriteRelativeTraversal(scopes, fqPath, ic[1:])
+			newTraversal := make(hcl.Traversal, 0, 1+len(remaining))
+			newTraversal = append(newTraversal, hcl.TraverseRoot{Name: pulumiAttrName})
+			newTraversal = append(newTraversal, remaining...)
+			elems = append(elems, hclwrite.TokensForTraversal(newTraversal))
 		}
-		options.Body().SetAttributeRaw("ignoreChanges", hclwrite.TokensForTuple(elems))
+		if len(elems) > 0 {
+			if options == nil {
+				options = hclwrite.NewBlock("options", nil)
+			}
+			options.Body().SetAttributeRaw("ignoreChanges", hclwrite.TokensForTuple(elems))
+		}
 	}
 
 	// Does this resource have a count? If so set the "range" attribute
