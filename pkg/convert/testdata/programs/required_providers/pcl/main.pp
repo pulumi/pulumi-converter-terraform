@@ -1,8 +1,8 @@
-package "null" {
+package {
   baseProviderName = "null"
 }
 
-package "random" {
+package {
   baseProviderName = "random"
 }
 
