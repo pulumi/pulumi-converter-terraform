@@ -45,12 +45,6 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Set up gotestfmt
-        uses: gotesttools/gotestfmt-action@v2
-        with:
-          # Optional: pass GITHUB_TOKEN to avoid rate limiting.
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Find pulumi version
         id: pulumi_version
         shell: bash
@@ -80,7 +74,7 @@ jobs:
       - name: Test
         run: |
           set -euo pipefail
-          go test -json -v -coverprofile=coverage.out -timeout 2h -parallel 10 ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
+          go test -json -v -coverprofile=coverage.out -timeout 2h -parallel 10 ./... 2>&1 | tee /tmp/gotest.log
 
       # Upload the original go test log as an artifact for later review
       - name: Upload test log
