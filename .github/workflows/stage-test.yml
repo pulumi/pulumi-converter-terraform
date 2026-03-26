@@ -45,20 +45,9 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Find pulumi version
-        id: pulumi_version
-        shell: bash
-        run: |
-          GO_MODULE_VERSION=$(go list -m -f '{{.Version}}' github.com/pulumi/pulumi/pkg/v3)
-          GO_VERSION=$(echo "$GO_MODULE_VERSION" | sed 's/^v//')
-          echo "pulumi_version=$GO_VERSION"
-          echo "pulumi_version=$GO_VERSION" >> $GITHUB_OUTPUT
-      - name: Install pulumi
-        uses: pulumi/actions@v5
-        with:
-          pulumi-version: ${{ steps.pulumi_version.outputs.pulumi_version }}
+      - name: Install tools via mise
+        uses: jdx/mise-action@v2
 
-      # Pre-install some needed plugins
       - name: Install pulumi plugins
         run: |
           pulumi plugin install resource aws
@@ -74,9 +63,8 @@ jobs:
       - name: Test
         run: |
           set -euo pipefail
-          go test -json -v -coverprofile=coverage.out -timeout 2h -parallel 10 ./... 2>&1 | tee /tmp/gotest.log
+          go test -v -coverprofile=coverage.out -timeout 2h -parallel 10 ./... 2>&1 | tee /tmp/gotest.log
 
-      # Upload the original go test log as an artifact for later review
       - name: Upload test log
         uses: actions/upload-artifact@v4
         if: always()

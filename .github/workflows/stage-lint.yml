@@ -20,10 +20,15 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
-      - name: Set up Go
+
+      - name: Install Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+
+      - name: Install tools via mise
+        uses: jdx/mise-action@v2
+
       - run: go mod tidy
       - name: Fail if go.mod not tidy
         run: |
@@ -31,12 +36,6 @@ jobs:
             echo "::error go.mod not tidy"
             exit 1
           fi
-
-      - name: Install golangci-lint
-        uses: golangci/golangci-lint-action@v7
-        with:
-          version: v2.11.4
-          args: --help
 
       - name: Lint
         env:
