@@ -1,0 +1,20 @@
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+        informational: false
+
+ignore:
+  - "**/testdata"
+  - "pkg/testing/"
+  - "tests/"
+
+comment: false
+
+github_checks:
+  annotations: false

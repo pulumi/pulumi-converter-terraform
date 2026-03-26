@@ -24,6 +24,7 @@ on:
       ARM_CLIENT_SECRET:     { required: false }
       ARM_SUBSCRIPTION_ID:   { required: false }
       ARM_TENANT_ID:         { required: false }
+      CODECOV_TOKEN:         { required: false }
 
 
 env:
@@ -80,7 +81,7 @@ jobs:
       - name: Test
         run: |
           set -euo pipefail
-          go test -json -v -timeout 2h -parallel 10 ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
+          go test -json -v -coverprofile=coverage.out -timeout 2h -parallel 10 ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
 
       # Upload the original go test log as an artifact for later review
       - name: Upload test log
@@ -90,6 +91,14 @@ jobs:
           name: test-log
           path: /tmp/gotest.log
           if-no-files-found: error
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
+        with:
+          files: coverage.out
+          fail_ci_if_error: false
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
