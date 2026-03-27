@@ -55,6 +55,31 @@ func TestProvider() *schema.Provider {
 					return nil
 				},
 			},
+			// test_tagged_resource models the tags_all pattern: a field that is
+			// Optional+Computed in the TF schema but marked as computed-only by
+			// the bridge via MarkAsComputedOnly.
+			"test_tagged_resource": {
+				Schema: map[string]*schema.Schema{
+					"value": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"marked_as_computed_only": {
+						Type:     schema.TypeString,
+						Optional: true,
+						Computed: true,
+					},
+				},
+				CreateContext: func(_ context.Context, d *schema.ResourceData, _ any) diag.Diagnostics {
+					d.SetId("tagged-id")
+					if _, ok := d.GetOk("marked_as_computed_only"); !ok {
+						if err := d.Set("marked_as_computed_only", "default"); err != nil {
+							return diag.FromErr(err)
+						}
+					}
+					return nil
+				},
+			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"test_data": {

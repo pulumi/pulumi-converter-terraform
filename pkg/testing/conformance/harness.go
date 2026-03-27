@@ -46,6 +46,11 @@ import (
 type Provider struct {
 	Name    string
 	Factory func() *schema.Provider
+
+	// EditInfo is an optional callback to customize the bridged ProviderInfo
+	// after automatic token computation. Use it to set bridge-level overrides
+	// like SchemaInfo.MarkAsComputedOnly or SchemaInfo.MarkAsOptional.
+	EditInfo func(*tfbridge.ProviderInfo)
 }
 
 // TestCase defines a test that asserts the converter produces the same outputs as
@@ -86,6 +91,9 @@ func AssertConversion(t *testing.T, tc TestCase) {
 	for i, p := range tc.Providers {
 		tfProviders[i] = tfexec.Provider{Name: p.Name, Provider: p.Factory()}
 		bridged := pulexec.BridgedProvider(t, p.Name, p.Factory())
+		if p.EditInfo != nil {
+			p.EditInfo(&bridged)
+		}
 		bridgedProviders[i] = pulexec.Provider{Name: p.Name, Info: bridged}
 		providerInfos[p.Name] = &bridged
 	}

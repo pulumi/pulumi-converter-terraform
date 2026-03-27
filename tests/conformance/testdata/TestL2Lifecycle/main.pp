@@ -10,6 +10,11 @@ resource "computedOnly" "test:index/resource:Resource" {
   value         = "world"
 }
 
+resource "bridgeComputed" "test:index/taggedResource:TaggedResource" {
+  __logicalName = "bridge_computed"
+  value         = "tagged"
+}
+
 output "result" {
   value = example.computedValue
 }

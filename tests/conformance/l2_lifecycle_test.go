@@ -19,6 +19,7 @@ import (
 
 	"github.com/pulumi/pulumi-converter-terraform/pkg/testing/conformance"
 	"github.com/pulumi/pulumi-converter-terraform/tests/conformance/providers"
+	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/apitype"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,7 +28,18 @@ func TestL2Lifecycle(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
 		Providers: []conformance.Provider{
-			{Name: "test", Factory: providers.TestProvider},
+			{
+				Name:    "test",
+				Factory: providers.TestProvider,
+				EditInfo: func(info *tfbridge.ProviderInfo) {
+					r := info.Resources["test_tagged_resource"]
+					r.Fields = map[string]*tfbridge.SchemaInfo{
+						"marked_as_computed_only": {
+							MarkAsComputedOnly: ref(true),
+						},
+					}
+				},
+			},
 		},
 		Input: map[string]string{"main.tf": `
 resource "test_resource" "example" {
@@ -41,6 +53,13 @@ resource "test_resource" "computed_only" {
   value = "world"
   lifecycle {
     ignore_changes = [computed_value]
+  }
+}
+
+resource "test_tagged_resource" "bridge_computed" {
+  value = "tagged"
+  lifecycle {
+    ignore_changes = [marked_as_computed_only]
   }
 }
 
@@ -61,6 +80,12 @@ output "result" {
 				t.Fatal("resource 'computed_only' not found in state")
 			}
 			assert.Empty(t, computedOnly.IgnoreChanges)
+
+			bridgeComputed := findResource(resources, "bridge_computed")
+			if bridgeComputed == nil {
+				t.Fatal("resource 'bridge_computed' not found in state")
+			}
+			assert.Empty(t, bridgeComputed.IgnoreChanges)
 		},
 	})
 }
