@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	tfconvert "github.com/pulumi/pulumi-converter-terraform/pkg/convert"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
+	"github.com/pulumi/pulumi/pkg/v3/codegen/schema"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/rpcutil"
 	pulumirpc "github.com/pulumi/pulumi/sdk/v3/proto/go"
@@ -99,6 +100,14 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	providerInfoSource := tfconvert.NewMapperProviderInfoSource(mapper)
 	providerInfoResolver := tfconvert.NewProviderInfoResolver()
 
+	if req.LoaderTarget == "" {
+		return nil, errors.New("expected non-empty loader target")
+	}
+	loader, err := schema.NewLoaderClient(req.LoaderTarget)
+	if err != nil {
+		return nil, fmt.Errorf("create loader: %w", err)
+	}
+
 	if *convertExamples != "" {
 		//nolint:gosec // path is user-provided input from the CLI
 		examplesBytes, err := os.ReadFile(filepath.Join(req.SourceDirectory, *convertExamples))
@@ -126,7 +135,8 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 			diags := tfconvert.TranslateModule(src, "/", dst,
 				providerInfoSource,
 				providerInfoResolver,
-				req.GeneratedProjectDirectory)
+				req.GeneratedProjectDirectory,
+				loader)
 
 			pcl, err := afero.ReadFile(dst, "/"+safename+".pp")
 			if err != nil && !os.IsNotExist(err) {
@@ -177,6 +187,7 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 		providerInfoSource,
 		providerInfoResolver,
 		req.GeneratedProjectDirectory,
+		loader,
 	)
 	return &plugin.ConvertProgramResponse{
 		Diagnostics: diags,

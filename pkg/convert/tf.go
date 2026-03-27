@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"math"
 	"os"
 	"path/filepath"
@@ -36,6 +37,7 @@ import (
 	"github.com/hashicorp/terraform-svchost/disco"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/pulumi/pulumi/pkg/v3/codegen"
+	pschema "github.com/pulumi/pulumi/pkg/v3/codegen/schema"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/tokens"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
@@ -47,7 +49,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
-	"golang.org/x/exp/maps"
 
 	yaml "gopkg.in/yaml.v3"
 )
@@ -2190,7 +2191,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 	// Iterate the blocks we've found in sorted order, we'll resort the attributes later by line position but
 	// this ensure that any state mutation (like looking up names of undeclared resources/datasources) is
 	// consistent. We do the same for the attributes below as well.
-	names := maps.Keys(blockLists)
+	names := slices.Collect(maps.Keys(blockLists))
 	sort.Strings(names)
 	for _, name := range names {
 		items := blockLists[name]
@@ -2218,7 +2219,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 	}
 
 	// As above, iterate in sorted order
-	names = maps.Keys(content.Attributes)
+	names = slices.Collect(maps.Keys(content.Attributes))
 	sort.Strings(names)
 	for _, name := range names {
 		attr := content.Attributes[name]
@@ -2948,6 +2949,7 @@ func translateRemoteModule(
 	requiredProviders map[string]*configs.RequiredProvider,
 	sandboxedModules map[string]*PulumiTerraformModule,
 	generatedProjectDirectory string,
+	loader pschema.ReferenceLoader,
 ) hcl.Diagnostics {
 	fetcher := getmodules.NewPackageFetcher()
 	tempPath, err := os.MkdirTemp("", "pulumi-tf-registry")
@@ -2996,6 +2998,7 @@ func translateRemoteModule(
 		sandboxedModules,
 		/*topLevelModule*/ false,
 		generatedProjectDirectory,
+		loader,
 	)
 }
 
@@ -3089,6 +3092,7 @@ func translateModuleSourceCode(
 	sandboxedModules map[string]*PulumiTerraformModule,
 	topLevelModule bool,
 	generatedProjectDirectory string,
+	loader pschema.ReferenceLoader,
 ) hcl.Diagnostics {
 	sources, module, moduleDiagnostics := loadConfigDir(sourceRoot, sourceDirectory)
 	if moduleDiagnostics.HasErrors() {
@@ -3097,11 +3101,10 @@ func translateModuleSourceCode(
 		return moduleDiagnostics
 	}
 
-	for name, provider := range module.ProviderRequirements.RequiredProviders {
-		requiredProviders[name] = provider
-	}
+	maps.Copy(requiredProviders, module.ProviderRequirements.RequiredProviders)
 
 	scopes := newScopes()
+	scopes.loader = loader
 
 	state := &convertState{
 		sources:              sources,
@@ -3363,6 +3366,7 @@ func translateModuleSourceCode(
 						sandboxedModules,
 						/*topLevelModule*/ false,
 						generatedProjectDirectory,
+						loader,
 					)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
@@ -3399,6 +3403,7 @@ func translateModuleSourceCode(
 						requiredProviders,
 						sandboxedModules,
 						generatedProjectDirectory,
+						loader,
 					)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
@@ -3529,6 +3534,7 @@ func translateModuleSourceCode(
 						requiredProviders,
 						sandboxedModules,
 						generatedProjectDirectory,
+						loader,
 					)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
@@ -4034,6 +4040,7 @@ func TranslateModule(
 	info ProviderInfoSource,
 	providerInfoResolver ProviderInfoResolver,
 	generatedProjectDirectory string,
+	loader pschema.ReferenceLoader,
 ) hcl.Diagnostics {
 	modules := make(map[moduleKey]string)
 	return translateModuleSourceCode(modules,
@@ -4047,6 +4054,7 @@ func TranslateModule(
 		/*sanboxedModules*/ map[string]*PulumiTerraformModule{},
 		/*topLevelModule*/ true,
 		generatedProjectDirectory,
+		loader,
 	)
 }
 
