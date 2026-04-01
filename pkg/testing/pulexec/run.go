@@ -27,6 +27,7 @@ import (
 	"github.com/pulumi/providertest/providers"
 	"github.com/pulumi/providertest/pulumitest"
 	"github.com/pulumi/providertest/pulumitest/opttest"
+	"github.com/pulumi/pulumi-converter-terraform/pkg/convert"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/apitype"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/rpcutil"
@@ -124,7 +125,7 @@ backend:
 	pt := pulumitest.NewPulumiTest(t, dir, opts...)
 
 	for k, v := range config {
-		pt.SetConfig(t, k, v)
+		pt.SetConfig(t, convert.CamelCaseName(k), v)
 	}
 
 	upResult := pt.Up(t)
