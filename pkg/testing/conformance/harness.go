@@ -19,10 +19,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
 	"testing"
-	"unicode"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pulumi/pulumi-converter-terraform/pkg/convert"
@@ -120,7 +118,7 @@ func AssertConversion(t *testing.T, tc TestCase) {
 	// Normalize TF output keys to camelCase so we compare values, not naming conventions.
 	normalizedTF := make(map[string]string, len(tfOutputs))
 	for k, v := range tfOutputs {
-		normalizedTF[snakeToCamel(k)] = v
+		normalizedTF[convert.CamelCaseName(k)] = v
 	}
 	require.Equal(t, normalizedTF, pulumiResult.Outputs)
 
@@ -197,15 +195,3 @@ func assertGoldenPCL(t *testing.T, testdataDir string, pcl string) {
 	assert.Equal(t, string(expected), pcl)
 }
 
-// snakeToCamel converts a snake_case string to camelCase.
-func snakeToCamel(s string) string {
-	parts := strings.Split(s, "_")
-	for i := 1; i < len(parts); i++ {
-		if len(parts[i]) > 0 {
-			runes := []rune(parts[i])
-			runes[0] = unicode.ToUpper(runes[0])
-			parts[i] = string(runes)
-		}
-	}
-	return strings.Join(parts, "")
-}
