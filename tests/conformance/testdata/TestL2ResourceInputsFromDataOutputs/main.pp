@@ -1,9 +1,9 @@
-example = invoke("simple:index:dataSource", {
+example = invoke("simple:index/getDataSource:getDataSource", {
   inputOne = "hello"
   inputTwo = true
 })
 
-resource "exampleResource" "simple:index:resource" {
+resource "exampleResource" "simple:index/resource:Resource" {
   __logicalName = "example"
   inputOne      = example.inputOne
   inputTwo      = example.inputTwo
