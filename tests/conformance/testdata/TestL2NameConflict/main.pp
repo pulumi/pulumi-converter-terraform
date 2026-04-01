@@ -2,22 +2,22 @@ config "aThing" {
 }
 myAThing = true
 
-resource "aThingResource" "simple:index:resource" {
+resource "aThingResource" "simple:index/resource:Resource" {
   __logicalName = "a_thing"
   inputOne      = "Hello ${aThing}"
   inputTwo      = myAThing
 }
 
-aThingDataSource = invoke("simple:index:dataSource", {
+aThingGetDataSource = invoke("simple:index/getDataSource:getDataSource", {
   inputOne = "Hello ${aThingResource.result}"
   inputTwo = myAThing
 })
 
-resource "aThingAnotherResource" "simple:index:anotherResource" {
+resource "aThingAnotherResource" "simple:index/anotherResource:AnotherResource" {
   __logicalName = "a_thing"
   inputOne      = "Hello ${aThingResource.result}"
 }
 
 output "aThing" {
-  value = aThingDataSource.result
+  value = aThingGetDataSource.result
 }
