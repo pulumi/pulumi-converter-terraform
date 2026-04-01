@@ -74,7 +74,7 @@ output "computedValue" {
 }
 `
 
-	outputs := Run(t, []Provider{{Name: "test", Info: provider}}, program, nil)
+	outputs := Run(t, []Provider{{Name: "test", Info: provider}}, map[string]string{"main.pp": program}, nil)
 
 	require.Equal(t, map[string]string{
 		"value":         "hello",

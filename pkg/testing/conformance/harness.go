@@ -96,19 +96,18 @@ func AssertConversion(t *testing.T, tc TestCase) {
 	}()
 
 	// Path B: convert HCL → PCL, bridge the provider, run via Pulumi.
-	var pcl string
+	var pclFiles map[string]string
 	go func() {
 		defer wg.Done()
 		pclDir, err := convertHCLToPCL(t, tc.Input, providerInfos)
 		if !assert.NoError(t, err, "convertHCLToPCL") {
 			return
 		}
-		pclBytes, err := os.ReadFile(filepath.Join(pclDir, "main.pp"))
+		pclFiles, err = readPPFiles(pclDir)
 		if !assert.NoError(t, err) {
 			return
 		}
-		pcl = string(pclBytes)
-		pulumiResult = pulexec.Run(t, bridgedProviders, pcl, tc.Config)
+		pulumiResult = pulexec.Run(t, bridgedProviders, pclFiles, tc.Config)
 	}()
 
 	wg.Wait()
@@ -117,7 +116,7 @@ func AssertConversion(t *testing.T, tc TestCase) {
 		return
 	}
 
-	assertGoldenPCL(t, testdataDir, pcl)
+	assertGoldenPCL(t, testdataDir, pclFiles)
 
 	// The converter camelCases TF output names (e.g. "computed_value" → "computedValue").
 	// Normalize TF output keys to camelCase so we compare values, not naming conventions.
@@ -186,22 +185,52 @@ func (r *testProviderInfoResolver) ResolveLatest(string) (*configs.RequiredProvi
 	return nil, nil
 }
 
-// assertGoldenPCL compares the generated PCL against a golden file.
-// When PULUMI_ACCEPT=1, the golden file is updated instead.
-func assertGoldenPCL(t *testing.T, testdataDir string, pcl string) {
+// readPPFiles walks a directory and returns all .pp files as a map of relative paths to contents.
+func readPPFiles(dir string) (map[string]string, error) {
+	files := make(map[string]string)
+	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || filepath.Ext(path) != ".pp" {
+			return nil
+		}
+		rel, err := filepath.Rel(dir, path)
+		if err != nil {
+			return err
+		}
+		content, err := os.ReadFile(path) //nolint:gosec // dir is a trusted temp directory we created
+		if err != nil {
+			return err
+		}
+		files[rel] = string(content)
+		return nil
+	})
+	return files, err
+}
+
+// assertGoldenPCL compares all generated PCL files against golden files.
+// When PULUMI_ACCEPT=1, the golden files are updated instead.
+func assertGoldenPCL(t *testing.T, testdataDir string, pclFiles map[string]string) {
 	t.Helper()
 
-	goldenPath := filepath.Join(testdataDir, t.Name(), "main.pp")
+	goldenDir := filepath.Join(testdataDir, t.Name())
 
 	if cmdutil.IsTruthy(os.Getenv("PULUMI_ACCEPT")) {
-		err := os.MkdirAll(filepath.Dir(goldenPath), 0o755)
-		require.NoError(t, err)
-		err = os.WriteFile(goldenPath, []byte(pcl), 0o600)
-		require.NoError(t, err)
+		for path, content := range pclFiles {
+			goldenPath := filepath.Join(goldenDir, path)
+			err := os.MkdirAll(filepath.Dir(goldenPath), 0o755)
+			require.NoError(t, err)
+			err = os.WriteFile(goldenPath, []byte(content), 0o600)
+			require.NoError(t, err)
+		}
 		return
 	}
 
-	expected, err := os.ReadFile(goldenPath)
-	require.NoError(t, err, "golden file %s not found; run with PULUMI_ACCEPT=1 to create it", goldenPath)
-	assert.Equal(t, string(expected), pcl)
+	for path, actual := range pclFiles {
+		goldenPath := filepath.Join(goldenDir, path)
+		expected, err := os.ReadFile(goldenPath)
+		require.NoError(t, err, "golden file %s not found; run with PULUMI_ACCEPT=1 to create it", goldenPath)
+		assert.Equal(t, string(expected), actual, "mismatch in %s", path)
+	}
 }
