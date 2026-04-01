@@ -26,7 +26,7 @@ func TestL1TupleCons(t *testing.T) {
 		Config: map[string]string{
 			"item": "dynamic",
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "item" {
   type = string
 }
@@ -42,6 +42,6 @@ output "list_with_var" {
 output "nested_list" {
   value = [["x", "y"], ["z"]]
 }
-`,
+`},
 	})
 }

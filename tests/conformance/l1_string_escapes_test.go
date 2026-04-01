@@ -23,7 +23,7 @@ import (
 func TestL1StringEscapes(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
-		HCL: `
+		Input: map[string]string{"main.tf": `
 output "plain_string" {
     value = "hello world"
 }
@@ -39,6 +39,6 @@ output "unicode_escape_string" {
 output "unicode_string" {
     value = "Ǝ"
 }
-`,
+`},
 	})
 }

@@ -46,7 +46,12 @@ type Provider struct {
 type TestCase struct {
 	Providers []Provider
 	Config    map[string]string
-	HCL       string
+
+	// Input maps file paths (relative to the project root) to file contents.
+	// For a single-file program, use {"main.tf": "..."}.
+	// For multi-file programs or modules, include all files:
+	//   {"main.tf": "...", "mod/main.tf": "..."}
+	Input map[string]string
 
 	// AssertState is an optional callback that receives the Pulumi deployment
 	// resources after `pulumi up`. Use it to assert on resource options like
@@ -87,14 +92,14 @@ func AssertConversion(t *testing.T, tc TestCase) {
 	go func() {
 		defer wg.Done()
 		driver := tfexec.NewDriver(t, tfProviders)
-		tfOutputs = driver.Apply(t, tc.HCL, tc.Config)
+		tfOutputs = driver.Apply(t, tc.Input, tc.Config)
 	}()
 
 	// Path B: convert HCL → PCL, bridge the provider, run via Pulumi.
 	var pcl string
 	go func() {
 		defer wg.Done()
-		pclDir, err := convertHCLToPCL(t, tc.HCL, providerInfos)
+		pclDir, err := convertHCLToPCL(t, tc.Input, providerInfos)
 		if !assert.NoError(t, err, "convertHCLToPCL") {
 			return
 		}
@@ -127,15 +132,21 @@ func AssertConversion(t *testing.T, tc TestCase) {
 	}
 }
 
-// convertHCLToPCL writes the HCL to a temp directory and runs TranslateModule to produce PCL.
+// convertHCLToPCL writes the input files to a temp directory and runs TranslateModule to produce PCL.
 func convertHCLToPCL(
-	t *testing.T, hcl string, providerInfos map[string]*tfbridge.ProviderInfo,
+	t *testing.T, input map[string]string, providerInfos map[string]*tfbridge.ProviderInfo,
 ) (string, error) {
 	t.Helper()
 
 	srcDir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(srcDir, "main.tf"), []byte(hcl), 0o600); err != nil {
-		return "", err
+	for path, content := range input {
+		fullPath := filepath.Join(srcDir, path)
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0o755); err != nil {
+			return "", err
+		}
+		if err := os.WriteFile(fullPath, []byte(content), 0o600); err != nil {
+			return "", err
+		}
 	}
 
 	dstDir := t.TempDir()

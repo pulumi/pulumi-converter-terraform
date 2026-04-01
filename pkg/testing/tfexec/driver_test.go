@@ -62,7 +62,8 @@ func TestApplyBasic(t *testing.T) {
 
 	driver := NewDriver(t, []Provider{{Name: "test", Provider: provider}})
 
-	hcl := `
+	outputs := driver.Apply(t, map[string]string{
+		"main.tf": `
 resource "test_resource" "example" {
   value = "hello"
 }
@@ -74,9 +75,8 @@ output "value" {
 output "computed_value" {
   value = test_resource.example.computed_value
 }
-`
-
-	outputs := driver.Apply(t, hcl, nil)
+`,
+	}, nil)
 
 	require.Len(t, outputs, 2)
 	assert.Equal(t, map[string]string{

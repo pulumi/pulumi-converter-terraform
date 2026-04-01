@@ -27,7 +27,7 @@ func TestL1UnaryOp(t *testing.T) {
 			"flag": "true",
 			"num":  "42",
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "flag" {
   type = bool
 }
@@ -43,6 +43,6 @@ output "negated_flag" {
 output "negated_num" {
   value = -var.num
 }
-`,
+`},
 	})
 }

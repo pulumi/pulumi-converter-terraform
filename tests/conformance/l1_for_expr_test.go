@@ -27,7 +27,7 @@ func TestL1ForExpr(t *testing.T) {
 			"names":  `["alice","bob","charlie"]`,
 			"labels": `{"env":"prod","team":"core"}`,
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "names" {
   type = list(string)
 }
@@ -47,6 +47,6 @@ output "label_entries" {
 output "short_names" {
   value = join(",", [for s in var.names : s if s != "bob"])
 }
-`,
+`},
 	})
 }

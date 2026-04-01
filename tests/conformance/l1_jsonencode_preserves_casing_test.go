@@ -23,7 +23,7 @@ import (
 func TestL1JsonencodePreservesCasing(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
-		HCL: `
+		Input: map[string]string{"main.tf": `
 # When converted, the object inside jsonencode should maintain the casing of the keys
 output "data" {
   value = jsonencode({
@@ -36,6 +36,6 @@ output "data" {
     ]
   })
 }
-`,
+`},
 	})
 }

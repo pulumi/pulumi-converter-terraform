@@ -23,7 +23,7 @@ import (
 func TestL1IndexExpr(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
-		HCL: `
+		Input: map[string]string{"main.tf": `
 locals {
   items   = ["a", "b", "c"]
   mapping = { key = "value" }
@@ -36,6 +36,6 @@ output "first_item" {
 output "map_value" {
   value = local.mapping["key"]
 }
-`,
+`},
 	})
 }

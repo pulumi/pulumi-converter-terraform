@@ -28,7 +28,7 @@ func TestL1ConditionalExpr(t *testing.T) {
 			Config: map[string]string{
 				"enabled": value,
 			},
-			HCL: `
+			Input: map[string]string{"main.tf": `
 variable "enabled" {
   type = bool
 }
@@ -36,7 +36,7 @@ variable "enabled" {
 output "result" {
   value = var.enabled ? "yes" : "no"
 }
-`,
+`},
 		})
 	}
 

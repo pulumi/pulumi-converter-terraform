@@ -27,7 +27,7 @@ func TestL2ResourceCount(t *testing.T) {
 		Providers: []conformance.Provider{
 			{Name: "test", Factory: providers.TestProvider},
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 resource "test_resource" "multi" {
   count = 3
   value = "item-${count.index}"
@@ -36,6 +36,6 @@ resource "test_resource" "multi" {
 output "first_value" {
   value = test_resource.multi[0].computed_value
 }
-`,
+`},
 	})
 }

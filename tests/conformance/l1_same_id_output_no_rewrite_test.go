@@ -23,7 +23,7 @@ import (
 func TestL1SameIdOutputNoRewrite(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "data" {
   type = string
   default = "Test"
@@ -32,6 +32,6 @@ variable "data" {
 output "data" {
   value = var.data
 }
-`,
+`},
 	})
 }

@@ -27,7 +27,7 @@ func TestL2DataResource(t *testing.T) {
 		Providers: []conformance.Provider{
 			{Name: "test", Factory: providers.TestProvider},
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 data "test_data" "example" {
   input = "hello"
 }
@@ -35,6 +35,6 @@ data "test_data" "example" {
 output "result" {
   value = data.test_data.example.result
 }
-`,
+`},
 	})
 }

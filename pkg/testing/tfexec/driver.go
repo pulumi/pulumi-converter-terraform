@@ -89,15 +89,18 @@ func NewDriver(t *testing.T, providers []Provider) *Driver {
 	}
 }
 
-// Apply writes the HCL program, runs terraform init + apply, and returns all outputs.
+// Apply writes the input files, runs terraform init + apply, and returns all outputs.
 // Config values are passed as -var flags to terraform apply.
-func (d *Driver) Apply(t *testing.T, hcl string, config map[string]string) map[string]string {
+func (d *Driver) Apply(t *testing.T, input map[string]string, config map[string]string) map[string]string {
 	t.Helper()
 
-	err := os.WriteFile(filepath.Join(d.cwd, "test.tf"), []byte(hcl), 0o600)
-	require.NoError(t, err)
+	for path, content := range input {
+		fullPath := filepath.Join(d.cwd, path)
+		require.NoError(t, os.MkdirAll(filepath.Dir(fullPath), 0o755))
+		require.NoError(t, os.WriteFile(fullPath, []byte(content), 0o600))
+	}
 
-	_, err = d.execTf(t, "init", "-backend=false")
+	_, err := d.execTf(t, "init", "-backend=false")
 	require.NoError(t, err)
 
 	applyArgs := append(make([]string, 0, 4+2*len(config)), "apply", "-auto-approve", "-refresh=false")

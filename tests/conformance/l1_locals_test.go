@@ -23,7 +23,7 @@ import (
 func TestL1Locals(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
-		HCL: `
+		Input: map[string]string{"main.tf": `
 locals {
   greeting = "hello"
   name     = "world"
@@ -37,6 +37,6 @@ output "message" {
 output "name" {
   value = local.name
 }
-`,
+`},
 	})
 }

@@ -27,7 +27,7 @@ func TestL1ComplexIndex(t *testing.T) {
 			"items": `["c","a","b"]`,
 			"idx":   "0",
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "items" {
   type = list(string)
 }
@@ -39,6 +39,6 @@ variable "idx" {
 output "selected" {
   value = sort(var.items)[var.idx]
 }
-`,
+`},
 	})
 }

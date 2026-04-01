@@ -23,7 +23,7 @@ import (
 func TestL1HeredocTemplateExpr(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
-		HCL: `
+		Input: map[string]string{"main.tf": `
 locals {
   a_list = ["a", "b", "c"]
   join_template_expr = <<EOT
@@ -40,6 +40,6 @@ to show you that I love you
 EOT
   ]
 }
-`,
+`},
 	})
 }

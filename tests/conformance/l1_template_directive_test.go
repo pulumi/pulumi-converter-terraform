@@ -26,13 +26,13 @@ func TestL1TemplateDirective(t *testing.T) {
 		Config: map[string]string{
 			"names": "[\"alice\",\"bob\"]",
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "names" {
   type = list(string)
 }
 output "greeting" {
   value = "%{ for name in var.names }Hello ${name}! %{ endfor }"
 }
-`,
+`},
 	})
 }

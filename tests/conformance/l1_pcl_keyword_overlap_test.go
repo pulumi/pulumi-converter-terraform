@@ -30,7 +30,7 @@ func TestL1PclKeywordOverlap(t *testing.T) {
 			"if":   "ifValue",
 			"else": "elseValue",
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "for" {
   type = string
 }
@@ -54,6 +54,6 @@ output "result_if" {
 output "result_else" {
   value = var.else
 }
-`,
+`},
 	})
 }

@@ -28,7 +28,7 @@ func TestL1VariableTypes(t *testing.T) {
 			"ports":  `[80,443]`,
 			"config": `{"name":"myapp","enabled":true}`,
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "tags" {
   type = map(string)
 }
@@ -55,6 +55,6 @@ output "first_port" {
 output "config_name" {
   value = var.config.name
 }
-`,
+`},
 	})
 }

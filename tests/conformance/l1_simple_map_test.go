@@ -23,7 +23,7 @@ import (
 func TestL1SimpleMap(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
-		HCL: `
+		Input: map[string]string{"main.tf": `
 locals {
   vpc_to_availability_zones_west = {
     0 = {
@@ -31,6 +31,6 @@ locals {
     }
   }
 }
-`,
+`},
 	})
 }

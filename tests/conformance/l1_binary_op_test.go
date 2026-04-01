@@ -29,7 +29,7 @@ func TestL1BinaryOp(t *testing.T) {
 			"x": "true",
 			"y": "false",
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "a" {
   type = number
 }
@@ -97,6 +97,6 @@ output "logical_and" {
 output "logical_or" {
   value = var.x || var.y
 }
-`,
+`},
 	})
 }

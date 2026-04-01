@@ -31,7 +31,7 @@ func TestL2Lifecycle(t *testing.T) {
 		Providers: []conformance.Provider{
 			{Name: "test", Factory: providers.TestProvider},
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 resource "test_resource" "example" {
   value = "hello"
   lifecycle {
@@ -42,7 +42,7 @@ resource "test_resource" "example" {
 output "result" {
   value = test_resource.example.computed_value
 }
-`,
+`},
 		AssertState: func(t *testing.T, resources []apitype.ResourceV3) {
 			t.Helper()
 			example := findResource(resources, "example")

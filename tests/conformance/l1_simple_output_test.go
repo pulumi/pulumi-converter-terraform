@@ -23,10 +23,10 @@ import (
 func TestL1SimpleOutput(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
-		HCL: `
+		Input: map[string]string{"main.tf": `
 output "some_output" {
     value = 4
 }
-`,
+`},
 	})
 }
