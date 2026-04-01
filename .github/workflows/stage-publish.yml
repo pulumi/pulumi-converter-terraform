@@ -23,6 +23,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+      - name: Install tools via mise
+        uses: jdx/mise-action@v2
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:

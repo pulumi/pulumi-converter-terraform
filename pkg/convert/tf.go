@@ -130,7 +130,7 @@ func convertCtyType(typ cty.Type) string {
 		for _, attributeKey := range attributeKeys {
 			attributeType := attributeTypes[attributeKey]
 			// rename the attribute keys to match pulumi style (camelCase)
-			attributeKey = camelCaseName(attributeKey)
+			attributeKey = CamelCaseName(attributeKey)
 			attributes = append(attributes, fmt.Sprintf("%s=%s", attributeKey, convertCtyType(attributeType)))
 		}
 
@@ -1306,10 +1306,10 @@ func convertTemplateJoinExpr(state *convertState, inBlock bool, scopes *scopes,
 	collTokens := convertExpression(state, false, scopes, "", forExpr.CollExpr)
 
 	locals := map[string]string{
-		forExpr.ValVar: camelCaseName(forExpr.ValVar),
+		forExpr.ValVar: CamelCaseName(forExpr.ValVar),
 	}
 	if forExpr.KeyVar != "" {
-		locals[forExpr.KeyVar] = camelCaseName(forExpr.KeyVar)
+		locals[forExpr.KeyVar] = CamelCaseName(forExpr.KeyVar)
 	}
 	scopes.push(locals)
 
@@ -1430,7 +1430,7 @@ func detectHeredocDelim(state *convertState, r hcl.Range) (string, string, bool)
 	return "", "", false
 }
 
-func camelCaseName(name string) string {
+func CamelCaseName(name string) string {
 	// If name is all uppercase assume it stays upper case, else camel case it in pulumi style
 	if strings.ToUpper(name) == name {
 		return name
@@ -1446,7 +1446,7 @@ func pascalCaseName(name string) string {
 		return ""
 	}
 
-	ccName := camelCaseName(name)
+	ccName := CamelCaseName(name)
 	return strings.ToUpper(string(rune(ccName[0]))) + ccName[1:]
 }
 
@@ -1579,14 +1579,14 @@ func rewriteTraversal(
 			path := "data." + maybeFirstAttr.Name + "." + maybeSecondAttr.Name
 			rootName := scopes.lookup(path)
 			if rootName != "" {
-				newName := scopes.getOrAddPulumiName(path, "", "data"+camelCaseName(rootName))
+				newName := scopes.getOrAddPulumiName(path, "", "data"+CamelCaseName(rootName))
 				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newName})
 				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, path, traversal[3:])...)
 			} else {
 				// unbound data source / invoke usage.
 				// turn data.{data_source_token}.{local_name}.{rest}
 				// into {localName}{DataSourceToken}.{rest}
-				suffix := camelCaseName(maybeFirstAttr.Name)
+				suffix := CamelCaseName(maybeFirstAttr.Name)
 				newRootName := scopes.getOrAddPulumiName(path, "", suffix)
 				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newRootName})
 				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[3:])...)
@@ -1697,7 +1697,7 @@ func rewriteTraversal(
 					// We don't know what this is, so let's assume it's an unknown resource (we shouldn't ever have unknown locals)
 					// turn {resource_type}.{resource_name}.{rest}
 					// into {resourceName}{ResourceType}.{rest}
-					suffix := camelCaseName(root.Name)
+					suffix := CamelCaseName(root.Name)
 					newRootName := scopes.getOrAddPulumiName(path, "", suffix)
 					newTraversal = append(newTraversal, hcl.TraverseRoot{Name: newRootName})
 					newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[2:])...)
@@ -1712,7 +1712,7 @@ func rewriteTraversal(
 			} else {
 				// This will be an object key or an undeclared variable, try our best to rename those to match
 				// pulumi style (i.e. camelCase)
-				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: camelCaseName(root.Name)})
+				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: CamelCaseName(root.Name)})
 				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[1:])...)
 			}
 		}
@@ -1829,10 +1829,10 @@ func convertForExpr(state *convertState, inBlock bool, scopes *scopes,
 
 	// TODO: We should ensure key and value vars are unique
 	locals := map[string]string{
-		expr.ValVar: camelCaseName(expr.ValVar),
+		expr.ValVar: CamelCaseName(expr.ValVar),
 	}
 	if expr.KeyVar != "" {
-		locals[expr.KeyVar] = camelCaseName(expr.KeyVar)
+		locals[expr.KeyVar] = CamelCaseName(expr.KeyVar)
 	}
 	scopes.push(locals)
 
@@ -2305,7 +2305,7 @@ func camelCaseObjectAttributes(value cty.Value) cty.Value {
 		modifiedAttributes := map[string]cty.Value{}
 		for propertyKey, propertyValue := range value.AsValueMap() {
 			modifiedValue := camelCaseObjectAttributes(propertyValue)
-			modifiedAttributes[camelCaseName(propertyKey)] = modifiedValue
+			modifiedAttributes[CamelCaseName(propertyKey)] = modifiedValue
 		}
 		return cty.ObjectVal(modifiedAttributes)
 	}
@@ -2416,7 +2416,7 @@ func impliedToken(typeName string) string {
 		return fmt.Sprintf("%s:index:%s", provider, pascalCaseName(typeName))
 	}
 
-	return camelCaseName(typeName)
+	return CamelCaseName(typeName)
 }
 
 func convertLocal(state *convertState, scopes *scopes,
@@ -3642,7 +3642,7 @@ func translateModuleSourceCode(
 				}
 
 				// Check if we need to rename this config key, but default to camelcase
-				name := camelCaseName(attrKey)
+				name := CamelCaseName(attrKey)
 				if providerInfo != nil {
 					if info, has := providerInfo.Config[attrKey]; has && info.Name != "" {
 						name = info.Name

@@ -203,7 +203,7 @@ func (s *scopes) getOrAddOutput(name string) string {
 	}
 	parts := strings.Split(name, ".")
 	tfName := parts[len(parts)-1]
-	pulumiName := camelCaseName(tfName)
+	pulumiName := CamelCaseName(tfName)
 	s.roots[name] = PathInfo{Name: pulumiName}
 	return pulumiName
 }
@@ -217,7 +217,7 @@ func (s *scopes) getOrAddPulumiName(path, prefix, suffix string) string {
 	}
 	parts := strings.Split(path, ".")
 	tfName := parts[len(parts)-1]
-	pulumiName := camelCaseName(tfName)
+	pulumiName := CamelCaseName(tfName)
 	pulumiName = s.generateUniqueName(pulumiName, prefix, suffix)
 	s.roots[path] = PathInfo{Name: pulumiName}
 	return pulumiName
@@ -364,7 +364,7 @@ func (s *scopes) pulumiName(name, fullyQualifiedPath string) string {
 	info, ok := s.getInfo(fullyQualifiedPath)
 	// If we can't resolved the name then fallback to camelCasing the provided name (e.g. the Terraform name)
 	if !ok {
-		return camelCaseName(name)
+		return CamelCaseName(name)
 	}
 
 	// This should only be called for attribute paths, so panic if this returned a resource
@@ -386,7 +386,7 @@ func (s *scopes) pulumiName(name, fullyQualifiedPath string) string {
 	}
 
 	// Else just return the name camel cased
-	return camelCaseName(info.Name)
+	return CamelCaseName(info.Name)
 }
 
 // Given a fully typed path (e.g. data.simple_data_source.my_data.a_field) returns if the schema says it's a map.

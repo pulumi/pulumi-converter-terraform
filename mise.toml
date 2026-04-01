@@ -1,5 +1,6 @@
 [tools]
 
-go = '1.24'
+go = '1.25'
 pulumi = 'latest'
 golangci-lint = "2.11.4"
+opentofu = 'latest'
