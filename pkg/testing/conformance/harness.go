@@ -194,4 +194,3 @@ func assertGoldenPCL(t *testing.T, testdataDir string, pcl string) {
 	require.NoError(t, err, "golden file %s not found; run with PULUMI_ACCEPT=1 to create it", goldenPath)
 	assert.Equal(t, string(expected), pcl)
 }
-
