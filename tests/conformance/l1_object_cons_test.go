@@ -26,7 +26,7 @@ func TestL1ObjectCons(t *testing.T) {
 		Config: map[string]string{
 			"env": "production",
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "env" {
   type = string
 }
@@ -38,6 +38,6 @@ output "static_map" {
 output "dynamic_map" {
   value = { environment = var.env, region = "us-east-1" }
 }
-`,
+`},
 	})
 }

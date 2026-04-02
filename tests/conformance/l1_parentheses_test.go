@@ -27,7 +27,7 @@ func TestL1Parentheses(t *testing.T) {
 			"a": "3",
 			"b": "5",
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "a" {
   type = number
 }
@@ -43,6 +43,6 @@ output "result" {
 output "grouped" {
   value = var.a * (var.b + 1)
 }
-`,
+`},
 	})
 }

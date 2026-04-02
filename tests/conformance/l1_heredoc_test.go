@@ -26,7 +26,7 @@ func TestL1Heredoc(t *testing.T) {
 		Config: map[string]string{
 			"name": "world",
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "name" {
   type = string
 }
@@ -37,6 +37,6 @@ Hello, ${var.name}!
 This is a heredoc.
 EOT
 }
-`,
+`},
 	})
 }

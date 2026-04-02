@@ -23,7 +23,7 @@ import (
 func TestL1LiteralValue(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
-		HCL: `
+		Input: map[string]string{"main.tf": `
 output "num" {
   value = 42
 }
@@ -35,6 +35,6 @@ output "pi" {
 output "flag" {
   value = true
 }
-`,
+`},
 	})
 }

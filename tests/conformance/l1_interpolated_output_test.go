@@ -26,7 +26,7 @@ func TestL1InterpolatedOutput(t *testing.T) {
 		Config: map[string]string{
 			"name": "world",
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "name" {
   type = string
 }
@@ -42,6 +42,6 @@ output "plain" {
 output "wrapped" {
   value = "${var.name}"
 }
-`,
+`},
 	})
 }

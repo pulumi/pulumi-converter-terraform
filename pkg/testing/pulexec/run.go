@@ -27,6 +27,7 @@ import (
 	"github.com/pulumi/providertest/providers"
 	"github.com/pulumi/providertest/pulumitest"
 	"github.com/pulumi/providertest/pulumitest/opttest"
+	"github.com/pulumi/pulumi-converter-terraform/pkg/convert"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/apitype"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/rpcutil"
@@ -77,7 +78,9 @@ type Result struct {
 // Run writes a Pulumi.yaml and .pp files to a temp dir, starts the bridged providers on
 // gRPC, runs `pulumi up` via pulumitest, and returns stack outputs and resource state.
 // Config values are set on the stack before deployment.
-func Run(t *testing.T, provs []Provider, program string, config map[string]string) Result {
+//
+// programFiles maps relative paths to file contents (e.g. {"main.pp": "...", "mod/main.pp": "..."}).
+func Run(t *testing.T, provs []Provider, programFiles map[string]string, config map[string]string) Result {
 	t.Helper()
 
 	binDir := ensurePCLLanguagePlugin(t)
@@ -92,8 +95,11 @@ backend:
 	err := os.WriteFile(filepath.Join(dir, "Pulumi.yaml"), []byte(pulumiYAML), 0o600)
 	require.NoError(t, err)
 
-	err = os.WriteFile(filepath.Join(dir, "main.pp"), []byte(program), 0o600)
-	require.NoError(t, err)
+	for path, content := range programFiles {
+		fullPath := filepath.Join(dir, path)
+		require.NoError(t, os.MkdirAll(filepath.Dir(fullPath), 0o755))
+		require.NoError(t, os.WriteFile(fullPath, []byte(content), 0o600))
+	}
 
 	opts := append(make([]opttest.Option, 0, 4+len(provs)),
 		opttest.Env("PULUMI_DISABLE_AUTOMATIC_PLUGIN_ACQUISITION", "true"),
@@ -119,7 +125,7 @@ backend:
 	pt := pulumitest.NewPulumiTest(t, dir, opts...)
 
 	for k, v := range config {
-		pt.SetConfig(t, k, v)
+		pt.SetConfig(t, convert.CamelCaseName(k), v)
 	}
 
 	upResult := pt.Up(t)

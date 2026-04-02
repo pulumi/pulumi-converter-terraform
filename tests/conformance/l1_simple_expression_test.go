@@ -18,24 +18,20 @@ import (
 	"testing"
 
 	"github.com/pulumi/pulumi-converter-terraform/pkg/testing/conformance"
-	"github.com/pulumi/pulumi-converter-terraform/tests/conformance/providers"
 )
 
-func TestL2ResourceCount(t *testing.T) {
+func TestL1SimpleExpression(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
-		Providers: []conformance.Provider{
-			{Name: "test", Factory: providers.TestProvider},
+		Config: map[string]string{
+			"number_in": "42",
 		},
-		Input: map[string]string{"main.tf": `
-resource "test_resource" "multi" {
-  count = 3
-  value = "item-${count.index}"
+		Input: map[string]string{"main.tf": `variable "number_in" {
+    type = number
 }
 
-output "first_value" {
-  value = test_resource.multi[0].computed_value
-}
-`},
+output "expression_out" {
+    value = "Hello ${var.number_in}"
+}`},
 	})
 }

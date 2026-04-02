@@ -18,23 +18,26 @@ import (
 	"testing"
 
 	"github.com/pulumi/pulumi-converter-terraform/pkg/testing/conformance"
-	"github.com/pulumi/pulumi-converter-terraform/tests/conformance/providers"
 )
 
-func TestL2ResourceCount(t *testing.T) {
+func TestL1StringEscapes(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
-		Providers: []conformance.Provider{
-			{Name: "test", Factory: providers.TestProvider},
-		},
 		Input: map[string]string{"main.tf": `
-resource "test_resource" "multi" {
-  count = 3
-  value = "item-${count.index}"
+output "plain_string" {
+    value = "hello world"
 }
 
-output "first_value" {
-  value = test_resource.multi[0].computed_value
+output "escaped_string" {
+    value = "\"\thello\nworld\r1\\2\""
+}
+
+output "unicode_escape_string" {
+    value = "\u1111"
+}
+
+output "unicode_string" {
+    value = "Ǝ"
 }
 `},
 	})

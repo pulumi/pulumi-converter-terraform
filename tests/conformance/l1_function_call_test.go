@@ -23,7 +23,7 @@ import (
 func TestL1FunctionCall(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
-		HCL: `
+		Input: map[string]string{"main.tf": `
 output "upper" {
   value = upper("hello")
 }
@@ -39,6 +39,6 @@ output "joined" {
 output "len" {
   value = length(["x", "y"])
 }
-`,
+`},
 	})
 }

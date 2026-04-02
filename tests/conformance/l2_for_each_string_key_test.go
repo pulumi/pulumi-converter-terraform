@@ -33,7 +33,7 @@ func TestL2ForEachStringKey(t *testing.T) {
 		Providers: []conformance.Provider{
 			{Name: "test", Factory: providers.TestProvider},
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 resource "test_resource" "mapped" {
   for_each = toset(["alpha", "beta"])
   value    = each.value
@@ -46,6 +46,6 @@ output "alpha" {
 output "beta" {
   value = test_resource.mapped["beta"].computed_value
 }
-`,
+`},
 	})
 }

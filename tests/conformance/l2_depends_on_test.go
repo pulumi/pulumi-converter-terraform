@@ -29,7 +29,7 @@ func TestL2DependsOn(t *testing.T) {
 		Providers: []conformance.Provider{
 			{Name: "test", Factory: providers.TestProvider},
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 resource "test_resource" "first" {
   value = "first"
 }
@@ -40,7 +40,7 @@ resource "test_resource" "second" {
 output "result" {
   value = test_resource.second.computed_value
 }
-`,
+`},
 		AssertState: func(t *testing.T, resources []apitype.ResourceV3) {
 			t.Helper()
 			second := findResource(resources, "second")

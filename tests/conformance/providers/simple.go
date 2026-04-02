@@ -12,38 +12,71 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pulexec
+package providers
 
 import (
 	"context"
-	"testing"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func TestRunBasicResource(t *testing.T) {
-	t.Parallel()
-	tfp := &schema.Provider{
+// SimpleProvider returns a provider matching the "simple" schema used by
+// pkg/convert/testdata/mappings/simple.json, with TypeBool for input_two
+// so that `input_two = var.bool_in` works at runtime.
+func SimpleProvider() *schema.Provider {
+	return &schema.Provider{
 		ResourcesMap: map[string]*schema.Resource{
-			"test_resource": {
+			"simple_resource": {
 				Schema: map[string]*schema.Schema{
-					"value": {
+					"input_one": {
 						Type:     schema.TypeString,
-						Required: true,
+						Optional: true,
 					},
-					"computed_value": {
+					"input_two": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
+					"result": {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
 				},
 				CreateContext: func(_ context.Context, d *schema.ResourceData, _ any) diag.Diagnostics {
-					d.SetId("newid")
-					v := d.Get("value").(string)
-					err := d.Set("computed_value", "computed_"+v)
-					if err != nil {
+					d.SetId("simple-id")
+					one, _ := d.Get("input_one").(string)
+					two := d.Get("input_two").(bool)
+					if err := d.Set("result", fmt.Sprintf("%s-%t", one, two)); err != nil {
+						return diag.FromErr(err)
+					}
+					return nil
+				},
+				ReadContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+					return nil
+				},
+				UpdateContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+					return nil
+				},
+				DeleteContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+					return nil
+				},
+			},
+			"simple_another_resource": {
+				Schema: map[string]*schema.Schema{
+					"input_one": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"result": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+				CreateContext: func(_ context.Context, d *schema.ResourceData, _ any) diag.Diagnostics {
+					d.SetId("another-id")
+					one, _ := d.Get("input_one").(string)
+					if err := d.Set("result", "another-"+one); err != nil {
 						return diag.FromErr(err)
 					}
 					return nil
@@ -59,59 +92,31 @@ func TestRunBasicResource(t *testing.T) {
 				},
 			},
 		},
-	}
-
-	provider := BridgedProvider(t, "test", tfp)
-
-	program := `resource "testRes" "test:index/resource:Resource" {
-    value = "hello"
-}
-output "value" {
-    value = testRes.value
-}
-output "computedValue" {
-    value = testRes.computedValue
-}
-`
-
-	outputs := Run(t, []Provider{{Name: "test", Info: provider}}, map[string]string{"main.pp": program}, nil)
-
-	require.Equal(t, map[string]string{
-		"value":         "hello",
-		"computedValue": "computed_hello",
-	}, outputs.Outputs)
-}
-
-func TestBridgedProviderValidates(t *testing.T) {
-	t.Parallel()
-	tfp := &schema.Provider{
-		ResourcesMap: map[string]*schema.Resource{
-			"test_thing": {
+		DataSourcesMap: map[string]*schema.Resource{
+			"simple_data_source": {
 				Schema: map[string]*schema.Schema{
-					"name": {
+					"input_one": {
 						Type:     schema.TypeString,
-						Required: true,
+						Optional: true,
+					},
+					"input_two": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
+					"result": {
+						Type:     schema.TypeString,
+						Computed: true,
 					},
 				},
-				CreateContext: func(_ context.Context, d *schema.ResourceData, _ any) diag.Diagnostics {
-					d.SetId("newid")
-					return nil
-				},
-				ReadContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
-					return nil
-				},
-				UpdateContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
-					return nil
-				},
-				DeleteContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+				ReadContext: func(_ context.Context, d *schema.ResourceData, _ any) diag.Diagnostics {
+					d.SetId("data-id")
+					one, _ := d.Get("input_one").(string)
+					if err := d.Set("result", "data-"+one); err != nil {
+						return diag.FromErr(err)
+					}
 					return nil
 				},
 			},
 		},
 	}
-
-	provider := BridgedProvider(t, "test", tfp)
-
-	assert.Equal(t, "test", provider.Name)
-	assert.Equal(t, "0.0.1", provider.Version)
 }

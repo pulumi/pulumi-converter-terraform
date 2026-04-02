@@ -26,7 +26,7 @@ func TestL1Splat(t *testing.T) {
 		Config: map[string]string{
 			"users": `[{"name":"alice","age":30},{"name":"bob","age":25}]`,
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 variable "users" {
   type = list(object({
     name = string
@@ -37,6 +37,6 @@ variable "users" {
 output "names" {
   value = var.users[*].name
 }
-`,
+`},
 	})
 }

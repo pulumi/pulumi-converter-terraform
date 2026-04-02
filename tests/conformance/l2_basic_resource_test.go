@@ -27,7 +27,7 @@ func TestL2BasicResource(t *testing.T) {
 		Providers: []conformance.Provider{
 			{Name: "test", Factory: providers.TestProvider},
 		},
-		HCL: `
+		Input: map[string]string{"main.tf": `
 resource "test_resource" "example" {
   value = "hello"
 }
@@ -39,6 +39,6 @@ output "value" {
 output "computed_value" {
   value = test_resource.example.computed_value
 }
-`,
+`},
 	})
 }
