@@ -107,3 +107,31 @@ output "result" {
 		},
 	})
 }
+
+// TestL2LifecycleIgnoreAll tests that ignore_changes = all is converted correctly.
+//
+// ignore_changes = all is valid TF syntax that ignores all attribute changes.
+// https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes
+func TestL2LifecycleIgnoreAll(t *testing.T) {
+	t.Skip("TODO[https://github.com/pulumi/pulumi-converter-terraform/issues/412]")
+	t.Parallel()
+	conformance.AssertConversion(t, conformance.TestCase{
+		Providers: []conformance.Provider{
+			{Name: "test", Factory: providers.TestProvider},
+		},
+		Input: map[string]string{"main.tf": `
+resource "test_resource" "ignore_all" {
+  value = "ignore-all"
+  lifecycle {
+    ignore_changes = all
+  }
+}
+`},
+		AssertState: func(t *testing.T, resources []apitype.ResourceV3) {
+			t.Helper()
+			ignoreAll := findResource(resources, "ignore_all")
+			require.NotNil(t, ignoreAll, "resource 'ignore_all' not found in state")
+			assert.Equal(t, []string{"value"}, ignoreAll.IgnoreChanges)
+		},
+	})
+}
