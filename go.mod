@@ -18,8 +18,8 @@ require (
 	github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a
 	github.com/pulumi/providertest v0.6.0
 	github.com/pulumi/pulumi-terraform-bridge/v3 v3.124.0
-	github.com/pulumi/pulumi/pkg/v3 v3.228.0
-	github.com/pulumi/pulumi/sdk/v3 v3.228.0
+	github.com/pulumi/pulumi/pkg/v3 v3.228.1-0.20260330134725-4ce8adb33ee7
+	github.com/pulumi/pulumi/sdk/v3 v3.228.1-0.20260330134725-4ce8adb33ee7
 	github.com/pulumi/terraform v0.13.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/pflag v1.0.10
@@ -164,7 +164,7 @@ require (
 	github.com/pulumi/pulumi-dotnet/pulumi-language-dotnet/v3 v3.101.2 // indirect
 	github.com/pulumi/pulumi-java/pkg v1.21.2 // indirect
 	github.com/pulumi/pulumi-yaml v1.30.1 // indirect
-	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260326104846-a9963a75ecb9 // indirect
+	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260403091840-c453fc9c72e0 // indirect
 	github.com/pulumi/terraform-diff-reader v0.0.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect

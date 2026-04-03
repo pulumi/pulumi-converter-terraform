@@ -22,6 +22,7 @@ import (
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/apitype"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestL2Lifecycle(t *testing.T) {
@@ -56,6 +57,21 @@ resource "test_resource" "computed_only" {
   }
 }
 
+resource "test_resource" "indexed" {
+  value = "indexed"
+  list_attr = ["a", "b", "c"]
+  lifecycle {
+    ignore_changes = [list_attr[0]]
+  }
+}
+
+resource "test_resource" "computed_list_indexed" {
+  value = "computed-list"
+  lifecycle {
+    ignore_changes = [computed_list[0]]
+  }
+}
+
 resource "test_tagged_resource" "bridge_computed" {
   value = "tagged"
   lifecycle {
@@ -70,21 +86,23 @@ output "result" {
 		AssertState: func(t *testing.T, resources []apitype.ResourceV3) {
 			t.Helper()
 			example := findResource(resources, "example")
-			if example == nil {
-				t.Fatal("resource 'example' not found in state")
-			}
+			require.NotNil(t, example, "resource 'example' not found in state")
 			assert.Equal(t, []string{"value"}, example.IgnoreChanges)
 
+			indexed := findResource(resources, "indexed")
+			require.NotNil(t, indexed, "resource 'indexed' not found in state")
+			assert.Equal(t, []string{"listAttrs[0]"}, indexed.IgnoreChanges)
+
+			computedListIndexed := findResource(resources, "computed_list_indexed")
+			require.NotNil(t, computedListIndexed, "resource 'computed_list_indexed' not found in state")
+			assert.Empty(t, computedListIndexed.IgnoreChanges)
+
 			computedOnly := findResource(resources, "computed_only")
-			if computedOnly == nil {
-				t.Fatal("resource 'computed_only' not found in state")
-			}
+			require.NotNil(t, computedOnly, "resource 'computed_only' not found in state")
 			assert.Empty(t, computedOnly.IgnoreChanges)
 
 			bridgeComputed := findResource(resources, "bridge_computed")
-			if bridgeComputed == nil {
-				t.Fatal("resource 'bridge_computed' not found in state")
-			}
+			require.NotNil(t, bridgeComputed, "resource 'bridge_computed' not found in state")
 			assert.Empty(t, bridgeComputed.IgnoreChanges)
 		},
 	})

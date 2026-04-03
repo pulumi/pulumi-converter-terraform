@@ -36,11 +36,24 @@ func TestProvider() *schema.Provider {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
+					"list_attr": {
+						Type:     schema.TypeList,
+						Optional: true,
+						Elem:     &schema.Schema{Type: schema.TypeString},
+					},
+					"computed_list": {
+						Type:     schema.TypeList,
+						Computed: true,
+						Elem:     &schema.Schema{Type: schema.TypeString},
+					},
 				},
 				CreateContext: func(_ context.Context, d *schema.ResourceData, _ any) diag.Diagnostics {
 					d.SetId("test-id")
 					v := d.Get("value").(string)
 					if err := d.Set("computed_value", "computed_"+v); err != nil {
+						return diag.FromErr(err)
+					}
+					if err := d.Set("computed_list", []string{"x", "y"}); err != nil {
 						return diag.FromErr(err)
 					}
 					return nil
@@ -77,6 +90,15 @@ func TestProvider() *schema.Provider {
 							return diag.FromErr(err)
 						}
 					}
+					return nil
+				},
+				ReadContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+					return nil
+				},
+				UpdateContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+					return nil
+				},
+				DeleteContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
 					return nil
 				},
 			},
