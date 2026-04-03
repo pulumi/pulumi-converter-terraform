@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"math"
 	"os"
 	"path/filepath"
@@ -36,6 +37,7 @@ import (
 	"github.com/hashicorp/terraform-svchost/disco"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/pulumi/pulumi/pkg/v3/codegen"
+	pschema "github.com/pulumi/pulumi/pkg/v3/codegen/schema"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/tokens"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
@@ -47,7 +49,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
-	"golang.org/x/exp/maps"
 
 	yaml "gopkg.in/yaml.v3"
 )
@@ -1013,17 +1014,7 @@ func convertFunctionCallExpr(state *convertState,
 
 	// First see if this is `list`
 	if call.Name == "list" {
-		listTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
-		first := true
-		for _, arg := range args {
-			if !first {
-				listTokens = append(listTokens, makeToken(hclsyntax.TokenComma, ", "))
-			}
-			first = false
-			listTokens = append(listTokens, arg...)
-		}
-		listTokens = append(listTokens, makeToken(hclsyntax.TokenCBrack, "]"))
-		return listTokens
+		return hclwrite.TokensForTuple(args)
 	}
 
 	// Translate tolist(x) as x - in TF this normalizes sets to lists, but in Pulumi everything is represented as a
@@ -1064,18 +1055,9 @@ func convertFunctionCallExpr(state *convertState,
 				})
 			}
 
-			listTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
-			for j := i; j < len(args); j++ {
-				if j > i {
-					listTokens = append(listTokens, makeToken(hclsyntax.TokenComma, ","))
-				}
-				listTokens = append(listTokens, args[j]...)
-			}
-			listTokens = append(listTokens, makeToken(hclsyntax.TokenCBrack, "]"))
-
 			invokeArgs = append(invokeArgs, hclwrite.ObjectAttrTokens{
 				Name:  hclwrite.TokensForIdentifier(invoke.inputs[i]),
-				Value: listTokens,
+				Value: hclwrite.TokensForTuple(args[i:]),
 			})
 		} else {
 			if len(args) > len(invoke.inputs) {
@@ -2209,7 +2191,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 	// Iterate the blocks we've found in sorted order, we'll resort the attributes later by line position but
 	// this ensure that any state mutation (like looking up names of undeclared resources/datasources) is
 	// consistent. We do the same for the attributes below as well.
-	names := maps.Keys(blockLists)
+	names := slices.Collect(maps.Keys(blockLists))
 	sort.Strings(names)
 	for _, name := range names {
 		items := blockLists[name]
@@ -2237,7 +2219,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 	}
 
 	// As above, iterate in sorted order
-	names = maps.Keys(content.Attributes)
+	names = slices.Collect(maps.Keys(content.Attributes))
 	sort.Strings(names)
 	for _, name := range names {
 		attr := content.Attributes[name]
@@ -2637,16 +2619,11 @@ func convertManagedResources(state *convertState,
 	// Does this resource have dependencies? If so set the "dependsOn" attribute
 	if len(managedResource.DependsOn) > 0 {
 		options = hclwrite.NewBlock("options", nil)
-		dependsOn := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
+		elems := make([]hclwrite.Tokens, len(managedResource.DependsOn))
 		for idx, dep := range managedResource.DependsOn {
-			if idx > 0 {
-				dependsOn = append(dependsOn, makeToken(hclsyntax.TokenComma, ","))
-			}
-			tokens := rewriteTraversal(state, scopes, "", dep)
-			dependsOn = append(dependsOn, tokens...)
+			elems[idx] = rewriteTraversal(state, scopes, "", dep)
 		}
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenCBrack, "]"))
-		options.Body().SetAttributeRaw("dependsOn", dependsOn)
+		options.Body().SetAttributeRaw("dependsOn", hclwrite.TokensForTuple(elems))
 	}
 
 	if managedResource.Managed != nil && managedResource.Managed.CreateBeforeDestroySet {
@@ -2668,6 +2645,44 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 			Subject:  managedResource.DeclRange.Ptr(),
 			Context:  managedResource.DeclRange.Ptr(),
 		})
+	}
+
+	if managedResource.Managed != nil && len(managedResource.Managed.IgnoreChanges) > 0 {
+		var elems []hclwrite.Tokens
+		for _, ic := range managedResource.Managed.IgnoreChanges {
+			// ignore_changes traversals are relative to the resource, so the
+			// first element is always a TraverseAttr.
+			first, ok := ic[0].(hcl.TraverseAttr)
+			contract.Assertf(ok, "expected TraverseAttr, got %T", ic[0])
+			tfName := first.Name
+
+			// Skip computed-only attributes since PCL only binds ignoreChanges
+			// against input properties.
+			if !scopes.isInput(path, tfName) {
+				state.appendDiagnostic(&hcl.Diagnostic{
+					Severity: hcl.DiagWarning,
+					Summary:  "ignore_changes for computed-only attribute is not supported",
+					Detail:   fmt.Sprintf("The attribute %q is computed-only and cannot be used in ignoreChanges", tfName),
+					Subject:  managedResource.DeclRange.Ptr(),
+					Context:  managedResource.DeclRange.Ptr(),
+				})
+				continue
+			}
+
+			fqPath := appendPath(path, tfName)
+			pulumiAttrName := scopes.pulumiName(tfName, fqPath)
+			remaining := rewriteRelativeTraversal(scopes, fqPath, ic[1:])
+			newTraversal := make(hcl.Traversal, 0, 1+len(remaining))
+			newTraversal = append(newTraversal, hcl.TraverseRoot{Name: pulumiAttrName})
+			newTraversal = append(newTraversal, remaining...)
+			elems = append(elems, hclwrite.TokensForTraversal(newTraversal))
+		}
+		if len(elems) > 0 {
+			if options == nil {
+				options = hclwrite.NewBlock("options", nil)
+			}
+			options.Body().SetAttributeRaw("ignoreChanges", hclwrite.TokensForTuple(elems))
+		}
 	}
 
 	// Does this resource have a count? If so set the "range" attribute
@@ -2934,6 +2949,7 @@ func translateRemoteModule(
 	requiredProviders map[string]*configs.RequiredProvider,
 	sandboxedModules map[string]*PulumiTerraformModule,
 	generatedProjectDirectory string,
+	loader pschema.ReferenceLoader,
 ) hcl.Diagnostics {
 	fetcher := getmodules.NewPackageFetcher()
 	tempPath, err := os.MkdirTemp("", "pulumi-tf-registry")
@@ -2982,6 +2998,7 @@ func translateRemoteModule(
 		sandboxedModules,
 		/*topLevelModule*/ false,
 		generatedProjectDirectory,
+		loader,
 	)
 }
 
@@ -3075,6 +3092,7 @@ func translateModuleSourceCode(
 	sandboxedModules map[string]*PulumiTerraformModule,
 	topLevelModule bool,
 	generatedProjectDirectory string,
+	loader pschema.ReferenceLoader,
 ) hcl.Diagnostics {
 	sources, module, moduleDiagnostics := loadConfigDir(sourceRoot, sourceDirectory)
 	if moduleDiagnostics.HasErrors() {
@@ -3083,11 +3101,10 @@ func translateModuleSourceCode(
 		return moduleDiagnostics
 	}
 
-	for name, provider := range module.ProviderRequirements.RequiredProviders {
-		requiredProviders[name] = provider
-	}
+	maps.Copy(requiredProviders, module.ProviderRequirements.RequiredProviders)
 
 	scopes := newScopes()
+	scopes.loader = loader
 
 	state := &convertState{
 		sources:              sources,
@@ -3349,6 +3366,7 @@ func translateModuleSourceCode(
 						sandboxedModules,
 						/*topLevelModule*/ false,
 						generatedProjectDirectory,
+						loader,
 					)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
@@ -3385,6 +3403,7 @@ func translateModuleSourceCode(
 						requiredProviders,
 						sandboxedModules,
 						generatedProjectDirectory,
+						loader,
 					)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
@@ -3515,6 +3534,7 @@ func translateModuleSourceCode(
 						requiredProviders,
 						sandboxedModules,
 						generatedProjectDirectory,
+						loader,
 					)
 					state.diagnostics = append(state.diagnostics, diags...)
 					if diags.HasErrors() {
@@ -4020,6 +4040,7 @@ func TranslateModule(
 	info ProviderInfoSource,
 	providerInfoResolver ProviderInfoResolver,
 	generatedProjectDirectory string,
+	loader pschema.ReferenceLoader,
 ) hcl.Diagnostics {
 	modules := make(map[moduleKey]string)
 	return translateModuleSourceCode(modules,
@@ -4033,6 +4054,7 @@ func TranslateModule(
 		/*sanboxedModules*/ map[string]*PulumiTerraformModule{},
 		/*topLevelModule*/ true,
 		generatedProjectDirectory,
+		loader,
 	)
 }
 
