@@ -421,21 +421,16 @@ func (s *scopes) isMap(fullyQualifiedPath string) *bool {
 	return nil
 }
 
-// isInput returns whether the attribute at the given path is an input property
-// in the Pulumi schema.
+// isInput returns whether the attribute tfAttr on the resource at resourcePath
+// is an input property in the Pulumi schema.
 //
 // PCL validates ignoreChanges entries against the resource's Pulumi input type,
 // so we use the Pulumi provider schema (via the loader) to check if the property
 // actually exists as an input. This correctly handles bridge-level
 // MarkAsComputedOnly attributes that appear as Optional+Computed in the TF
 // schema but are excluded from Pulumi inputs.
-func (s *scopes) isInput(fullyQualifiedPath string) bool {
-	parts := strings.Split(fullyQualifiedPath, ".")
-	if len(parts) < 3 {
-		return true
-	}
-
-	root, has := s.roots[parts[0]+"."+parts[1]]
+func (s *scopes) isInput(resourcePath, tfAttr string) bool {
+	root, has := s.roots[resourcePath]
 	if !has {
 		return true
 	}
@@ -457,7 +452,8 @@ func (s *scopes) isInput(fullyQualifiedPath string) bool {
 		return true
 	}
 
-	attrName := s.pulumiName(parts[2], fullyQualifiedPath)
+	attrPath := appendPath(resourcePath, tfAttr)
+	attrName := s.pulumiName(tfAttr, attrPath)
 
 	for _, prop := range res.InputProperties {
 		if prop.Name == attrName {

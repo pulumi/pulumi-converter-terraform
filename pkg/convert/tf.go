@@ -2655,11 +2655,10 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 			first, ok := ic[0].(hcl.TraverseAttr)
 			contract.Assertf(ok, "expected TraverseAttr, got %T", ic[0])
 			tfName := first.Name
-			fqPath := appendPath(path, tfName)
 
 			// Skip computed-only attributes since PCL only binds ignoreChanges
 			// against input properties.
-			if !scopes.isInput(fqPath) {
+			if !scopes.isInput(path, tfName) {
 				state.appendDiagnostic(&hcl.Diagnostic{
 					Severity: hcl.DiagWarning,
 					Summary:  "ignore_changes for computed-only attribute is not supported",
@@ -2670,6 +2669,7 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 				continue
 			}
 
+			fqPath := appendPath(path, tfName)
 			pulumiAttrName := scopes.pulumiName(tfName, fqPath)
 			remaining := rewriteRelativeTraversal(scopes, fqPath, ic[1:])
 			newTraversal := make(hcl.Traversal, 0, 1+len(remaining))
