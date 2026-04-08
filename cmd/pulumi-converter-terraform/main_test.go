@@ -16,20 +16,44 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/blang/semver"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/convert"
+	"github.com/pulumi/pulumi/pkg/v3/codegen/schema"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
+	codegenrpc "github.com/pulumi/pulumi/sdk/v3/proto/go/codegen"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 )
 
 type testMapper struct{}
 
 func (m *testMapper) GetMapping(context.Context, string, *convert.MapperPackageHint) ([]byte, error) {
-	// No mapping as yet, we'll get warning diagnostics about this but that's not important for this test.
 	return nil, nil
+}
+
+type testLoader struct{}
+
+func (l *testLoader) LoadPackage(string, *semver.Version) (*schema.Package, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (l *testLoader) LoadPackageV2(context.Context, *schema.PackageDescriptor) (*schema.Package, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (l *testLoader) LoadPackageReference(string, *semver.Version) (schema.PackageReference, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (l *testLoader) LoadPackageReferenceV2(
+	_ context.Context, _ *schema.PackageDescriptor,
+) (schema.PackageReference, error) {
+	return nil, errors.New("not implemented")
 }
 
 func TestExamplesJson(t *testing.T) {
@@ -41,12 +65,14 @@ func TestExamplesJson(t *testing.T) {
 	src := t.TempDir()
 	dst := t.TempDir()
 
-	// Create a mock mapper server.
-	mapper := &testMapper{}
-	// It's ok to pass a zero plugin.Context to NewServer
+	// Create a mock mapper and loader server.
 	grpcServer, err := plugin.NewServer(
 		&plugin.Context{},
-		convert.MapperRegistration(convert.NewMapperServer(mapper)))
+		convert.MapperRegistration(convert.NewMapperServer(&testMapper{})),
+		func(srv *grpc.Server) {
+			codegenrpc.RegisterLoaderServer(srv, schema.NewLoaderServer(&testLoader{}))
+		},
+	)
 	require.NoError(t, err)
 
 	// Write an examples.json file to the source directory.
@@ -61,7 +87,7 @@ func TestExamplesJson(t *testing.T) {
 		SourceDirectory: src,
 		TargetDirectory: dst,
 		MapperTarget:    grpcServer.Addr(),
-		LoaderTarget:    "", // unused by the converter
+		LoaderTarget:    grpcServer.Addr(),
 		Args:            []string{"--convert-examples", "examples.json"},
 	})
 	require.NoError(t, err)

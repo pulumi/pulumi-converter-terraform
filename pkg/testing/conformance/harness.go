@@ -15,19 +15,26 @@
 package conformance
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sync"
 	"testing"
 
+	"github.com/blang/semver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pulumi/pulumi-converter-terraform/pkg/convert"
 	"github.com/pulumi/pulumi-converter-terraform/pkg/testing/pulexec"
 	"github.com/pulumi/pulumi-converter-terraform/pkg/testing/tfexec"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
+	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfgen"
+	pschema "github.com/pulumi/pulumi/pkg/v3/codegen/schema"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/apitype"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/diag"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/diag/colors"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/cmdutil"
 	"github.com/pulumi/terraform/pkg/configs"
 	"github.com/spf13/afero"
@@ -39,6 +46,11 @@ import (
 type Provider struct {
 	Name    string
 	Factory func() *schema.Provider
+
+	// EditInfo is an optional callback to customize the bridged ProviderInfo
+	// after automatic token computation. Use it to set bridge-level overrides
+	// like SchemaInfo.MarkAsComputedOnly or SchemaInfo.MarkAsOptional.
+	EditInfo func(*tfbridge.ProviderInfo)
 }
 
 // TestCase defines a test that asserts the converter produces the same outputs as
@@ -79,6 +91,9 @@ func AssertConversion(t *testing.T, tc TestCase) {
 	for i, p := range tc.Providers {
 		tfProviders[i] = tfexec.Provider{Name: p.Name, Provider: p.Factory()}
 		bridged := pulexec.BridgedProvider(t, p.Name, p.Factory())
+		if p.EditInfo != nil {
+			p.EditInfo(&bridged)
+		}
 		bridgedProviders[i] = pulexec.Provider{Name: p.Name, Info: bridged}
 		providerInfos[p.Name] = &bridged
 	}
@@ -154,13 +169,67 @@ func convertHCLToPCL(
 
 	infoSource := &testProviderInfoSource{providers: providerInfos}
 	resolver := &testProviderInfoResolver{}
+	loader := newTestLoader(t, providerInfos)
 
-	diags := convert.TranslateModule(osFs, srcDir, dstFs, infoSource, resolver, dstDir)
-	if diags.HasErrors() {
-		return "", fmt.Errorf("TranslateModule failed: %v", diags)
-	}
+	diags := convert.TranslateModule(osFs, srcDir, dstFs, infoSource, resolver, dstDir, loader)
+	require.False(t, diags.HasErrors(), "TranslateModule failed: %v", diags)
 
 	return dstDir, nil
+}
+
+// testLoader implements pschema.ReferenceLoader backed by in-memory package references
+// generated from bridged provider infos.
+type testLoader struct {
+	packages map[string]pschema.PackageReference
+}
+
+func newTestLoader(t *testing.T, providerInfos map[string]*tfbridge.ProviderInfo) *testLoader {
+	t.Helper()
+
+	sink := diag.DefaultSink(io.Discard, io.Discard, diag.FormatOptions{Color: colors.Never})
+	packages := make(map[string]pschema.PackageReference, len(providerInfos))
+	for _, info := range providerInfos {
+		spec, err := tfgen.GenerateSchema(*info, sink)
+		require.NoError(t, err)
+
+		pkg, err := pschema.ImportSpec(spec, nil, pschema.ValidationOptions{})
+		require.NoError(t, err)
+
+		packages[pkg.Name] = pkg.Reference()
+	}
+	return &testLoader{packages: packages}
+}
+
+func (l *testLoader) LoadPackage(pkg string, version *semver.Version) (*pschema.Package, error) {
+	ref, err := l.LoadPackageReference(pkg, version)
+	if err != nil {
+		return nil, err
+	}
+	return ref.Definition()
+}
+
+func (l *testLoader) LoadPackageReference(pkg string, _ *semver.Version) (pschema.PackageReference, error) {
+	ref, ok := l.packages[pkg]
+	if !ok {
+		return nil, fmt.Errorf("unknown package %q", pkg)
+	}
+	return ref, nil
+}
+
+func (l *testLoader) LoadPackageV2(
+	_ context.Context, descriptor *pschema.PackageDescriptor,
+) (*pschema.Package, error) {
+	ref, err := l.LoadPackageReference(descriptor.Name, descriptor.Version)
+	if err != nil {
+		return nil, err
+	}
+	return ref.Definition()
+}
+
+func (l *testLoader) LoadPackageReferenceV2(
+	_ context.Context, descriptor *pschema.PackageDescriptor,
+) (pschema.PackageReference, error) {
+	return l.LoadPackageReference(descriptor.Name, descriptor.Version)
 }
 
 // testProviderInfoSource returns provider info from an in-memory map.

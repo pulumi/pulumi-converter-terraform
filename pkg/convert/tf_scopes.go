@@ -15,6 +15,7 @@
 package convert
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -23,6 +24,7 @@ import (
 	shim "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/schema"
 	"github.com/pulumi/pulumi/pkg/v3/codegen/cgstrings"
+	pschema "github.com/pulumi/pulumi/pkg/v3/codegen/schema"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 	"github.com/pulumi/terraform/pkg/addrs"
 	"github.com/pulumi/terraform/pkg/lang"
@@ -64,6 +66,10 @@ type scopes struct {
 	eachValue  hcl.Traversal
 
 	scope *lang.Scope
+
+	// loader is used to load Pulumi provider schemas, enabling checks like
+	// whether a property is a valid input for a resource.
+	loader pschema.ReferenceLoader
 }
 
 func newScopes() *scopes {
@@ -413,6 +419,48 @@ func (s *scopes) isMap(fullyQualifiedPath string) *bool {
 		return &isMap
 	}
 	return nil
+}
+
+// isInput returns whether the attribute tfAttr on the resource at resourcePath
+// is an input property in the Pulumi schema.
+//
+// PCL validates ignoreChanges entries against the resource's Pulumi input type,
+// so we use the Pulumi provider schema (via the loader) to check if the property
+// actually exists as an input. This correctly handles bridge-level
+// MarkAsComputedOnly attributes that appear as Optional+Computed in the TF
+// schema but are excluded from Pulumi inputs.
+func (s *scopes) isInput(resourcePath, tfAttr string) bool {
+	root, has := s.roots[resourcePath]
+	if !has {
+		return true
+	}
+
+	if s.loader == nil || root.ResourceInfo == nil {
+		return true
+	}
+
+	token := root.ResourceInfo.Tok.String()
+	pkg := strings.Split(token, ":")[0]
+
+	ref, err := s.loader.LoadPackageReferenceV2(context.Background(), &pschema.PackageDescriptor{Name: pkg})
+	if err != nil {
+		return true
+	}
+
+	res, found, err := ref.Resources().Get(token)
+	if err != nil || !found {
+		return true
+	}
+
+	attrPath := appendPath(resourcePath, tfAttr)
+	attrName := s.pulumiName(tfAttr, attrPath)
+
+	for _, prop := range res.InputProperties {
+		if prop.Name == attrName {
+			return true
+		}
+	}
+	return false
 }
 
 // Given a fully typed path (e.g. data.simple_data_source.a_field) returns whether a_field is a resource object.
