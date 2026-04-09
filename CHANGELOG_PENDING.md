@@ -13,6 +13,9 @@
   Pulumi picks the correct asset shape at runtime. The `content` form emits
   `stringAsset(...)`.
 
+- Generate an `optional(T)` type function when a config type is known to need to support optional values.
+  [#398](https://github.com/pulumi/pulumi-converter-terraform/issues/398)
+
 ### Bug Fixes
 
 - Convert resource `timeouts` blocks to a `customTimeouts` resource option instead of
