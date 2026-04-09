@@ -18,6 +18,11 @@ def trimext(file: str) -> str:
         return file
     return file[0:i]
 
+# Functions that are tested via conformance tests rather than this generated test.
+# These are excluded because their TF doc examples use intentionally invalid
+# expressions (e.g. accessing non-existent properties) that PCL's binder rejects.
+skip = {"try"}
+
 # Some functions don't have any examples in the Terraform docs. They _must_ have overrides here else we error on generation.
 overrides = {
     "abs": [
@@ -139,6 +144,9 @@ resource "simple_resource" "a_resource_with_count" {
                                 .replace("x.availability_zone", "x.input_one")
                             )
                             example_code.append(code)
+
+            if function_name in skip:
+                continue
 
             if function_name in overrides:
                 override = overrides[function_name]

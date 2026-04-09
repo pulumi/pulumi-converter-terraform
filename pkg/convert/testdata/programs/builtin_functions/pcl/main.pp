@@ -1817,22 +1817,6 @@ output "funcTrimsuffix2" {
 
 
 
-# Examples for try
-output "funcTry0" {
-  value = foo
-}
-output "funcTry1" {
-  value = notImplemented("try(local.foo.bar,\"fallback\")")
-}
-output "funcTry2" {
-  value = notImplemented("try(local.foo.boop,\"fallback\")")
-}
-output "funcTry3" {
-  value = notImplemented("try(local.nonexist,\"fallback\")")
-}
-
-
-
 # Examples for type
 output "funcType0" {
   value = notImplemented("type(var.list)")

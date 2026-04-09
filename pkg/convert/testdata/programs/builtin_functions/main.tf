@@ -1184,21 +1184,6 @@ output "funcTrimsuffix2" {
 }
 
 
-# Examples for try
-output "funcTry0" {
-  value = local.foo
-}
-output "funcTry1" {
-  value = try(local.foo.bar, "fallback")
-}
-output "funcTry2" {
-  value = try(local.foo.boop, "fallback")
-}
-output "funcTry3" {
-  value = try(local.nonexist, "fallback")
-}
-
-
 # Examples for type
 output "funcType0" {
   value = type(var.list)
