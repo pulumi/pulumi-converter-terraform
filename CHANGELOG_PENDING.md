@@ -10,6 +10,9 @@
 - Convert `lifecycle.ignore_changes` to `ignoreChanges` resource option in generated Pulumi code.
   [#60](https://github.com/pulumi/pulumi-converter-terraform/issues/60)
 
+- Generate an `optional(T)` type function when a config type is known to need to support optional values.
+  [#398](https://github.com/pulumi/pulumi-converter-terraform/issues/398)
+
 ### Bug Fixes
 
 - Fix dynamic blocks with list-typed `for_each` incorrectly wrapping the collection in `entries()`.
