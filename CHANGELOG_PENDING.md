@@ -11,3 +11,6 @@
   [#60](https://github.com/pulumi/pulumi-converter-terraform/issues/60)
 
 ### Bug Fixes
+
+- Fix dynamic blocks with list-typed `for_each` incorrectly wrapping the collection in `entries()`.
+  [#414](https://github.com/pulumi/pulumi-converter-terraform/issues/414)

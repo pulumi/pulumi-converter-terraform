@@ -11,14 +11,14 @@ resource "aResource" "blocks:index/index:resource" {
   options {
     range = length(listvar) > 0 ? 1 : 0
   }
-  aListOfResources = [for entry in entries(dynvar) : {
-    innerResources = [for entry2 in entries(entry.value.innerList) : {
+  aListOfResources = [for entry in dynvar : {
+    innerResources = [for entry2 in entry.innerList : {
 
       # Utilize the inner resource in the inner dynamic block, this
       # worked even before pulumi/pulumi#18718 was fixed.
-      nestedString = entry2.value.nestedValue
+      nestedString = entry2.nestedValue
     }]
-    innerString = entry.value.innerValue != null ? "TrySuccess" : "TryFail"
+    innerString = entry.innerValue != null ? "TrySuccess" : "TryFail"
   }]
 }
 
@@ -27,14 +27,14 @@ resource "bResource" "blocks:index/index:resource" {
   options {
     range = length(listvar) > 0 ? 1 : 0
   }
-  aListOfResources = [for entry in entries(dynvar) : {
-    innerResources = [for entry2 in entries(entry.value.innerList) : {
+  aListOfResources = [for entry in dynvar : {
+    innerResources = [for entry2 in entry.innerList : {
 
       # This was fixed by pulumi/pulumi#18718.  Before the generated
       # PCL would shadow a_list_of_resources with the same iterator
       # name (entry). 
-      nestedString = entry.value.innerValue
+      nestedString = entry.innerValue
     }]
-    innerString = entry.value.innerValue != null ? "TrySuccess" : "TryFail"
+    innerString = entry.innerValue != null ? "TrySuccess" : "TryFail"
   }]
 }
