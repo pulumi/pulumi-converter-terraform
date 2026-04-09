@@ -23,7 +23,7 @@ resource "listBlockResource" "renames:index/index:resource" {
 // Check that lists as dynamics are handled correctly
 resource "listDynamicResource" "renames:index/index:resource" {
   __logicalName = "list_dynamic_resource"
-  theList = [for entry in entries([1, 2]) : {
-    number = entry.value
+  theList = [for entry in [1, 2] : {
+    number = entry
   }]
 }

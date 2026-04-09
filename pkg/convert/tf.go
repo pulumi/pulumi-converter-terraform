@@ -1261,6 +1261,16 @@ func makeToken(typ hclsyntax.TokenType, str string) *hclwrite.Token {
 	}
 }
 
+// tokensContainIdent reports whether tokens contains an identifier token matching name.
+func tokensContainIdent(tokens hclwrite.Tokens, name string) bool {
+	for _, t := range tokens {
+		if t.Type == hclsyntax.TokenIdent && string(t.Bytes) == name {
+			return true
+		}
+	}
+	return false
+}
+
 func convertTemplateWrapExpr(state *convertState,
 	scopes *scopes, fullyQualifiedPath string, expr *hclsyntax.TemplateWrapExpr,
 ) hclwrite.Tokens {
@@ -1610,6 +1620,11 @@ func rewriteTraversal(
 			if localName != "" {
 				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: localName})
 				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[1:])...)
+			} else if dottedName := scopes.lookup("each." + maybeFirstAttr.Name); dottedName != "" {
+				// A dynamic block with iterator = "each" puts "each.value" and
+				// "each.key" into scope as dotted paths.
+				newTraversal = append(newTraversal, hcl.TraverseRoot{Name: dottedName})
+				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, "", traversal[2:])...)
 			} else {
 				switch maybeFirstAttr.Name {
 				case "key":
@@ -2128,38 +2143,48 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 				tfEachVar = block.Labels[0]
 			}
 
-			pulumiEachVar, cleanup := scopes.addNestedScopeUniqueName("entry", "", "")
-			defer cleanup()
+			pulumiEachVal, cleanupVal := scopes.addNestedScopeUniqueName("entry", "", "")
+			defer cleanupVal()
 
-			dynamicTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "for"))
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, pulumiEachVar))
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "in"))
+			pulumiEachKey, cleanupKey := scopes.addNestedScopeUniqueName("key", "", "")
+			defer cleanupKey()
 
 			forEachAttr, hasForEachAttr := dynamicBody.Attributes["for_each"]
 			if !hasForEachAttr {
 				continue
 			}
 
-			// wrap the collection expression into `entries(collection)` so that each entry has key and value
-			forEachExprTokens := convertExpression(state, true, scopes, fullyQualifiedPath, forEachAttr.Expr)
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "entries"))
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenOParen, "("))
-			dynamicTokens = append(dynamicTokens, forEachExprTokens...)
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenCParen, ")"))
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenColon, ":"))
-
+			// Convert the body first so we can check whether the key
+			// variable is actually referenced.
 			bodyTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenIdent, "{}")}
 			for _, innerBlock := range dynamicBody.Blocks {
 				if innerBlock.Type == "content" {
 					scopes.push(map[string]string{
-						tfEachVar: pulumiEachVar,
+						tfEachVar + ".value": pulumiEachVal,
+						tfEachVar + ".key":   pulumiEachKey,
 					})
 					contentBody := convertBody(state, scopes, blockPath, innerBlock.Body)
 					bodyTokens = tokensForObject(contentBody)
 					scopes.pop()
 				}
 			}
+
+			// Build [for key, val in collection: body] or
+			// [for val in collection: body] depending on whether the
+			// key variable was used. The two-variable form handles both
+			// maps and lists without needing entries().
+			dynamicTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
+			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "for"))
+			if tokensContainIdent(bodyTokens, pulumiEachKey) {
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, pulumiEachKey))
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenComma, ","))
+			}
+			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, pulumiEachVal))
+			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "in"))
+
+			forEachExprTokens := convertExpression(state, true, scopes, fullyQualifiedPath, forEachAttr.Expr)
+			dynamicTokens = append(dynamicTokens, forEachExprTokens...)
+			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenColon, ":"))
 
 			dynamicTokens = append(dynamicTokens, bodyTokens...)
 			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenCBrack, "]"))

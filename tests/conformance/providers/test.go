@@ -16,6 +16,7 @@ package providers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -54,6 +55,54 @@ func TestProvider() *schema.Provider {
 						return diag.FromErr(err)
 					}
 					if err := d.Set("computed_list", []string{"x", "y"}); err != nil {
+						return diag.FromErr(err)
+					}
+					return nil
+				},
+				ReadContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+					return nil
+				},
+				UpdateContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+					return nil
+				},
+				DeleteContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+					return nil
+				},
+			},
+			// test_nested_resource has a nested block so that dynamic blocks can
+			// be tested.
+			"test_nested_resource": {
+				Schema: map[string]*schema.Schema{
+					"value": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"rule": {
+						Type:     schema.TypeList,
+						Optional: true,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"port": {
+									Type:     schema.TypeInt,
+									Required: true,
+								},
+								"protocol": {
+									Type:     schema.TypeString,
+									Required: true,
+								},
+							},
+						},
+					},
+					"computed_value": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+				CreateContext: func(_ context.Context, d *schema.ResourceData, _ any) diag.Diagnostics {
+					d.SetId("nested-id")
+					v := d.Get("value").(string)
+					rules := d.Get("rule").([]any)
+					if err := d.Set("computed_value", fmt.Sprintf("computed(%s,%s)", v, rules)); err != nil {
 						return diag.FromErr(err)
 					}
 					return nil

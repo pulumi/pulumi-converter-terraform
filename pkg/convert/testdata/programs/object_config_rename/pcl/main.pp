@@ -62,14 +62,14 @@ resource "usingMapObjectConfigForEach" "simple:index:resource" {
 
 resource "usingDynamic" "blocks:index/index:resource" {
   __logicalName = "using_dynamic"
-  aListOfResources = [for entry in entries(objectMapConfig) : {
-    innerString = entry.value.firstMember
+  aListOfResources = [for entry in objectMapConfig : {
+    innerString = entry.firstMember
   }]
 }
 
 resource "usingDynamicIterator" "blocks:index/index:resource" {
   __logicalName = "using_dynamic_iterator"
-  aListOfResources = [for entry in entries(objectMapConfig) : {
-    innerString = entry.value.firstMember
+  aListOfResources = [for entry in objectMapConfig : {
+    innerString = entry.firstMember
   }]
 }
