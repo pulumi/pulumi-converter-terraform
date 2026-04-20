@@ -2376,6 +2376,25 @@ func convertVariable(state *convertState, scopes *scopes,
 		pulumiType = inferPrimitiveType(variable.Default.Type(), pulumiType)
 	}
 
+	// If the default value contains null elements in a list or set, wrap the element
+	// type with optional() so that [null] is a valid default in PCL.
+	// Terraform's cty type system supports typed nulls inside collections, but PCL
+	// requires the element type to be explicitly optional.
+	if !variable.Default.IsNull() && variable.Default.IsKnown() &&
+		(variable.Type.IsListType() || variable.Type.IsSetType()) {
+		hasNull := false
+		for it := variable.Default.ElementIterator(); it.Next(); {
+			_, v := it.Element()
+			if v.IsNull() {
+				hasNull = true
+				break
+			}
+		}
+		if hasNull {
+			pulumiType = fmt.Sprintf("list(optional(%s))", convertCtyType(variable.Type.ElementType()))
+		}
+	}
+
 	// Don't add the "any" type explicitly, it's the default
 	if pulumiType != "any" {
 		labels = append(labels, pulumiType)
