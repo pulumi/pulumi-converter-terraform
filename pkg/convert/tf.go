@@ -2123,7 +2123,7 @@ func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualif
 
 	for _, block := range content.Blocks {
 		blockPath := appendPath(fullyQualifiedPath, block.Type)
-		name := scopes.pulumiName(blockPath)
+		name := scopes.pulumiName(block.Type, blockPath)
 		if name == "set" || name == "setList" || name == "setSensitive" {
 			content := bodyContent(block.Body)
 			nameAttr, nameAttrExists := content.Attributes["name"]
@@ -2191,13 +2191,13 @@ func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualif
 	}
 
 	// As above, iterate in sorted order
-	names := maps.Keys(content.Attributes)
+	names := slices.Collect(maps.Keys(content.Attributes))
 	repositoryOptions := make([]bodyAttrTokens, 0)
 	sort.Strings(names)
 	for _, name := range names {
 		attr := content.Attributes[name]
 		attrPath := appendPath(fullyQualifiedPath, attr.Name)
-		attrName := scopes.pulumiName(attrPath)
+		attrName := scopes.pulumiName(attr.Name, attrPath)
 
 		supported := false
 		for _, supportedField := range supportedFields {
