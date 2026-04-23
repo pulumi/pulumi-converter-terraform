@@ -1,3 +1,13 @@
+package "helm" {
+  baseProviderName    = "terraform-provider"
+  baseProviderVersion = "0.8.1"
+  parameterization {
+    version = "3.1.1"
+    name    = "helm"
+    value   = "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkudGVycmFmb3JtLmlvL2hhc2hpY29ycC9oZWxtIiwidmVyc2lvbiI6IjMuMS4xIn19"
+  }
+}
+
 resource "example" "kubernetes:helm.sh/v3:Release" {
   name                     = "redis"
   chart                    = "redis"
