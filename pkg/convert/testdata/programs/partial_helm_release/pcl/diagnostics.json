@@ -1,6 +1,5 @@
 [
-  "warning:main.pp:0,8-14:package block label is deprecated:Package block labels should be replaced by baseProviderName.",
-  "warning:main.pp:26,3-18:unsupported attribute 'passCredentials':unsupported attribute 'passCredentials'",
-  "warning:main.pp:27,16-30,5::Cannot assign value ({ args: (string, string), binaryPath: string }) to attribute of type \"Optional\u003cstring\u003e\" for resource \"kubernetes:helm.sh:Release\"",
-  "warning:main.pp:52,3-7:unsupported attribute 'wait':unsupported attribute 'wait'"
+  "warning:main.pp:16,3-18:unsupported attribute 'passCredentials':unsupported attribute 'passCredentials'",
+  "warning:main.pp:17,16-20,5::Cannot assign value ({ args: (string, string), binaryPath: string }) to attribute of type \"Optional\u003cstring\u003e\" for resource \"kubernetes:helm.sh:Release\"",
+  "warning:main.pp:42,3-7:unsupported attribute 'wait':unsupported attribute 'wait'"
 ]

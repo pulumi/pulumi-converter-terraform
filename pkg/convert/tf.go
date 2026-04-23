@@ -3399,8 +3399,14 @@ func translateModuleSourceCode(
 
 			// for non-Pulumi TF providers that don't have a corresponding declaration in required_providers
 			// we try to resolve the latest version from the registry and add it ourselves
-			// so that they can be parameterized via terraform-provider (any TF provider feature)
-			if _, seen := requiredProviders[provider]; !seen && isTerraformProvider(provider) {
+			// so that they can be parameterized via terraform-provider (any TF provider feature).
+			//
+			// Resources with a custom mapping (e.g. helm_release → kubernetes:helm.sh/v3:Release)
+			// route to a different Pulumi package, so we don't need a parameterized package block for
+			// the TF-side provider.
+			if _, seen := requiredProviders[provider]; !seen &&
+				isTerraformProvider(provider) &&
+				!isCustomResourceMapping(managedResource.Type) {
 				providerSpec, err := providerInfoResolver.ResolveLatest(provider)
 				if err != nil {
 					state.appendDiagnostic(&hcl.Diagnostic{
