@@ -224,7 +224,7 @@ func TranslateState(info ProviderInfoSource, path string) (*plugin.ConvertStateR
 					tfType := resource.Addr.Resource.Type
 					provider := impliedProvider(tfType)
 					providerInfo, err := info.GetProviderInfo(provider, nil /*requiredProvider*/)
-					if err != nil && !isCustomProviderMapping(provider) {
+					if err != nil && !isCustomResourceMapping(tfType) {
 						// Don't fail the import, just warn
 						diagnostics = append(diagnostics, &hcl.Diagnostic{
 							Severity: hcl.DiagWarning,

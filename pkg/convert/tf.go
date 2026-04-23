@@ -418,19 +418,26 @@ func projectListToSingleton(tokens hclwrite.Tokens) hclwrite.Tokens {
 	return newTokens
 }
 
-// resources that require special conversion handling
-var customResourceMappings = map[string]string{
-	"helm_release": "kubernetes:helm.sh/v3:Release",
+// customResourceMapping describes a resource type that needs specialized conversion
+// handling in addition to whatever GetMapping provides. The convert function replaces
+// the default convertBody call for matching TF resources.
+type customResourceMapping struct {
+	pulumiToken string
+	convert     func(*convertState, *scopes, string, hcl.Body) bodyAttrsTokens
 }
 
-func isCustomProviderMapping(providerName string) bool {
-	for tfResourceToken := range customResourceMappings {
-		if impliedProvider(tfResourceToken) == providerName {
-			return true
-		}
-	}
+// resources that require specialized conversion handling beyond what the standard
+// GetMapping / convertBody pipeline can express (e.g. block-shape transforms).
+var customResourceMappings = map[string]customResourceMapping{
+	"helm_release": {
+		pulumiToken: "kubernetes:helm.sh/v3:Release",
+		convert:     convertHelmReleaseResource,
+	},
+}
 
-	return false
+func isCustomResourceMapping(tfType string) bool {
+	_, ok := customResourceMappings[tfType]
+	return ok
 }
 
 // Functions need to translate in one of four ways
@@ -2112,150 +2119,120 @@ func bodyContent(body hcl.Body) *hcl.BodyContent {
 	return content
 }
 
-// A specialized version of convertBody that is specific to converting the body of helm_release resources
+// helm_release blocks whose name/value pairs collapse into a single `values` map.
+var helmReleaseSetBlockTypes = map[string]bool{
+	"set":           true,
+	"set_list":      true,
+	"set_sensitive": true,
+}
+
+// helm_release flat TF attributes that get restructured under a nested
+// `repositoryOpts` object. Values are the nested Pulumi field names.
+var helmReleaseRepositoryFields = map[string]string{
+	"repository":           "repo",
+	"repository_ca_file":   "caFile",
+	"repository_cert_file": "certFile",
+	"repository_key_file":  "keyFile",
+	"repository_username":  "username",
+	"repository_password":  "password",
+}
+
+// convertHelmReleaseResource handles the shape transforms that GetMapping cannot
+// express for helm_release → kubernetes:helm.sh/v3:Release: collapsing
+// set/set_list/set_sensitive blocks into a single `values` map (wrapping
+// set_sensitive with secret()) and collecting flat repository_* attributes into a
+// nested repositoryOpts object. Naming and generic attribute conversion are
+// delegated to convertBody, which uses the helm GetMapping to find the right
+// Pulumi names.
 func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualifiedPath string, body hcl.Body) bodyAttrsTokens {
 	contract.Assertf(fullyQualifiedPath != "", "fullyQualifiedPath should not be empty")
 
-	content := bodyContent(body)
-	newAttributes := make(bodyAttrsTokens, 0)
-	valueAttributes := make([]hclwrite.ObjectAttrTokens, 0)
+	synbody, ok := body.(*hclsyntax.Body)
+	contract.Assertf(ok, "%T was not a hclsyntax.Body", body)
+
+	// Collect set* blocks into a synthesized `values` object.
+	valueAttrs := make([]hclwrite.ObjectAttrTokens, 0)
 	firstValueLine := 0
-
-	for _, block := range content.Blocks {
+	filteredBlocks := make(hclsyntax.Blocks, 0, len(synbody.Blocks))
+	for _, block := range synbody.Blocks {
+		if !helmReleaseSetBlockTypes[block.Type] {
+			filteredBlocks = append(filteredBlocks, block)
+			continue
+		}
 		blockPath := appendPath(fullyQualifiedPath, block.Type)
-		name := scopes.pulumiName(block.Type, blockPath)
-		if name == "set" || name == "setList" || name == "setSensitive" {
-			content := bodyContent(block.Body)
-			nameAttr, nameAttrExists := content.Attributes["name"]
-			valueAttr, valueAttrExists := content.Attributes["value"]
-			valueTokens := convertExpression(state, true, scopes, blockPath, valueAttr.Expr)
-			if name == "setSensitive" {
-				valueTokens = hclwrite.TokensForFunctionCall("secret", valueTokens)
-			}
-			if nameAttrExists && valueAttrExists {
-				if firstValueLine == 0 {
-					firstValueLine = valueAttr.Range.Start.Line
-				}
-				valueAttributes = append(valueAttributes, hclwrite.ObjectAttrTokens{
-					Name:  convertExpression(state, true, scopes, blockPath, nameAttr.Expr),
-					Value: valueTokens,
-				})
-			}
+		inner := bodyContent(block.Body)
+		nameAttr, hasName := inner.Attributes["name"]
+		valueAttr, hasValue := inner.Attributes["value"]
+		if !hasName || !hasValue {
+			continue
 		}
-	}
-
-	// based on pulumi-kubernetes v4.18.1 for Helm Release resource
-	supportedFields := []string{
-		"atomic",
-		"chart",
-		"cleanupOnFail",
-		"createNamespace",
-		"dependencyUpdate",
-		"description",
-		"devel",
-		"disableCrdHooks",
-		"disableOpenapiValidation",
-		"disableWebhooks",
-		"forceUpdate",
-		"keyring",
-		"lint",
-		"maxHistory",
-		"name",
-		"namespace",
-		"recreatePods",
-		"renderSubchartNotes",
-		"replace",
-		"resetValues",
-		"reuseValues",
-		"skipCrds",
-		"timeout",
-		"verify",
-		"version",
-		"waitForJobs",
-	}
-
-	fieldRenames := map[string]string{
-		"disableCrdHooks": "disableCRDHooks",
-	}
-
-	// map top-level repository options to a separate object
-	// so that we can create a repositoryOpts object from them
-	// with each of the fields renamed to match the pulumi-kubernetes SDK
-	repositoryOptionsMappings := map[string]string{
-		"repository":         "repo",
-		"repositoryUsername": "username",
-		"repositoryPassword": "password",
-		"repositoryCaFile":   "caFile",
-		"repositoryCertFile": "certFile",
-		"repositoryKeyFile":  "keyFile",
-	}
-
-	// As above, iterate in sorted order
-	names := slices.Collect(maps.Keys(content.Attributes))
-	repositoryOptions := make([]bodyAttrTokens, 0)
-	sort.Strings(names)
-	for _, name := range names {
-		attr := content.Attributes[name]
-		attrPath := appendPath(fullyQualifiedPath, attr.Name)
-		attrName := scopes.pulumiName(attr.Name, attrPath)
-
-		supported := false
-		for _, supportedField := range supportedFields {
-			if supportedField == attrName {
-				supported = true
-				break
-			}
+		valueTokens := convertExpression(state, true, scopes, blockPath, valueAttr.Expr)
+		if block.Type == "set_sensitive" {
+			valueTokens = hclwrite.TokensForFunctionCall("secret", valueTokens)
 		}
-		// We need the leading trivia here, but the trailing trivia will be handled by convertExpression
-		leading, _ := getTrivia(state.sources, getAttributeRange(state.sources, attr.Expr.Range()), true)
-
-		if !supported {
-			// if it is a repository option, keep it separate so that we create an object for it
-			if repoOptionAttribute, ok := repositoryOptionsMappings[attrName]; ok {
-				repoExpr := convertExpression(state, true, scopes, attrPath, attr.Expr)
-				repositoryOptions = append(repositoryOptions, bodyAttrTokens{
-					Line:   attr.Range.Start.Line,
-					Name:   repoOptionAttribute,
-					Trivia: leading,
-					Value:  repoExpr,
-				})
-			}
-		} else {
-			if renamedField, ok := fieldRenames[attrName]; ok {
-				attrName = renamedField
-			}
-
-			expr := convertExpression(state, true, scopes, attrPath, attr.Expr)
-			newAttributes = append(newAttributes, bodyAttrTokens{
-				Line:   attr.Range.Start.Line,
-				Name:   attrName,
-				Trivia: leading,
-				Value:  expr,
-			})
+		if firstValueLine == 0 {
+			firstValueLine = valueAttr.Range.Start.Line
 		}
-	}
-
-	if len(repositoryOptions) > 0 {
-		repositoryOptionsTokens := tokensForObject(repositoryOptions)
-		newAttributes = append(newAttributes, bodyAttrTokens{
-			Line:   repositoryOptions[0].Line,
-			Name:   "repositoryOpts",
-			Trivia: make(hclwrite.Tokens, 0),
-			Value:  repositoryOptionsTokens,
+		valueAttrs = append(valueAttrs, hclwrite.ObjectAttrTokens{
+			Name:  convertExpression(state, true, scopes, blockPath, nameAttr.Expr),
+			Value: valueTokens,
 		})
 	}
 
-	if len(valueAttributes) > 0 {
-		valueAttributesTokens := hclwrite.TokensForObject(valueAttributes)
-		newAttributes = append(newAttributes, bodyAttrTokens{
+	// Collect repository_* attributes into a synthesized `repositoryOpts` object.
+	repoAttrs := make([]bodyAttrTokens, 0)
+	filteredAttrs := make(hclsyntax.Attributes, len(synbody.Attributes))
+	for name, attr := range synbody.Attributes {
+		nested, isRepo := helmReleaseRepositoryFields[name]
+		if !isRepo {
+			filteredAttrs[name] = attr
+			continue
+		}
+		attrPath := appendPath(fullyQualifiedPath, name)
+		leading, _ := getTrivia(state.sources, getAttributeRange(state.sources, attr.Expr.Range()), true)
+		repoAttrs = append(repoAttrs, bodyAttrTokens{
+			Line:   attr.Range().Start.Line,
+			Name:   nested,
+			Trivia: leading,
+			Value:  convertExpression(state, true, scopes, attrPath, attr.Expr),
+		})
+	}
+
+	// If we've synthesized a map-form `values` from set blocks, drop the raw TF
+	// `values = [<<YAML...]` attribute — it collides on the same Pulumi field and
+	// the YAML list form doesn't map cleanly.
+	if len(valueAttrs) > 0 {
+		delete(filteredAttrs, "values")
+	}
+
+	sort.Slice(repoAttrs, func(i, j int) bool { return repoAttrs[i].Line < repoAttrs[j].Line })
+
+	filteredBody := &hclsyntax.Body{
+		Attributes: filteredAttrs,
+		Blocks:     filteredBlocks,
+		SrcRange:   synbody.SrcRange,
+		EndRange:   synbody.EndRange,
+	}
+	result := convertBody(state, scopes, fullyQualifiedPath, filteredBody)
+
+	if len(repoAttrs) > 0 {
+		result = append(result, bodyAttrTokens{
+			Line:   repoAttrs[0].Line,
+			Name:   "repositoryOpts",
+			Trivia: make(hclwrite.Tokens, 0),
+			Value:  tokensForObject(repoAttrs),
+		})
+	}
+	if len(valueAttrs) > 0 {
+		result = append(result, bodyAttrTokens{
 			Line:   firstValueLine,
 			Name:   "values",
 			Trivia: make(hclwrite.Tokens, 0),
-			Value:  valueAttributesTokens,
+			Value:  hclwrite.TokensForObject(valueAttrs),
 		})
 	}
-	sort.Sort(newAttributes)
-	return newAttributes
+	sort.Sort(result)
+	return result
 }
 
 // Convert a hcl.Body treating sub-bodies as attributes
@@ -2579,8 +2556,8 @@ func impliedProvider(typeName string) string {
 
 // Best guess at converting a tf type to a pulumi type
 func impliedToken(typeName string) string {
-	if customResourceToken, ok := customResourceMappings[typeName]; ok {
-		return customResourceToken
+	if mapping, ok := customResourceMappings[typeName]; ok {
+		return mapping.pulumiToken
 	}
 	if under := strings.Index(typeName, "_"); under != -1 {
 		provider := typeName[:under]
@@ -2900,10 +2877,8 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 	}
 
 	var resourceArgs bodyAttrsTokens
-	if _, custom := customResourceMappings[managedResource.Type]; custom {
-		if managedResource.Type == "helm_release" {
-			resourceArgs = convertHelmReleaseResource(state, scopes, path, managedResource.Config)
-		}
+	if mapping, custom := customResourceMappings[managedResource.Type]; custom {
+		resourceArgs = mapping.convert(state, scopes, path, managedResource.Config)
 	} else {
 		resourceArgs = convertBody(state, scopes, path, managedResource.Config)
 	}
@@ -3440,7 +3415,7 @@ func translateModuleSourceCode(
 			}
 
 			providerInfo, err := info.GetProviderInfo(provider, requiredProviders[provider])
-			if err != nil && !isCustomProviderMapping(provider) {
+			if err != nil && !isCustomResourceMapping(managedResource.Type) {
 				state.appendDiagnostic(&hcl.Diagnostic{
 					Subject:  &managedResource.DeclRange,
 					Severity: hcl.DiagWarning,

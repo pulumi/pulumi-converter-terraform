@@ -60,6 +60,16 @@ func (l *TestFileMapper) GetMapping(
 
 	mappingPath := filepath.Join(l.Path, pulumiProvider) + ".json"
 	mappingBytes, err := os.ReadFile(mappingPath)
+	// Fall back to the TF provider name when the plugin-name-keyed file is missing.
+	// This simulates production's plugin-mapper discovery, where a Pulumi plugin can
+	// advertise a TF provider under its own name (e.g. pulumi-kubernetes advertising
+	// "helm") regardless of what the parameterization hint says.
+	if err != nil && pulumiProvider != provider {
+		altPath := filepath.Join(l.Path, provider) + ".json"
+		if altBytes, altErr := os.ReadFile(altPath); altErr == nil {
+			return altBytes, nil
+		}
+	}
 	// don't error on missing mappings for custom providers like helm
 	if err != nil && provider != "helm" {
 		if os.IsNotExist(err) {

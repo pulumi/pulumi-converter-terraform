@@ -24,9 +24,14 @@ resource "example" "kubernetes:helm.sh/v3:Release" {
   keyring                  = "./keyring.gpg"
   lint                     = true
   maxHistory               = 5
-  recreatePods             = true
-  renderSubchartNotes      = true
-  replace                  = true
+  passCredentials          = true
+  postrender = [{
+    binaryPath = "echo"
+    args       = ["foo", "bar"]
+  }]
+  recreatePods        = true
+  renderSubchartNotes = true
+  replace             = true
   repositoryOpts = {
     repo     = "https://charts.bitnami.com/bitnami"
     caFile   = "./ca.pem"
@@ -45,5 +50,6 @@ resource "example" "kubernetes:helm.sh/v3:Release" {
   skipCrds    = true
   timeout     = 60
   version     = "10.7.16"
+  wait        = true
   waitForJobs = true
 }
