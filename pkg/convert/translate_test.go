@@ -178,8 +178,7 @@ func TestTranslate(t *testing.T) {
 	}
 
 	loader := &testLoader{
-		path:                   filepath.Join(testDir, "schemas"),
-		allowedMissingPackages: []string{"kubernetes"},
+		path: filepath.Join(testDir, "schemas"),
 	}
 	mapper := &bridgetesting.TestFileMapper{Path: filepath.Join(testDir, "mappings")}
 
