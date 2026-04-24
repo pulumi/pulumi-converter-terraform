@@ -428,6 +428,8 @@ type customResourceMapping struct {
 
 // resources that require specialized conversion handling beyond what the standard
 // GetMapping / convertBody pipeline can express (e.g. block-shape transforms).
+//
+//nolint:gosec // G101: these are Pulumi resource tokens, not credentials.
 var customResourceMappings = map[string]customResourceMapping{
 	"helm_release": {
 		pulumiToken: "kubernetes:helm.sh/v3:Release",
@@ -2275,7 +2277,9 @@ func staticPostrenderCommand(block *hclsyntax.Block) (string, bool) {
 // nested repositoryOpts object. Naming and generic attribute conversion are
 // delegated to convertBody, which uses the helm GetMapping to find the right
 // Pulumi names.
-func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualifiedPath string, body hcl.Body) bodyAttrsTokens {
+func convertHelmReleaseResource(
+	state *convertState, scopes *scopes, fullyQualifiedPath string, body hcl.Body,
+) bodyAttrsTokens {
 	contract.Assertf(fullyQualifiedPath != "", "fullyQualifiedPath should not be empty")
 
 	synbody, ok := body.(*hclsyntax.Body)
@@ -2470,7 +2474,8 @@ func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualif
 		attrPath := appendPath(fullyQualifiedPath, "wait")
 		leading, _ := getTrivia(state.sources, getAttributeRange(state.sources, waitAttr.Expr.Range()), true)
 		waitExpr := convertExpression(state, true, scopes, attrPath, waitAttr.Expr)
-		skipTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenBang, "!")}
+		skipTokens := make(hclwrite.Tokens, 0, 1+len(waitExpr))
+		skipTokens = append(skipTokens, makeToken(hclsyntax.TokenBang, "!"))
 		skipTokens = append(skipTokens, waitExpr...)
 		result = append(result, bodyAttrTokens{
 			Line:   waitAttr.Range().Start.Line,
