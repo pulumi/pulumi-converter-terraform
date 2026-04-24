@@ -1614,6 +1614,21 @@ func rewriteTraversal(
 				})
 				return nil
 			}
+		} else if root.Name == "self" && maybeFirstAttr != nil {
+			if scopes.self != nil {
+				newTraversal = append(newTraversal, scopes.self...)
+				newTraversal = append(newTraversal, rewriteRelativeTraversal(scopes, scopes.selfPath, traversal[1:])...)
+			} else {
+				state.appendDiagnostic(&hcl.Diagnostic{
+					Severity: hcl.DiagError,
+					Summary:  `Reference to "self" outside of a provisioner block`,
+					Detail: `The "self" object can only be used inside "provisioner" and "connection" blocks, ` +
+						`and refers to the resource to which the provisioner is attached.`,
+					Context: &subjectRange,
+					Subject: &contextRange,
+				})
+				return nil
+			}
 		} else if root.Name == "each" && maybeFirstAttr != nil {
 			// This _might_ be the special "each" value or it might just be a local, check the latter first
 			localName := scopes.lookup("each")
@@ -2527,7 +2542,7 @@ func convertProvisioner(
 	state *convertState,
 	info ProviderInfoSource, scopes *scopes,
 	provisioner *configs.Provisioner,
-	resourceName string, provisionerIndex int,
+	resourceName string, resourcePath string, provisionerIndex int,
 	forEach hcl.Expression,
 	target *hclwrite.Body,
 ) {
@@ -2577,6 +2592,10 @@ func convertProvisioner(
 	}
 
 	optionsBlockBody.SetAttributeRaw("dependsOn", dependsOn)
+
+	scopes.self = hcl.Traversal{hcl.TraverseRoot{Name: resourceName}}
+	scopes.selfPath = resourcePath
+	defer func() { scopes.self, scopes.selfPath = nil, "" }()
 
 	attributes, _ := provisioner.Config.JustAttributes()
 	var command, interpreter, environment hclwrite.Tokens
@@ -2752,7 +2771,8 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 
 	// Add "command:Command" resources to handle provisioners
 	for idx, provisioner := range managedResource.Managed.Provisioners {
-		convertProvisioner(state, info, scopes, provisioner, pulumiName, idx, managedResource.ForEach, target)
+		convertProvisioner(state, info, scopes, provisioner,
+			pulumiName, path, idx, managedResource.ForEach, target)
 	}
 }
 

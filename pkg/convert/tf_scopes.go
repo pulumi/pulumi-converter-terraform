@@ -65,6 +65,13 @@ type scopes struct {
 	eachKey    hcl.Traversal
 	eachValue  hcl.Traversal
 
+	// Set non-nil inside a provisioner block to the Pulumi-renamed traversal
+	// of the resource the provisioner is attached to, so that "self.X" resolves.
+	// selfPath is the fully qualified TF path of that resource (e.g. "aws_instance.web"),
+	// used for schema-aware attribute renaming on traversals rooted at "self".
+	self     hcl.Traversal
+	selfPath string
+
 	scope *lang.Scope
 
 	// loader is used to load Pulumi provider schemas, enabling checks like

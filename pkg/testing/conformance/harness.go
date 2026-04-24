@@ -107,6 +107,7 @@ func AssertConversion(t *testing.T, tc TestCase) {
 	go func() {
 		defer wg.Done()
 		driver := tfexec.NewDriver(t, tfProviders)
+		driver.Env = map[string]string{"PULUMI_CONVERTER_CONFORMANCE_KIND": "tf"}
 		tfOutputs = driver.Apply(t, tc.Input, tc.Config)
 	}()
 
@@ -122,7 +123,8 @@ func AssertConversion(t *testing.T, tc TestCase) {
 		if !assert.NoError(t, err) {
 			return
 		}
-		pulumiResult = pulexec.Run(t, bridgedProviders, pclFiles, tc.Config)
+		pulumiResult = pulexec.Run(t, bridgedProviders, pclFiles, tc.Config,
+			map[string]string{"PULUMI_CONVERTER_CONFORMANCE_KIND": "pulumi"})
 	}()
 
 	wg.Wait()

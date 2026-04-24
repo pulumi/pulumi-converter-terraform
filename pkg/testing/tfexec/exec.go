@@ -32,6 +32,9 @@ func (d *Driver) execTf(t *testing.T, args ...string) ([]byte, error) {
 	if reattach := d.formatReattachEnvVar(); reattach != "" {
 		cmd.Env = append(cmd.Env, reattach)
 	}
+	for k, v := range d.Env {
+		cmd.Env = append(cmd.Env, k+"="+v)
+	}
 	t.Logf("%s", cmd.String())
 	err := cmd.Run()
 	if err != nil {
