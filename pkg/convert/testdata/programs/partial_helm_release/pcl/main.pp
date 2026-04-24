@@ -29,9 +29,10 @@ resource "example" "kubernetes:helm.sh/v3:Release" {
   resetValues = true
   reuseValues = true
   values = {
-    "set_1"           = "value1"
-    "set_list_1"      = "value1"
-    "set_sensitive_1" = secret("value1")
+    "fullnameOverride" = "foo"
+    "set_1"            = "value1"
+    "set_list_1"       = "value1"
+    "set_sensitive_1"  = secret("value1")
   }
   skipCrds    = true
   timeout     = 60

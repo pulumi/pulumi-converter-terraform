@@ -2137,6 +2137,86 @@ var helmReleaseRepositoryFields = map[string]string{
 	"repository_password":  "password",
 }
 
+// mergeStaticHelmValues parses each element of a TF `values = [...]` list as a
+// YAML document and merges them left-to-right (later overrides earlier, matching
+// Helm semantics). Returns (merged, true) only when every list element is a
+// static string that yaml-unmarshals and every leaf value maps to a cty type we
+// can represent in PCL (strings, numbers, bools, maps, lists).
+func mergeStaticHelmValues(tupleExpr *hclsyntax.TupleConsExpr) (map[string]cty.Value, bool) {
+	merged := map[string]interface{}{}
+	for _, item := range tupleExpr.Exprs {
+		str, _ := matchStaticString(item)
+		if str == nil {
+			return nil, false
+		}
+		var parsed map[string]interface{}
+		if err := yaml.Unmarshal([]byte(*str), &parsed); err != nil {
+			return nil, false
+		}
+		for k, v := range parsed {
+			merged[k] = v
+		}
+	}
+	out := make(map[string]cty.Value, len(merged))
+	for k, v := range merged {
+		cv, ok := yamlValueToCty(v)
+		if !ok {
+			return nil, false
+		}
+		out[k] = cv
+	}
+	return out, true
+}
+
+// yamlValueToCty recursively converts a value produced by yaml.Unmarshal into
+// interface{} into the equivalent cty.Value. Returns (_, false) if it encounters
+// a type hclwrite can't emit.
+func yamlValueToCty(v interface{}) (cty.Value, bool) {
+	switch val := v.(type) {
+	case nil:
+		return cty.NullVal(cty.DynamicPseudoType), true
+	case string:
+		return cty.StringVal(val), true
+	case bool:
+		return cty.BoolVal(val), true
+	case int:
+		return cty.NumberIntVal(int64(val)), true
+	case int64:
+		return cty.NumberIntVal(val), true
+	case uint64:
+		return cty.NumberUIntVal(val), true
+	case float64:
+		return cty.NumberFloatVal(val), true
+	case []interface{}:
+		if len(val) == 0 {
+			return cty.EmptyTupleVal, true
+		}
+		items := make([]cty.Value, 0, len(val))
+		for _, item := range val {
+			cv, ok := yamlValueToCty(item)
+			if !ok {
+				return cty.NilVal, false
+			}
+			items = append(items, cv)
+		}
+		return cty.TupleVal(items), true
+	case map[string]interface{}:
+		if len(val) == 0 {
+			return cty.EmptyObjectVal, true
+		}
+		attrs := make(map[string]cty.Value, len(val))
+		for k, mv := range val {
+			cv, ok := yamlValueToCty(mv)
+			if !ok {
+				return cty.NilVal, false
+			}
+			attrs[k] = cv
+		}
+		return cty.ObjectVal(attrs), true
+	}
+	return cty.NilVal, false
+}
+
 // staticPostrenderCommand flattens a TF `postrender { binary_path, args }` block
 // into the single Pulumi postrender command string. Returns (cmd, true) only when
 // binary_path and every args element are static strings.
@@ -2190,6 +2270,10 @@ func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualif
 	firstValueLine := 0
 	postrenderCmd := ""
 	postrenderLine := 0
+	// Names set via set/set_list/set_sensitive blocks (when the name is a static
+	// string). Used to dedupe against YAML keys from the values = [...] list —
+	// set-block overrides win per Helm semantics.
+	setBlockStaticNames := make(map[string]bool)
 	filteredBlocks := make(hclsyntax.Blocks, 0, len(synbody.Blocks))
 	for _, block := range synbody.Blocks {
 		if block.Type == "postrender" {
@@ -2226,6 +2310,11 @@ func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualif
 		}
 		if firstValueLine == 0 {
 			firstValueLine = valueAttr.Range.Start.Line
+		}
+		if nameExpr, ok := nameAttr.Expr.(hclsyntax.Expression); ok {
+			if nameStr, _ := matchStaticString(nameExpr); nameStr != nil {
+				setBlockStaticNames[*nameStr] = true
+			}
 		}
 		valueAttrs = append(valueAttrs, hclwrite.ObjectAttrTokens{
 			Name:  convertExpression(state, true, scopes, blockPath, nameAttr.Expr),
@@ -2269,10 +2358,59 @@ func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualif
 		})
 	}
 
-	// If we've synthesized a map-form `values` from set blocks, drop the raw TF
-	// `values = [<<YAML...]` attribute — it collides on the same Pulumi field and
-	// the YAML list form doesn't map cleanly.
-	if len(valueAttrs) > 0 {
+	// Merge the TF `values = [<<YAML...]` list into the Pulumi values map. TF's
+	// values is a list of YAML documents that Helm parses and deep-merges at
+	// apply time; Pulumi's values is an already-parsed map. We parse each YAML
+	// document statically, merge them (later overrides earlier), and emit the
+	// keys into valueAttrs (skipping any keys a set-block already sets — set
+	// blocks win per Helm). YAML entries are prepended so the set-block
+	// overrides read below them in the output, matching the TF layering.
+	if yamlAttr, hasYaml := filteredAttrs["values"]; hasYaml {
+		yamlRange := yamlAttr.SrcRange
+		tupleExpr, isTuple := yamlAttr.Expr.(*hclsyntax.TupleConsExpr)
+		switch {
+		case !isTuple:
+			state.appendDiagnostic(&hcl.Diagnostic{
+				Severity: hcl.DiagWarning,
+				Subject:  &yamlRange,
+				Summary:  "values list not a static tuple",
+				Detail: "Expected a list literal for helm_release values; the " +
+					"attribute was dropped. Reconstruct it manually as a Pulumi " +
+					"values map on the converted resource.",
+			})
+		default:
+			merged, ok := mergeStaticHelmValues(tupleExpr)
+			if !ok {
+				state.appendDiagnostic(&hcl.Diagnostic{
+					Severity: hcl.DiagWarning,
+					Subject:  &yamlRange,
+					Summary:  "values YAML not statically parseable",
+					Detail: "Each element of helm_release values = [...] must be " +
+						"a static YAML document whose leaves are strings, numbers, " +
+						"booleans, maps, or lists. The attribute was dropped.",
+				})
+			} else {
+				keys := make([]string, 0, len(merged))
+				for k := range merged {
+					if setBlockStaticNames[k] {
+						continue
+					}
+					keys = append(keys, k)
+				}
+				sort.Strings(keys)
+				yamlEntries := make([]hclwrite.ObjectAttrTokens, 0, len(keys))
+				for _, k := range keys {
+					yamlEntries = append(yamlEntries, hclwrite.ObjectAttrTokens{
+						Name:  hclwrite.TokensForValue(cty.StringVal(k)),
+						Value: hclwrite.TokensForValue(merged[k]),
+					})
+				}
+				valueAttrs = append(yamlEntries, valueAttrs...)
+				if firstValueLine == 0 {
+					firstValueLine = yamlRange.Start.Line
+				}
+			}
+		}
 		delete(filteredAttrs, "values")
 	}
 
