@@ -40,6 +40,6 @@ resource "example" "kubernetes:helm.sh/v3:Release" {
   skipCrds    = true
   timeout     = 60
   version     = "10.7.16"
-  wait        = true
+  skipAwait   = !true
   waitForJobs = true
 }

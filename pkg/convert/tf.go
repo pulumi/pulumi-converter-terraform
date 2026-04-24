@@ -2179,10 +2179,16 @@ func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualif
 		})
 	}
 
-	// Collect repository_* attributes into a synthesized `repositoryOpts` object.
+	// Collect repository_* attributes into a synthesized `repositoryOpts` object,
+	// and pull `wait` aside so we can emit it as the inverse Pulumi `skipAwait`.
 	repoAttrs := make([]bodyAttrTokens, 0)
 	filteredAttrs := make(hclsyntax.Attributes, len(synbody.Attributes))
+	var waitAttr *hclsyntax.Attribute
 	for name, attr := range synbody.Attributes {
+		if name == "wait" {
+			waitAttr = attr
+			continue
+		}
 		nested, isRepo := helmReleaseRepositoryFields[name]
 		if !isRepo {
 			filteredAttrs[name] = attr
@@ -2229,6 +2235,20 @@ func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualif
 			Name:   "values",
 			Trivia: make(hclwrite.Tokens, 0),
 			Value:  hclwrite.TokensForObject(valueAttrs),
+		})
+	}
+	// TF `wait` (default true) is the inverse of Pulumi `skipAwait` (default false).
+	if waitAttr != nil {
+		attrPath := appendPath(fullyQualifiedPath, "wait")
+		leading, _ := getTrivia(state.sources, getAttributeRange(state.sources, waitAttr.Expr.Range()), true)
+		waitExpr := convertExpression(state, true, scopes, attrPath, waitAttr.Expr)
+		skipTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenBang, "!")}
+		skipTokens = append(skipTokens, waitExpr...)
+		result = append(result, bodyAttrTokens{
+			Line:   waitAttr.Range().Start.Line,
+			Name:   "skipAwait",
+			Trivia: leading,
+			Value:  skipTokens,
 		})
 	}
 	sort.Sort(result)
