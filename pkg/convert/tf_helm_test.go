@@ -196,6 +196,70 @@ EOT
 		assert.Empty(t, got)
 	})
 
+	t.Run("primitive yaml types", func(t *testing.T) {
+		t.Parallel()
+		// Exercises the non-string branches of yamlValueToCty that real Helm
+		// values typically use: booleans, nulls, floats, and the empty-container
+		// fast paths.
+		expr := parseExprForTest(t, `[<<EOT
+enabled: true
+disabled: false
+optional:
+ratio: 0.5
+extras: []
+metadata: {}
+EOT
+]`)
+		tuple := expr.(*hclsyntax.TupleConsExpr)
+		got, ok := mergeStaticHelmValues(tuple)
+		require.True(t, ok)
+		assert.True(t, got["enabled"].RawEquals(cty.True))
+		assert.True(t, got["disabled"].RawEquals(cty.False))
+		assert.True(t, got["optional"].RawEquals(cty.NullVal(cty.DynamicPseudoType)))
+		assert.True(t, got["ratio"].RawEquals(cty.NumberFloatVal(0.5)))
+		assert.True(t, got["extras"].RawEquals(cty.EmptyTupleVal))
+		assert.True(t, got["metadata"].RawEquals(cty.EmptyObjectVal))
+	})
+
+	t.Run("yaml type unsupported by cty rejects", func(t *testing.T) {
+		t.Parallel()
+		// yaml.v3 unmarshals !!timestamp tagged values into time.Time, which
+		// yamlValueToCty cannot represent. The whole list should be rejected.
+		expr := parseExprForTest(t, `[<<EOT
+created: 2026-04-24T10:00:00Z
+EOT
+]`)
+		tuple := expr.(*hclsyntax.TupleConsExpr)
+		_, ok := mergeStaticHelmValues(tuple)
+		assert.False(t, ok, "time.Time leaves should fall through to the unsupported-type path")
+	})
+}
+
+// TestYamlValueToCtyUnsupported covers the default branch of yamlValueToCty
+// for Go types that yaml.v3 never produces (struct{}, func()) but that the
+// function defensively handles. Reachable types are covered end-to-end via
+// TestMergeStaticHelmValues.
+func TestYamlValueToCtyUnsupported(t *testing.T) {
+	t.Parallel()
+	cases := []struct {
+		name  string
+		input interface{}
+	}{
+		{"struct", struct{ X int }{X: 1}},
+		{"func", func() {}},
+		{"channel", make(chan int)},
+		{"list with unsupported element", []interface{}{struct{}{}}},
+		{"map with unsupported value", map[string]interface{}{"k": struct{}{}}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got, ok := yamlValueToCty(tc.input)
+			assert.False(t, ok, "unsupported type should return ok=false")
+			assert.Equal(t, cty.NilVal, got)
+		})
+	}
+
 	t.Run("dynamic element rejected", func(t *testing.T) {
 		t.Parallel()
 		expr := parseExprForTest(t, `[var.yaml]`)
