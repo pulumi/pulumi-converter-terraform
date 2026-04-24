@@ -15,13 +15,10 @@ resource "example" "kubernetes:helm.sh/v3:Release" {
   lint                     = true
   maxHistory               = 5
   passCredentials          = true
-  postrender = [{
-    binaryPath = "echo"
-    args       = ["foo", "bar"]
-  }]
-  recreatePods        = true
-  renderSubchartNotes = true
-  replace             = true
+  postrender               = "echo foo bar"
+  recreatePods             = true
+  renderSubchartNotes      = true
+  replace                  = true
   repositoryOpts = {
     repo     = "https://charts.bitnami.com/bitnami"
     caFile   = "./ca.pem"

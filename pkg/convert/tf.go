@@ -2137,6 +2137,40 @@ var helmReleaseRepositoryFields = map[string]string{
 	"repository_password":  "password",
 }
 
+// staticPostrenderCommand flattens a TF `postrender { binary_path, args }` block
+// into the single Pulumi postrender command string. Returns (cmd, true) only when
+// binary_path and every args element are static strings.
+func staticPostrenderCommand(block *hclsyntax.Block) (string, bool) {
+	inner := bodyContent(block.Body)
+	binPathAttr, hasBin := inner.Attributes["binary_path"]
+	if !hasBin {
+		return "", false
+	}
+	binExpr, ok := binPathAttr.Expr.(hclsyntax.Expression)
+	if !ok {
+		return "", false
+	}
+	binPath, _ := matchStaticString(binExpr)
+	if binPath == nil {
+		return "", false
+	}
+	parts := []string{*binPath}
+	if argsAttr, hasArgs := inner.Attributes["args"]; hasArgs {
+		tuple, ok := argsAttr.Expr.(*hclsyntax.TupleConsExpr)
+		if !ok {
+			return "", false
+		}
+		for _, item := range tuple.Exprs {
+			s, _ := matchStaticString(item)
+			if s == nil {
+				return "", false
+			}
+			parts = append(parts, *s)
+		}
+	}
+	return strings.Join(parts, " "), true
+}
+
 // convertHelmReleaseResource handles the shape transforms that GetMapping cannot
 // express for helm_release → kubernetes:helm.sh/v3:Release: collapsing
 // set/set_list/set_sensitive blocks into a single `values` map (wrapping
@@ -2150,11 +2184,31 @@ func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualif
 	synbody, ok := body.(*hclsyntax.Body)
 	contract.Assertf(ok, "%T was not a hclsyntax.Body", body)
 
-	// Collect set* blocks into a synthesized `values` object.
+	// Collect set* blocks into a synthesized `values` object and postrender blocks
+	// into a synthesized `postrender` string command.
 	valueAttrs := make([]hclwrite.ObjectAttrTokens, 0)
 	firstValueLine := 0
+	postrenderCmd := ""
+	postrenderLine := 0
 	filteredBlocks := make(hclsyntax.Blocks, 0, len(synbody.Blocks))
 	for _, block := range synbody.Blocks {
+		if block.Type == "postrender" {
+			cmd, ok := staticPostrenderCommand(block)
+			if !ok {
+				state.appendDiagnostic(&hcl.Diagnostic{
+					Severity: hcl.DiagWarning,
+					Subject:  block.DefRange().Ptr(),
+					Summary:  "postrender block not translated",
+					Detail: "kubernetes.helm.v3.Release.postrender is a single command string. " +
+						"The Terraform postrender block was dropped because binary_path or args " +
+						"is not a static string. Set postrender manually on the converted resource.",
+				})
+				continue
+			}
+			postrenderCmd = cmd
+			postrenderLine = block.DefRange().Start.Line
+			continue
+		}
 		if !helmReleaseSetBlockTypes[block.Type] {
 			filteredBlocks = append(filteredBlocks, block)
 			continue
@@ -2235,6 +2289,14 @@ func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualif
 			Name:   "values",
 			Trivia: make(hclwrite.Tokens, 0),
 			Value:  hclwrite.TokensForObject(valueAttrs),
+		})
+	}
+	if postrenderCmd != "" {
+		result = append(result, bodyAttrTokens{
+			Line:   postrenderLine,
+			Name:   "postrender",
+			Trivia: make(hclwrite.Tokens, 0),
+			Value:  hclwrite.TokensForValue(cty.StringVal(postrenderCmd)),
 		})
 	}
 	// TF `wait` (default true) is the inverse of Pulumi `skipAwait` (default false).
