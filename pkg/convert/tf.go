@@ -3015,7 +3015,10 @@ func convertManagedResources(state *convertState,
 	pulumiName := root.Name
 
 	resourceToken := impliedToken(managedResource.Type)
-	if root.ResourceInfo != nil {
+	// For resources with a custom mapping (e.g. helm_release → kubernetes:helm.sh/v3:Release)
+	// the impliedToken value is authoritative: provider info from a parameterized
+	// terraform-provider fallback would otherwise override it with the wrong token.
+	if root.ResourceInfo != nil && !isCustomResourceMapping(managedResource.Type) {
 		resourceToken = root.ResourceInfo.Tok.String()
 	}
 
@@ -3685,7 +3688,9 @@ func translateModuleSourceCode(
 			}
 
 			resourceToken := impliedToken(managedResource.Type)
-			if root.ResourceInfo != nil {
+			// See the matching guard in convertManagedResource: for custom-mapped resources
+			// impliedToken is authoritative, so don't let a parameterized provider info override it.
+			if root.ResourceInfo != nil && !isCustomResourceMapping(managedResource.Type) {
 				resourceToken = root.ResourceInfo.Tok.String()
 			}
 			tokenParts := strings.Split(resourceToken, ":")
