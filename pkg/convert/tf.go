@@ -2138,10 +2138,11 @@ var helmReleaseRepositoryFields = map[string]string{
 }
 
 // mergeStaticHelmValues parses each element of a TF `values = [...]` list as a
-// YAML document and merges them left-to-right (later overrides earlier, matching
-// Helm semantics). Returns (merged, true) only when every list element is a
-// static string that yaml-unmarshals and every leaf value maps to a cty type we
-// can represent in PCL (strings, numbers, bools, maps, lists).
+// YAML document and deep-merges them left-to-right (later wins, matching Helm's
+// values merge semantics: map+map recurses, everything else replaces). Returns
+// (merged, true) only when every list element is a static string that
+// yaml-unmarshals and every leaf value maps to a cty type we can represent in
+// PCL (strings, numbers, bools, maps, lists).
 func mergeStaticHelmValues(tupleExpr *hclsyntax.TupleConsExpr) (map[string]cty.Value, bool) {
 	merged := map[string]interface{}{}
 	for _, item := range tupleExpr.Exprs {
@@ -2153,9 +2154,7 @@ func mergeStaticHelmValues(tupleExpr *hclsyntax.TupleConsExpr) (map[string]cty.V
 		if err := yaml.Unmarshal([]byte(*str), &parsed); err != nil {
 			return nil, false
 		}
-		for k, v := range parsed {
-			merged[k] = v
-		}
+		deepMergeHelmValues(merged, parsed)
 	}
 	out := make(map[string]cty.Value, len(merged))
 	for k, v := range merged {
@@ -2166,6 +2165,24 @@ func mergeStaticHelmValues(tupleExpr *hclsyntax.TupleConsExpr) (map[string]cty.V
 		out[k] = cv
 	}
 	return out, true
+}
+
+// deepMergeHelmValues merges src into dst, matching Helm's values-merge rules:
+// when both sides hold a map at the same key, recurse into it; otherwise the src
+// value replaces dst's (including lists — Helm does not concatenate them, and
+// type mismatches always take the later value).
+func deepMergeHelmValues(dst, src map[string]interface{}) {
+	for k, srcV := range src {
+		if dstV, seen := dst[k]; seen {
+			dstMap, dstIsMap := dstV.(map[string]interface{})
+			srcMap, srcIsMap := srcV.(map[string]interface{})
+			if dstIsMap && srcIsMap {
+				deepMergeHelmValues(dstMap, srcMap)
+				continue
+			}
+		}
+		dst[k] = srcV
+	}
 }
 
 // yamlValueToCty recursively converts a value produced by yaml.Unmarshal into

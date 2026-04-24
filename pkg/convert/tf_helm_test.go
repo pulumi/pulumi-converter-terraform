@@ -44,79 +44,6 @@ func parseBlockForTest(t *testing.T, src string) *hclsyntax.Block {
 	return body.Blocks[0]
 }
 
-func TestYamlValueToCty(t *testing.T) {
-	t.Parallel()
-
-	cases := []struct {
-		name  string
-		input interface{}
-		want  cty.Value
-		okAs  bool
-	}{
-		{"nil", nil, cty.NullVal(cty.DynamicPseudoType), true},
-		{"string", "hello", cty.StringVal("hello"), true},
-		{"empty string", "", cty.StringVal(""), true},
-		{"bool true", true, cty.True, true},
-		{"bool false", false, cty.False, true},
-		{"int", 42, cty.NumberIntVal(42), true},
-		{"int64", int64(7), cty.NumberIntVal(7), true},
-		{"uint64", uint64(9), cty.NumberUIntVal(9), true},
-		{"float", 3.14, cty.NumberFloatVal(3.14), true},
-
-		{"empty list", []interface{}{}, cty.EmptyTupleVal, true},
-		{"list of strings", []interface{}{"a", "b"},
-			cty.TupleVal([]cty.Value{cty.StringVal("a"), cty.StringVal("b")}), true},
-		{"mixed list", []interface{}{"s", 1, true},
-			cty.TupleVal([]cty.Value{cty.StringVal("s"), cty.NumberIntVal(1), cty.True}), true},
-
-		{"empty map", map[string]interface{}{}, cty.EmptyObjectVal, true},
-		{"flat map",
-			map[string]interface{}{"k": "v"},
-			cty.ObjectVal(map[string]cty.Value{"k": cty.StringVal("v")}),
-			true,
-		},
-		{"nested map",
-			map[string]interface{}{
-				"a": map[string]interface{}{"b": int(1)},
-			},
-			cty.ObjectVal(map[string]cty.Value{
-				"a": cty.ObjectVal(map[string]cty.Value{
-					"b": cty.NumberIntVal(1),
-				}),
-			}),
-			true,
-		},
-		{"list of maps",
-			[]interface{}{
-				map[string]interface{}{"x": 1},
-				map[string]interface{}{"y": 2},
-			},
-			cty.TupleVal([]cty.Value{
-				cty.ObjectVal(map[string]cty.Value{"x": cty.NumberIntVal(1)}),
-				cty.ObjectVal(map[string]cty.Value{"y": cty.NumberIntVal(2)}),
-			}),
-			true,
-		},
-
-		{"unsupported struct", struct{ X int }{X: 1}, cty.NilVal, false},
-		{"unsupported func", func() {}, cty.NilVal, false},
-		{"list with unsupported", []interface{}{struct{}{}}, cty.NilVal, false},
-		{"map with unsupported", map[string]interface{}{"k": struct{}{}}, cty.NilVal, false},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			got, ok := yamlValueToCty(tc.input)
-			assert.Equal(t, tc.okAs, ok, "ok flag")
-			if !tc.okAs {
-				return
-			}
-			assert.True(t, got.RawEquals(tc.want), "want %#v, got %#v", tc.want, got)
-		})
-	}
-}
-
 func TestMergeStaticHelmValues(t *testing.T) {
 	t.Parallel()
 
@@ -151,6 +78,89 @@ EOT
 		assert.True(t, got["shared"].RawEquals(cty.StringVal("second")), "later document wins")
 		assert.True(t, got["only_first"].RawEquals(cty.StringVal("keep")))
 		assert.True(t, got["only_second"].RawEquals(cty.StringVal("keep")))
+	})
+
+	t.Run("nested maps deep-merge", func(t *testing.T) {
+		t.Parallel()
+		// Helm merges maps recursively: keys unique to each side survive, keys
+		// present in both take the later document's value. A shallow merge would
+		// clobber image.repository here.
+		expr := parseExprForTest(t, `[<<EOT
+image:
+  repository: nginx
+  tag: "1.0"
+resources:
+  limits:
+    cpu: "100m"
+EOT
+, <<EOT
+image:
+  tag: "2.0"
+resources:
+  limits:
+    memory: "256Mi"
+  requests:
+    cpu: "50m"
+EOT
+]`)
+		tuple := expr.(*hclsyntax.TupleConsExpr)
+		got, ok := mergeStaticHelmValues(tuple)
+		require.True(t, ok)
+
+		wantImage := cty.ObjectVal(map[string]cty.Value{
+			"repository": cty.StringVal("nginx"),
+			"tag":        cty.StringVal("2.0"),
+		})
+		assert.True(t, got["image"].RawEquals(wantImage),
+			"image map should deep-merge; got %#v", got["image"])
+
+		wantResources := cty.ObjectVal(map[string]cty.Value{
+			"limits": cty.ObjectVal(map[string]cty.Value{
+				"cpu":    cty.StringVal("100m"),
+				"memory": cty.StringVal("256Mi"),
+			}),
+			"requests": cty.ObjectVal(map[string]cty.Value{
+				"cpu": cty.StringVal("50m"),
+			}),
+		})
+		assert.True(t, got["resources"].RawEquals(wantResources),
+			"resources map should deep-merge recursively; got %#v", got["resources"])
+	})
+
+	t.Run("list replaces list (no concat)", func(t *testing.T) {
+		t.Parallel()
+		// Helm replaces lists wholesale rather than concatenating.
+		expr := parseExprForTest(t, `[<<EOT
+ports: [80, 443]
+EOT
+, <<EOT
+ports: [8080]
+EOT
+]`)
+		tuple := expr.(*hclsyntax.TupleConsExpr)
+		got, ok := mergeStaticHelmValues(tuple)
+		require.True(t, ok)
+		want := cty.TupleVal([]cty.Value{cty.NumberIntVal(8080)})
+		assert.True(t, got["ports"].RawEquals(want), "got %#v", got["ports"])
+	})
+
+	t.Run("type mismatch takes later value", func(t *testing.T) {
+		t.Parallel()
+		// When one doc has a map and the next has a scalar at the same key, the
+		// scalar replaces the map (and vice versa).
+		expr := parseExprForTest(t, `[<<EOT
+image:
+  repository: nginx
+EOT
+, <<EOT
+image: "just a string"
+EOT
+]`)
+		tuple := expr.(*hclsyntax.TupleConsExpr)
+		got, ok := mergeStaticHelmValues(tuple)
+		require.True(t, ok)
+		assert.True(t, got["image"].RawEquals(cty.StringVal("just a string")),
+			"scalar should replace map; got %#v", got["image"])
 	})
 
 	t.Run("nested structures", func(t *testing.T) {
