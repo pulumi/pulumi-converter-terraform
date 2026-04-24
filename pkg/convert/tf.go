@@ -2243,6 +2243,17 @@ func convertHelmReleaseResource(state *convertState, scopes *scopes, fullyQualif
 			waitAttr = attr
 			continue
 		}
+		if name == "pass_credentials" {
+			nameRange := attr.NameRange
+			state.appendDiagnostic(&hcl.Diagnostic{
+				Severity: hcl.DiagWarning,
+				Subject:  &nameRange,
+				Summary:  "pass_credentials not supported",
+				Detail: "kubernetes.helm.v3.Release has no pass_credentials equivalent; " +
+					"the Terraform attribute was dropped.",
+			})
+			continue
+		}
 		nested, isRepo := helmReleaseRepositoryFields[name]
 		if !isRepo {
 			filteredAttrs[name] = attr

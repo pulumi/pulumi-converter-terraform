@@ -1,3 +1,3 @@
 [
-  "warning:main.pp:16,3-18:unsupported attribute 'passCredentials':unsupported attribute 'passCredentials'"
+  "warning:partial_helm_release/main.tf:17,3-19:pass_credentials not supported:kubernetes.helm.v3.Release has no pass_credentials equivalent; the Terraform attribute was dropped."
 ]

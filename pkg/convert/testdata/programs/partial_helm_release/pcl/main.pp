@@ -14,7 +14,6 @@ resource "example" "kubernetes:helm.sh/v3:Release" {
   keyring                  = "./keyring.gpg"
   lint                     = true
   maxHistory               = 5
-  passCredentials          = true
   postrender               = "echo foo bar"
   recreatePods             = true
   renderSubchartNotes      = true
