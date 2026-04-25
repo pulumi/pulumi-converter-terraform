@@ -10,6 +10,9 @@
 - Convert `lifecycle.ignore_changes` to `ignoreChanges` resource option in generated Pulumi code.
   [#60](https://github.com/pulumi/pulumi-converter-terraform/issues/60)
 
+- Convert the `remote-exec` provisioner to a `command:remote:Command` resource.
+  [#430](https://github.com/pulumi/pulumi-converter-terraform/issues/430)
+
 ### Bug Fixes
 
 - Fix dynamic blocks with list-typed `for_each` incorrectly wrapping the collection in `entries()`.

@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -104,14 +105,24 @@ func AssertConversion(t *testing.T, tc TestCase) {
 	wg.Add(2)
 
 	// Path A: run HCL directly via Terraform.
+	// TF_VAR_conformance_kind exposes "tf" to the HCL as `var.conformance_kind`.
+	// Tests that don't declare this variable are unaffected: Terraform silently
+	// ignores TF_VAR_* env vars with no matching variable declaration.
 	go func() {
 		defer wg.Done()
 		driver := tfexec.NewDriver(t, tfProviders)
-		driver.Env = map[string]string{"PULUMI_CONVERTER_CONFORMANCE_KIND": "tf"}
+		driver.Env = map[string]string{"TF_VAR_conformance_kind": "tf"}
 		tfOutputs = driver.Apply(t, tc.Input, tc.Config)
 	}()
 
 	// Path B: convert HCL → PCL, bridge the provider, run via Pulumi.
+	// Pulumi config always includes conformance_kind=pulumi so the PCL can bind
+	// `config conformanceKind string {}`. Unused config values on the stack are
+	// ignored by Pulumi, so tests that don't declare it are unaffected.
+	pulumiConfig := make(map[string]string, len(tc.Config)+1)
+	maps.Copy(pulumiConfig, tc.Config)
+	pulumiConfig["conformance_kind"] = "pulumi"
+
 	var pclFiles map[string]string
 	go func() {
 		defer wg.Done()
@@ -123,8 +134,7 @@ func AssertConversion(t *testing.T, tc TestCase) {
 		if !assert.NoError(t, err) {
 			return
 		}
-		pulumiResult = pulexec.Run(t, bridgedProviders, pclFiles, tc.Config,
-			map[string]string{"PULUMI_CONVERTER_CONFORMANCE_KIND": "pulumi"})
+		pulumiResult = pulexec.Run(t, bridgedProviders, pclFiles, pulumiConfig)
 	}()
 
 	wg.Wait()

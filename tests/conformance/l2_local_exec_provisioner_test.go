@@ -40,9 +40,9 @@ var installPulumiCommandPlugin = func(t *testing.T) {
 // TestL2LocalExecProvisioner verifies that a local-exec provisioner referencing
 // "self.X" on its parent resource is correctly converted and runs end to end.
 //
-// Each path writes to a filename derived from $PULUMI_CONVERTER_CONFORMANCE_KIND
-// (set to "tf" and "pulumi" by the harness) so the TF and Pulumi runs do not race
-// on a shared output file.
+// Each path writes to a filename derived from var.conformance_kind (set to "tf"
+// and "pulumi" by the harness) so the TF and Pulumi runs do not race on a
+// shared output file.
 func TestL2LocalExecProvisioner(t *testing.T) {
 	t.Parallel()
 
@@ -56,6 +56,10 @@ func TestL2LocalExecProvisioner(t *testing.T) {
 		},
 		Config: map[string]string{"output_path": outDir},
 		Input: map[string]string{"main.tf": `
+variable "conformance_kind" {
+  type = string
+}
+
 variable "output_path" {
   type = string
 }
@@ -64,7 +68,7 @@ resource "test_resource" "example" {
   value = "hello"
 
   provisioner "local-exec" {
-    command = "printf %s \"${self.computed_value}\" > \"${var.output_path}/$PULUMI_CONVERTER_CONFORMANCE_KIND.txt\""
+    command = "printf %s \"${self.computed_value}\" > \"${var.output_path}/${var.conformance_kind}.txt\""
   }
 }
 

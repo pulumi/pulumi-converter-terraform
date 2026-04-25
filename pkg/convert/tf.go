@@ -2540,14 +2540,19 @@ func convertDataResource(state *convertState,
 
 func convertProvisioner(
 	state *convertState,
-	info ProviderInfoSource, scopes *scopes,
+	scopes *scopes,
 	provisioner *configs.Provisioner,
 	resourceName string, resourcePath string, provisionerIndex int,
 	forEach hcl.Expression,
 	target *hclwrite.Body,
 ) {
-	if provisioner.Type != "local-exec" {
-		// We don't support anything other than local-exec for now
+	var resourceToken string
+	switch provisioner.Type {
+	case "local-exec":
+		resourceToken = "command:local:Command"
+	case "remote-exec":
+		resourceToken = "command:remote:Command"
+	default:
 		target.AppendUnstructuredTokens(hclwrite.Tokens{
 			&hclwrite.Token{
 				Type:  hclsyntax.TokenComment,
@@ -2558,9 +2563,7 @@ func convertProvisioner(
 	}
 
 	provisionerName := fmt.Sprintf("%sProvisioner%d", resourceName, provisionerIndex)
-
-	labels := []string{provisionerName, "command:local:Command"}
-	block := hclwrite.NewBlock("resource", labels)
+	block := hclwrite.NewBlock("resource", []string{provisionerName, resourceToken})
 	blockBody := block.Body()
 
 	optionsBlock := blockBody.AppendNewBlock("options", nil)
@@ -2597,22 +2600,34 @@ func convertProvisioner(
 	scopes.selfPath = resourcePath
 	defer func() { scopes.self, scopes.selfPath = nil, "" }()
 
+	switch provisioner.Type {
+	case "local-exec":
+		fillLocalExecBody(state, scopes, provisioner, blockBody)
+	case "remote-exec":
+		fillRemoteExecBody(state, scopes, provisioner, blockBody)
+	}
+
+	target.AppendBlock(block)
+}
+
+func fillLocalExecBody(
+	state *convertState, scopes *scopes,
+	provisioner *configs.Provisioner, blockBody *hclwrite.Body,
+) {
 	attributes, _ := provisioner.Config.JustAttributes()
 	var command, interpreter, environment hclwrite.Tokens
 	for _, attr := range attributes {
-		if attr.Name == "command" {
+		switch attr.Name {
+		case "command":
 			command = convertExpression(state, true, scopes, "", attr.Expr)
-		}
-		if attr.Name == "interpreter" {
+		case "interpreter":
 			interpreter = convertExpression(state, true, scopes, "", attr.Expr)
-		}
-		if attr.Name == "environment" {
+		case "environment":
 			environment = convertExpression(state, true, scopes, "", attr.Expr)
 		}
 	}
 
 	onDestroy := provisioner.When == configs.ProvisionerWhenDestroy
-
 	if onDestroy {
 		// We need to set create & update to a command that does nothing, and set destroy to the actual command
 		blockBody.SetAttributeValue("create", cty.StringVal("true"))
@@ -2625,12 +2640,82 @@ func convertProvisioner(
 	if len(interpreter) != 0 {
 		blockBody.SetAttributeRaw("interpreter", interpreter)
 	}
+	if len(environment) != 0 {
+		blockBody.SetAttributeRaw("environment", environment)
+	}
+}
+
+func fillRemoteExecBody(
+	state *convertState, scopes *scopes,
+	provisioner *configs.Provisioner, blockBody *hclwrite.Body,
+) {
+	if provisioner.Connection == nil {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "remote-exec provisioner is missing a connection block",
+			Detail: "The converter currently requires an inline connection { ... } block " +
+				"on remote-exec provisioners. Resource-level connection blocks are not yet supported.",
+			Subject: &provisioner.DeclRange,
+		})
+		return
+	}
+
+	connAttrs, _ := provisioner.Connection.Config.JustAttributes()
+	keys := make([]string, 0, len(connAttrs))
+	for k := range connAttrs {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	objAttrs := make([]hclwrite.ObjectAttrTokens, 0, len(keys))
+	for _, k := range keys {
+		objAttrs = append(objAttrs, hclwrite.ObjectAttrTokens{
+			Name:  hclwrite.TokensForIdentifier(CamelCaseName(k)),
+			Value: convertExpression(state, true, scopes, "", connAttrs[k].Expr),
+		})
+	}
+	blockBody.SetAttributeRaw("connection", hclwrite.TokensForObject(objAttrs))
+
+	attributes, _ := provisioner.Config.JustAttributes()
+	var command, environment hclwrite.Tokens
+	for _, attr := range attributes {
+		switch attr.Name {
+		case "inline":
+			// TF's inline accepts any list(string) expression (including dynamic
+			// ones). Wrap in join("\n", ...) so Pulumi assembles the single-string
+			// command at runtime regardless of whether the list is static.
+			listTokens := convertExpression(state, true, scopes, "", attr.Expr)
+			command = hclwrite.TokensForFunctionCall("join",
+				hclwrite.TokensForValue(cty.StringVal("\n")), listTokens)
+		case "script", "scripts":
+			state.appendDiagnostic(&hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  "remote-exec script/scripts is not yet supported by the converter",
+				Detail: "Only the 'inline' attribute is currently converted. Rewrite the provisioner " +
+					"to inline the script contents, or file a feature request.",
+				Subject: attr.Expr.Range().Ptr(),
+			})
+		case "environment":
+			environment = convertExpression(state, true, scopes, "", attr.Expr)
+		}
+	}
+
+	if len(command) == 0 {
+		return
+	}
+
+	onDestroy := provisioner.When == configs.ProvisionerWhenDestroy
+	if onDestroy {
+		blockBody.SetAttributeValue("create", cty.StringVal("true"))
+		blockBody.SetAttributeValue("update", cty.StringVal("true"))
+		blockBody.SetAttributeRaw("delete", command)
+	} else {
+		blockBody.SetAttributeRaw("create", command)
+	}
 
 	if len(environment) != 0 {
 		blockBody.SetAttributeRaw("environment", environment)
 	}
-
-	target.AppendBlock(block)
 }
 
 func convertManagedResources(state *convertState,
@@ -2771,7 +2856,7 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 
 	// Add "command:Command" resources to handle provisioners
 	for idx, provisioner := range managedResource.Managed.Provisioners {
-		convertProvisioner(state, info, scopes, provisioner,
+		convertProvisioner(state, scopes, provisioner,
 			pulumiName, path, idx, managedResource.ForEach, target)
 	}
 }
