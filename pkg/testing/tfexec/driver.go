@@ -44,6 +44,9 @@ type Provider struct {
 type Driver struct {
 	cwd             string
 	reattachConfigs map[string]*plugin.ReattachConfig
+	// Env is passed through to the terraform subprocess (and therefore to any
+	// provisioner shell commands) on top of os.Environ().
+	Env map[string]string
 }
 
 func init() {

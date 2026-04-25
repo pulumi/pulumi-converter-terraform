@@ -14,3 +14,6 @@
 
 - Fix dynamic blocks with list-typed `for_each` incorrectly wrapping the collection in `entries()`.
   [#414](https://github.com/pulumi/pulumi-converter-terraform/issues/414)
+
+- Fix `self.X` references inside `provisioner` blocks being converted to an undefined variable. They
+  now resolve to the Pulumi-renamed attribute on the parent resource.
