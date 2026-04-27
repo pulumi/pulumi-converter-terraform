@@ -2540,14 +2540,16 @@ func convertDataResource(state *convertState,
 
 func convertProvisioner(
 	state *convertState,
-	info ProviderInfoSource, scopes *scopes,
+	scopes *scopes,
 	provisioner *configs.Provisioner,
 	resourceName string, resourcePath string, provisionerIndex int,
 	forEach hcl.Expression,
 	target *hclwrite.Body,
 ) {
-	if provisioner.Type != "local-exec" {
-		// We don't support anything other than local-exec for now
+	switch provisioner.Type {
+	case "local-exec", "remote-exec":
+		// handled below
+	default:
 		target.AppendUnstructuredTokens(hclwrite.Tokens{
 			&hclwrite.Token{
 				Type:  hclsyntax.TokenComment,
@@ -2557,62 +2559,240 @@ func convertProvisioner(
 		return
 	}
 
+	scopes.self = hcl.Traversal{hcl.TraverseRoot{Name: resourceName}}
+	scopes.selfPath = resourcePath
+	defer func() { scopes.self, scopes.selfPath = nil, "" }()
+
 	provisionerName := fmt.Sprintf("%sProvisioner%d", resourceName, provisionerIndex)
 
-	labels := []string{provisionerName, "command:local:Command"}
-	block := hclwrite.NewBlock("resource", labels)
-	blockBody := block.Body()
+	// Default first dependency: the parent resource for the first provisioner,
+	// or the previous provisioner's last-emitted resource.
+	prevDep := resourceName
+	if provisionerIndex > 0 {
+		prevDep = fmt.Sprintf("%sProvisioner%d", resourceName, provisionerIndex-1)
+	}
 
-	optionsBlock := blockBody.AppendNewBlock("options", nil)
-	optionsBlockBody := optionsBlock.Body()
+	if provisioner.Type == "remote-exec" {
+		attrs, _ := provisioner.Config.JustAttributes()
+		if attrs["script"] != nil || attrs["scripts"] != nil {
+			emitRemoteExecWithCopy(state, scopes, provisioner,
+				provisionerName, prevDep, forEach, target)
+			return
+		}
+	}
+
+	resourceToken := "command:local:Command"
+	if provisioner.Type == "remote-exec" {
+		resourceToken = "command:remote:Command"
+	}
+
+	block := hclwrite.NewBlock("resource", []string{provisionerName, resourceToken})
+	blockBody := block.Body()
+	emitProvisionerOptions(state, scopes, blockBody, prevDep, forEach)
+
+	switch provisioner.Type {
+	case "local-exec":
+		fillLocalExecBody(state, scopes, provisioner, blockBody)
+	case "remote-exec":
+		fillRemoteExecBody(state, scopes, provisioner, blockBody)
+	}
+
+	target.AppendBlock(block)
+}
+
+// emitProvisionerOptions writes the standard `options { range, dependsOn }`
+// block onto a provisioner-generated resource. Sets scopes.eachKey/eachValue
+// when forEach is non-nil so subsequent expression conversions resolve
+// each.{key,value} to range.{key,value}.
+func emitProvisionerOptions(
+	state *convertState, scopes *scopes,
+	body *hclwrite.Body, dependsOnName string, forEach hcl.Expression,
+) {
+	optsBody := body.AppendNewBlock("options", nil).Body()
 
 	if forEach != nil {
 		forEachExpr := convertExpression(state, true, scopes, "", forEach)
 		scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
 		scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
-		optionsBlockBody.SetAttributeRaw("range", forEachExpr)
+		optsBody.SetAttributeRaw("range", forEachExpr)
 	}
 
-	// The first provisioner dependsOn the resource we're provisioning, each provisioner after that depends on
-	// the previous provisioner
 	var dependsOn hclwrite.Tokens
 	if forEach == nil {
 		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenOBrack, "["))
 	}
-
-	if provisionerIndex == 0 {
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenIdent, resourceName))
-	} else {
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenIdent,
-			fmt.Sprintf("%sProvisioner%d", resourceName, (provisionerIndex-1))))
-	}
-
+	dependsOn = append(dependsOn, makeToken(hclsyntax.TokenIdent, dependsOnName))
 	if forEach == nil {
 		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenCBrack, "]"))
 	}
+	optsBody.SetAttributeRaw("dependsOn", dependsOn)
+}
 
-	optionsBlockBody.SetAttributeRaw("dependsOn", dependsOn)
+// emitRemoteExecWithCopy handles a remote-exec provisioner that uses the
+// `script` or `scripts` attribute. It emits three pieces of PCL:
+//
+//  1. A top-level `<provisionerName>Connection = { ... }` local that hoists
+//     the connection block so it isn't repeated.
+//  2. A `command:remote:CopyToRemote` resource that uploads the script(s) to
+//     /tmp/<provisionerName> on the remote host.
+//  3. A `command:remote:Command` resource that executes the uploaded path(s).
+//
+// The dependency chain is: parent-resource → CopyToRemote → Command.
+func emitRemoteExecWithCopy(
+	state *convertState, scopes *scopes,
+	provisioner *configs.Provisioner,
+	provisionerName, prevDep string,
+	forEach hcl.Expression, target *hclwrite.Body,
+) {
+	if provisioner.Connection == nil {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "remote-exec provisioner is missing a connection block",
+			Detail: "The converter currently requires an inline connection { ... } block " +
+				"on remote-exec provisioners. Resource-level connection blocks are not yet supported.",
+			Subject: &provisioner.DeclRange,
+		})
+		return
+	}
 
-	scopes.self = hcl.Traversal{hcl.TraverseRoot{Name: resourceName}}
-	scopes.selfPath = resourcePath
-	defer func() { scopes.self, scopes.selfPath = nil, "" }()
+	// Hoist connection to a top-level local so CopyToRemote and Command can
+	// share it without duplication.
+	connectionLocalName := provisionerName + "Connection"
+	target.SetAttributeRaw(connectionLocalName, buildConnectionObject(state, scopes, provisioner.Connection))
+	connectionRef := hclwrite.TokensForIdentifier(connectionLocalName)
 
+	attrs, _ := provisioner.Config.JustAttributes()
+
+	// Build the list of uploads: one CopyToRemote per script. command:remote:
+	// CopyToRemote's source must be a FileAsset / StringAsset / FileArchive
+	// (per its schema); AssetArchive is rejected at runtime, so we chain
+	// individual FileAsset uploads instead of bundling them.
+	type upload struct {
+		copyName, remotePath string
+		sourceTokens         hclwrite.Tokens
+	}
+	var uploads []upload
+
+	if scriptAttr := attrs["script"]; scriptAttr != nil {
+		remotePath := "/tmp" + provisionerName
+		uploads = append(uploads, upload{
+			copyName: provisionerName + "Copy",
+			sourceTokens: hclwrite.TokensForFunctionCall("fileAsset",
+				convertExpression(state, true, scopes, "", scriptAttr.Expr)),
+			remotePath: remotePath,
+		})
+	} else if scriptsAttr := attrs["scripts"]; scriptsAttr != nil {
+		tuple, ok := scriptsAttr.Expr.(*hclsyntax.TupleConsExpr)
+		if !ok {
+			state.appendDiagnostic(&hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  "remote-exec scripts must be a static list literal",
+				Detail: "The converter only handles `scripts = [\"...\", ...]` with literal " +
+					"string elements, because per-element basenames have to be resolved at " +
+					"convert time to wire up the upload destinations.",
+				Subject: scriptsAttr.Expr.Range().Ptr(),
+			})
+			return
+		}
+		for i, elt := range tuple.Exprs {
+			val, valDiags := elt.Value(nil)
+			if valDiags.HasErrors() || !val.Type().Equals(cty.String) {
+				state.appendDiagnostic(&hcl.Diagnostic{
+					Severity: hcl.DiagError,
+					Summary:  "remote-exec scripts elements must be string literals",
+					Detail: "Each entry in `scripts = [...]` must be a literal string so a " +
+						"per-element upload destination can be wired up at convert time.",
+					Subject: elt.Range().Ptr(),
+				})
+				return
+			}
+			base := filepath.Base(val.AsString())
+			uploads = append(uploads, upload{
+				copyName: fmt.Sprintf("%sCopy%d", provisionerName, i),
+				sourceTokens: hclwrite.TokensForFunctionCall("fileAsset",
+					convertExpression(state, true, scopes, "", elt)),
+				remotePath: fmt.Sprintf("/tmp/%s/%s", provisionerName, base),
+			})
+		}
+	}
+
+	// Emit one CopyToRemote per script, chained: each copy depends on the
+	// previous (or the parent resource for the first), so the upload order
+	// is deterministic.
+	chainDep := prevDep
+	for _, u := range uploads {
+		block := hclwrite.NewBlock("resource", []string{u.copyName, "command:remote:CopyToRemote"})
+		body := block.Body()
+		emitProvisionerOptions(state, scopes, body, chainDep, forEach)
+		body.SetAttributeRaw("connection", connectionRef)
+		body.SetAttributeRaw("source", u.sourceTokens)
+		body.SetAttributeValue("remotePath", cty.StringVal(u.remotePath))
+		target.AppendBlock(block)
+		chainDep = u.copyName
+	}
+
+	// Command runs the uploaded script(s) in order. dependsOn the last copy.
+	var commandTokens hclwrite.Tokens
+	if len(uploads) == 1 {
+		commandTokens = hclwrite.TokensForValue(cty.StringVal(uploads[0].remotePath))
+	} else {
+		runPaths := make([]hclwrite.Tokens, len(uploads))
+		for i, u := range uploads {
+			runPaths[i] = hclwrite.TokensForValue(cty.StringVal(u.remotePath))
+		}
+		commandTokens = hclwrite.TokensForFunctionCall("join",
+			hclwrite.TokensForValue(cty.StringVal("\n")),
+			hclwrite.TokensForTuple(runPaths))
+	}
+
+	cmdBlock := hclwrite.NewBlock("resource", []string{provisionerName, "command:remote:Command"})
+	cmdBody := cmdBlock.Body()
+	emitProvisionerOptions(state, scopes, cmdBody, chainDep, forEach)
+	cmdBody.SetAttributeRaw("connection", connectionRef)
+	cmdBody.SetAttributeRaw("create", commandTokens)
+	target.AppendBlock(cmdBlock)
+}
+
+// buildConnectionObject converts a TF connection { ... } block body into a
+// PCL object literal expression, camelCasing each attribute key.
+func buildConnectionObject(
+	state *convertState, scopes *scopes, conn *configs.Connection,
+) hclwrite.Tokens {
+	connAttrs, _ := conn.Config.JustAttributes()
+	keys := make([]string, 0, len(connAttrs))
+	for k := range connAttrs {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	objAttrs := make([]hclwrite.ObjectAttrTokens, 0, len(keys))
+	for _, k := range keys {
+		objAttrs = append(objAttrs, hclwrite.ObjectAttrTokens{
+			Name:  hclwrite.TokensForIdentifier(CamelCaseName(k)),
+			Value: convertExpression(state, true, scopes, "", connAttrs[k].Expr),
+		})
+	}
+	return hclwrite.TokensForObject(objAttrs)
+}
+
+func fillLocalExecBody(
+	state *convertState, scopes *scopes,
+	provisioner *configs.Provisioner, blockBody *hclwrite.Body,
+) {
 	attributes, _ := provisioner.Config.JustAttributes()
 	var command, interpreter, environment hclwrite.Tokens
 	for _, attr := range attributes {
-		if attr.Name == "command" {
+		switch attr.Name {
+		case "command":
 			command = convertExpression(state, true, scopes, "", attr.Expr)
-		}
-		if attr.Name == "interpreter" {
+		case "interpreter":
 			interpreter = convertExpression(state, true, scopes, "", attr.Expr)
-		}
-		if attr.Name == "environment" {
+		case "environment":
 			environment = convertExpression(state, true, scopes, "", attr.Expr)
 		}
 	}
 
 	onDestroy := provisioner.When == configs.ProvisionerWhenDestroy
-
 	if onDestroy {
 		// We need to set create & update to a command that does nothing, and set destroy to the actual command
 		blockBody.SetAttributeValue("create", cty.StringVal("true"))
@@ -2625,12 +2805,60 @@ func convertProvisioner(
 	if len(interpreter) != 0 {
 		blockBody.SetAttributeRaw("interpreter", interpreter)
 	}
+	if len(environment) != 0 {
+		blockBody.SetAttributeRaw("environment", environment)
+	}
+}
+
+func fillRemoteExecBody(
+	state *convertState, scopes *scopes,
+	provisioner *configs.Provisioner, blockBody *hclwrite.Body,
+) {
+	if provisioner.Connection == nil {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "remote-exec provisioner is missing a connection block",
+			Detail: "The converter currently requires an inline connection { ... } block " +
+				"on remote-exec provisioners. Resource-level connection blocks are not yet supported.",
+			Subject: &provisioner.DeclRange,
+		})
+		return
+	}
+
+	blockBody.SetAttributeRaw("connection", buildConnectionObject(state, scopes, provisioner.Connection))
+
+	attributes, _ := provisioner.Config.JustAttributes()
+	var command, environment hclwrite.Tokens
+	for _, attr := range attributes {
+		switch attr.Name {
+		case "inline":
+			// TF's inline accepts any list(string) expression (including dynamic
+			// ones). Wrap in join("\n", ...) so Pulumi assembles the single-string
+			// command at runtime regardless of whether the list is static.
+			listTokens := convertExpression(state, true, scopes, "", attr.Expr)
+			command = hclwrite.TokensForFunctionCall("join",
+				hclwrite.TokensForValue(cty.StringVal("\n")), listTokens)
+		case "environment":
+			environment = convertExpression(state, true, scopes, "", attr.Expr)
+		}
+	}
+
+	if len(command) == 0 {
+		return
+	}
+
+	onDestroy := provisioner.When == configs.ProvisionerWhenDestroy
+	if onDestroy {
+		blockBody.SetAttributeValue("create", cty.StringVal("true"))
+		blockBody.SetAttributeValue("update", cty.StringVal("true"))
+		blockBody.SetAttributeRaw("delete", command)
+	} else {
+		blockBody.SetAttributeRaw("create", command)
+	}
 
 	if len(environment) != 0 {
 		blockBody.SetAttributeRaw("environment", environment)
 	}
-
-	target.AppendBlock(block)
 }
 
 func convertManagedResources(state *convertState,
@@ -2771,7 +2999,7 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 
 	// Add "command:Command" resources to handle provisioners
 	for idx, provisioner := range managedResource.Managed.Provisioners {
-		convertProvisioner(state, info, scopes, provisioner,
+		convertProvisioner(state, scopes, provisioner,
 			pulumiName, path, idx, managedResource.ForEach, target)
 	}
 }

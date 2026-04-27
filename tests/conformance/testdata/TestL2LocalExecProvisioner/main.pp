@@ -1,3 +1,6 @@
+config "conformanceKind" "string" {
+}
+
 config "outputPath" "string" {
 }
 
@@ -8,7 +11,7 @@ resource "exampleProvisioner0" "command:local:Command" {
   options {
     dependsOn = [example]
   }
-  create = "printf %s \"${example.computedValue}\" > \"${outputPath}/$PULUMI_CONVERTER_CONFORMANCE_KIND.txt\""
+  create = "printf %s \"${example.computedValue}\" > \"${outputPath}/${conformanceKind}.txt\""
 }
 
 output "value" {
