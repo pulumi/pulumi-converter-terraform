@@ -1,4 +1,4 @@
-package "boundary" {
+package {
   baseProviderName    = "terraform-provider"
   baseProviderVersion = "0.8.1"
   parameterization {

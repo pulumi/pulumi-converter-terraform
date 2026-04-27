@@ -17,3 +17,6 @@
 
 - Fix `self.X` references inside `provisioner` blocks being converted to an undefined variable. They
   now resolve to the Pulumi-renamed attribute on the parent resource.
+
+- Stop emitting deprecated package block labels in generated PCL, using the `baseProviderName` attribute instead.
+  [#405](https://github.com/pulumi/pulumi-converter-terraform/pull/405)

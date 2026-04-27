@@ -3948,7 +3948,7 @@ func translateModuleSourceCode(
 
 // getPackageBlock returns package block in the following form:
 //
-//	package <name> {
+//	package {
 //	  baseProviderName = <name>
 //	  baseProviderVersion = <version>
 //	  baseProviderDownloadUrl = <url>
@@ -3976,7 +3976,7 @@ func getPackageBlock(name string, prov *configs.RequiredProvider) (*hclwrite.Blo
 	// parlance). This may lead to name overlap, but as of now this is how our system works. If we need to fix name
 	// overlap, this is the place to start.
 	_ = name
-	block := hclwrite.NewBlock("package", []string{packageName})
+	block := hclwrite.NewBlock("package", []string{})
 	body := block.Body()
 
 	diags := hcl.Diagnostics{}
@@ -4017,7 +4017,7 @@ func remotePulumiTerraformModulePackageBlock(
 	source addrs.ModuleSourceRegistry,
 	version string,
 ) *hclwrite.Block {
-	block := hclwrite.NewBlock("package", []string{packageName})
+	block := hclwrite.NewBlock("package", []string{})
 	body := block.Body()
 	body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-module"))
 	body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.1.4"))
@@ -4054,7 +4054,7 @@ func localPulumiTerraformModulePackageBlock(
 	packageName string,
 	localPath string,
 ) *hclwrite.Block {
-	block := hclwrite.NewBlock("package", []string{packageName})
+	block := hclwrite.NewBlock("package", []string{})
 	body := block.Body()
 	body.SetAttributeValue("baseProviderName", cty.StringVal("terraform-module"))
 	body.SetAttributeValue("baseProviderVersion", cty.StringVal("0.1.4"))
