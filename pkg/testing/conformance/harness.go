@@ -130,7 +130,7 @@ func AssertConversion(t *testing.T, tc TestCase) {
 		if !assert.NoError(t, err, "convertHCLToPCL") {
 			return
 		}
-		pclFiles, err = readPPFiles(pclDir)
+		pclFiles, err = readProgramFiles(pclDir)
 		if !assert.NoError(t, err) {
 			return
 		}
@@ -185,6 +185,21 @@ func convertHCLToPCL(
 
 	diags := convert.TranslateModule(osFs, srcDir, dstFs, infoSource, resolver, dstDir, loader)
 	require.False(t, diags.HasErrors(), "TranslateModule failed: %v", diags)
+
+	// Copy non-.tf Input files (e.g. scripts referenced by fileAsset) into the
+	// PCL output dir so the Pulumi run sees them at the same relative paths.
+	for path, content := range input {
+		if filepath.Ext(path) == ".tf" {
+			continue
+		}
+		fullPath := filepath.Join(dstDir, path)
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0o755); err != nil {
+			return "", err
+		}
+		if err := os.WriteFile(fullPath, []byte(content), 0o600); err != nil {
+			return "", err
+		}
+	}
 
 	return dstDir, nil
 }
@@ -266,14 +281,17 @@ func (r *testProviderInfoResolver) ResolveLatest(string) (*configs.RequiredProvi
 	return nil, nil
 }
 
-// readPPFiles walks a directory and returns all .pp files as a map of relative paths to contents.
-func readPPFiles(dir string) (map[string]string, error) {
+// readProgramFiles walks a directory and returns every regular file as a map
+// of relative paths to contents. This includes the .pp files emitted by the
+// converter and any auxiliary input files (e.g. scripts referenced via
+// fileAsset) that the harness pre-staged into the same directory.
+func readProgramFiles(dir string) (map[string]string, error) {
 	files := make(map[string]string)
 	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() || filepath.Ext(path) != ".pp" {
+		if d.IsDir() {
 			return nil
 		}
 		rel, err := filepath.Rel(dir, path)
@@ -290,8 +308,10 @@ func readPPFiles(dir string) (map[string]string, error) {
 	return files, err
 }
 
-// assertGoldenPCL compares all generated PCL files against golden files.
-// When PULUMI_ACCEPT=1, the golden files are updated instead.
+// assertGoldenPCL compares the generated .pp files against golden files.
+// Auxiliary input files copied into the program dir (e.g. scripts) are
+// skipped — they're verbatim copies of the test's Input map. When
+// PULUMI_ACCEPT=1, the golden files are updated instead.
 func assertGoldenPCL(t *testing.T, testdataDir string, pclFiles map[string]string) {
 	t.Helper()
 
@@ -299,6 +319,9 @@ func assertGoldenPCL(t *testing.T, testdataDir string, pclFiles map[string]strin
 
 	if cmdutil.IsTruthy(os.Getenv("PULUMI_ACCEPT")) {
 		for path, content := range pclFiles {
+			if filepath.Ext(path) != ".pp" {
+				continue
+			}
 			goldenPath := filepath.Join(goldenDir, path)
 			err := os.MkdirAll(filepath.Dir(goldenPath), 0o755)
 			require.NoError(t, err)
@@ -309,6 +332,9 @@ func assertGoldenPCL(t *testing.T, testdataDir string, pclFiles map[string]strin
 	}
 
 	for path, actual := range pclFiles {
+		if filepath.Ext(path) != ".pp" {
+			continue
+		}
 		goldenPath := filepath.Join(goldenDir, path)
 		expected, err := os.ReadFile(goldenPath)
 		require.NoError(t, err, "golden file %s not found; run with PULUMI_ACCEPT=1 to create it", goldenPath)

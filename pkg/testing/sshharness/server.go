@@ -22,6 +22,7 @@ package sshharness
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/rsa"
@@ -31,11 +32,13 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"testing"
 
+	"github.com/pkg/sftp"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
@@ -168,6 +171,19 @@ func (h *Harness) handleSession(user string, ch ssh.Channel, reqs <-chan *ssh.Re
 			}
 			_, _ = ch.SendRequest("exit-status", false, encodeUint32(0))
 			return
+		case "subsystem":
+			name := parseExecPayload(req.Payload)
+			if name != "sftp" {
+				if req.WantReply {
+					_ = req.Reply(false, nil)
+				}
+				continue
+			}
+			if req.WantReply {
+				_ = req.Reply(true, nil)
+			}
+			h.handleSFTP(user, ch)
+			return
 		default:
 			if req.WantReply {
 				_ = req.Reply(false, nil)
@@ -255,6 +271,85 @@ func (h *Harness) handleSCPSink(user string, ch ssh.Channel) {
 			return
 		}
 	}
+}
+
+// handleSFTP serves a minimal in-memory SFTP server on the channel. Pulumi's
+// command:remote:CopyToRemote uploads files via SFTP, so we accept writes,
+// keep the bytes in memory, and record each completed upload as a pseudo
+// command of the form "sftp:<remote-path>\n<file-contents>".
+func (h *Harness) handleSFTP(user string, ch ssh.Channel) {
+	handler := &sftpHandler{files: make(map[string]*sftpFile)}
+	handlers := sftp.Handlers{
+		FileGet:  handler,
+		FilePut:  handler,
+		FileCmd:  handler,
+		FileList: handler,
+	}
+	server := sftp.NewRequestServer(ch, handlers)
+	_ = server.Serve()
+	_ = server.Close()
+
+	handler.mu.Lock()
+	defer handler.mu.Unlock()
+	paths := make([]string, 0, len(handler.files))
+	for p := range handler.files {
+		paths = append(paths, p)
+	}
+	sort.Strings(paths)
+	for _, p := range paths {
+		h.record(user, fmt.Sprintf("sftp:%s\n%s", p, handler.files[p].buf.String()))
+	}
+}
+
+// sftpHandler is an in-memory implementation of pkg/sftp's Handlers. It
+// supports writes (so CopyToRemote uploads succeed) and is permissive about
+// metadata commands (mkdir/setstat/etc. all succeed). Reads and listings are
+// unsupported.
+type sftpHandler struct {
+	mu    sync.Mutex
+	files map[string]*sftpFile
+}
+
+type sftpFile struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (s *sftpHandler) Filewrite(r *sftp.Request) (io.WriterAt, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	f, ok := s.files[r.Filepath]
+	if !ok {
+		f = &sftpFile{}
+		s.files[r.Filepath] = f
+	}
+	return f, nil
+}
+
+func (s *sftpHandler) Fileread(*sftp.Request) (io.ReaderAt, error) {
+	return nil, sftp.ErrSSHFxOpUnsupported
+}
+
+func (s *sftpHandler) Filecmd(*sftp.Request) error { return nil }
+
+func (s *sftpHandler) Filelist(r *sftp.Request) (sftp.ListerAt, error) {
+	// pulumi-command's CopyToRemote stats the destination before uploading;
+	// returning "no such file" lets it proceed to create the path. List/Readlink
+	// aren't exercised by our tests so leave them unsupported.
+	if r.Method == "Stat" || r.Method == "Lstat" {
+		return nil, sftp.ErrSSHFxNoSuchFile
+	}
+	return nil, sftp.ErrSSHFxOpUnsupported
+}
+
+func (f *sftpFile) WriteAt(p []byte, off int64) (int, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	end := off + int64(len(p))
+	if int64(f.buf.Len()) < end {
+		f.buf.Write(make([]byte, end-int64(f.buf.Len())))
+	}
+	return copy(f.buf.Bytes()[off:end], p), nil
 }
 
 // parseExecPayload extracts the command string from an SSH "exec" request

@@ -10,7 +10,11 @@
 - Convert `lifecycle.ignore_changes` to `ignoreChanges` resource option in generated Pulumi code.
   [#60](https://github.com/pulumi/pulumi-converter-terraform/issues/60)
 
-- Convert the `remote-exec` provisioner to a `command:remote:Command` resource.
+- Convert the `remote-exec` provisioner to a `command:remote:Command` resource. `inline` becomes a
+  runtime `join("\n", ...)`; `script` and `scripts` become one or more `command:remote:CopyToRemote`
+  resources (with `fileAsset` sources) chained before the `command:remote:Command` that runs them.
+  When upload resources are emitted, the connection is hoisted to a top-level local so the upload
+  and run resources share it.
   [#430](https://github.com/pulumi/pulumi-converter-terraform/issues/430)
 
 ### Bug Fixes
