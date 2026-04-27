@@ -1,0 +1,286 @@
+{
+  "name": "kubernetes",
+  "version": "4.29.0",
+  "meta": {
+    "moduleFormat": "(.*)(?:/[^/]*)"
+  },
+  "config": {},
+  "provider": {},
+  "resources": {
+    "kubernetes:helm.sh/v3:Release": {
+      "properties": {
+        "allowNullValues": {
+          "type": "boolean"
+        },
+        "atomic": {
+          "type": "boolean"
+        },
+        "chart": {
+          "type": "string"
+        },
+        "cleanupOnFail": {
+          "type": "boolean"
+        },
+        "createNamespace": {
+          "type": "boolean"
+        },
+        "dependencyUpdate": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "devel": {
+          "type": "boolean"
+        },
+        "disableCRDHooks": {
+          "type": "boolean"
+        },
+        "disableOpenapiValidation": {
+          "type": "boolean"
+        },
+        "disableWebhooks": {
+          "type": "boolean"
+        },
+        "forceUpdate": {
+          "type": "boolean"
+        },
+        "keyring": {
+          "type": "string"
+        },
+        "lint": {
+          "type": "boolean"
+        },
+        "manifest": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "pulumi.json#/Any"
+          }
+        },
+        "maxHistory": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "postrender": {
+          "type": "string"
+        },
+        "recreatePods": {
+          "type": "boolean"
+        },
+        "renderSubchartNotes": {
+          "type": "boolean"
+        },
+        "replace": {
+          "type": "boolean"
+        },
+        "repositoryOpts": {
+          "$ref": "#/types/kubernetes:helm.sh/v3:RepositoryOpts"
+        },
+        "resetValues": {
+          "type": "boolean"
+        },
+        "resourceNames": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "reuseValues": {
+          "type": "boolean"
+        },
+        "skipAwait": {
+          "type": "boolean"
+        },
+        "skipCrds": {
+          "type": "boolean"
+        },
+        "timeout": {
+          "type": "integer"
+        },
+        "valueYamlFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "pulumi.json#/Asset"
+          }
+        },
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "pulumi.json#/Any"
+          }
+        },
+        "verify": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "string"
+        },
+        "waitForJobs": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "chart"
+      ],
+      "inputProperties": {
+        "allowNullValues": {
+          "type": "boolean"
+        },
+        "atomic": {
+          "type": "boolean"
+        },
+        "chart": {
+          "type": "string"
+        },
+        "cleanupOnFail": {
+          "type": "boolean"
+        },
+        "compat": {
+          "type": "string"
+        },
+        "createNamespace": {
+          "type": "boolean"
+        },
+        "dependencyUpdate": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "devel": {
+          "type": "boolean"
+        },
+        "disableCRDHooks": {
+          "type": "boolean"
+        },
+        "disableOpenapiValidation": {
+          "type": "boolean"
+        },
+        "disableWebhooks": {
+          "type": "boolean"
+        },
+        "forceUpdate": {
+          "type": "boolean"
+        },
+        "keyring": {
+          "type": "string"
+        },
+        "lint": {
+          "type": "boolean"
+        },
+        "manifest": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "pulumi.json#/Any"
+          }
+        },
+        "maxHistory": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "postrender": {
+          "type": "string"
+        },
+        "recreatePods": {
+          "type": "boolean"
+        },
+        "renderSubchartNotes": {
+          "type": "boolean"
+        },
+        "replace": {
+          "type": "boolean"
+        },
+        "repositoryOpts": {
+          "$ref": "#/types/kubernetes:helm.sh/v3:RepositoryOpts"
+        },
+        "resetValues": {
+          "type": "boolean"
+        },
+        "resourceNames": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "reuseValues": {
+          "type": "boolean"
+        },
+        "skipAwait": {
+          "type": "boolean"
+        },
+        "skipCrds": {
+          "type": "boolean"
+        },
+        "timeout": {
+          "type": "integer"
+        },
+        "valueYamlFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "pulumi.json#/Asset"
+          }
+        },
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "pulumi.json#/Any"
+          }
+        },
+        "verify": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "string"
+        },
+        "waitForJobs": {
+          "type": "boolean"
+        }
+      },
+      "requiredInputs": [
+        "chart"
+      ]
+    }
+  },
+  "types": {
+    "kubernetes:helm.sh/v3:RepositoryOpts": {
+      "properties": {
+        "caFile": {
+          "type": "string"
+        },
+        "certFile": {
+          "type": "string"
+        },
+        "keyFile": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string",
+          "secret": true
+        },
+        "repo": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  }
+}

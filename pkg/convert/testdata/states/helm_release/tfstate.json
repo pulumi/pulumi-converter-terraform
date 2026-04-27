@@ -1,0 +1,18 @@
+{
+    "version": 4,
+    "resources": [
+        {
+            "mode": "managed",
+            "name": "myHelmRelease",
+            "type": "helm_release",
+            "provider": "provider[\"registry.terraform.io/pulumi/helm\"]",
+            "instances": [
+                {
+                    "attributes": {
+                        "id": "helm_release_id"
+                    }
+                }
+            ]
+        }
+    ]
+}

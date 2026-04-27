@@ -9,6 +9,7 @@
 
 - Convert `lifecycle.ignore_changes` to `ignoreChanges` resource option in generated Pulumi code.
   [#60](https://github.com/pulumi/pulumi-converter-terraform/issues/60)
+- Implemented specialized conversion for `helm_release` resources.
 
 ### Bug Fixes
 
