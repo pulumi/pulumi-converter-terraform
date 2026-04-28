@@ -80,12 +80,9 @@ type Result struct {
 // Config values are set on the stack before deployment.
 //
 // programFiles maps relative paths to file contents (e.g. {"main.pp": "...", "mod/main.pp": "..."}).
-//
-// env is passed through to the pulumi CLI subprocess, which propagates it to language and
-// resource provider plugins (including command:local:Command's shell).
 func Run(
 	t *testing.T, provs []Provider, programFiles map[string]string,
-	config map[string]string, env map[string]string,
+	config map[string]string,
 ) Result {
 	t.Helper()
 
@@ -110,16 +107,12 @@ backend:
 		require.NoError(t, os.WriteFile(fullPath, []byte(content), 0o600))
 	}
 
-	opts := append(make([]opttest.Option, 0, 4+len(env)+len(provs)),
+	opts := append(make([]opttest.Option, 0, 4+len(provs)),
 		opttest.Env("PULUMI_DISABLE_AUTOMATIC_PLUGIN_ACQUISITION", "true"),
 		opttest.Env("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH")),
 		opttest.TestInPlace(),
 		opttest.SkipInstall(),
 	)
-
-	for k, v := range env {
-		opts = append(opts, opttest.Env(k, v))
-	}
 
 	for _, p := range provs {
 		info := p.Info
