@@ -1,0 +1,4 @@
+[
+  "warning:remote_exec_provisioners/main.tf:30,5-29:Unsupported connection attribute:Connection attribute \"agent\" has no equivalent on the Pulumi command:remote:Connection type and was dropped.",
+  "warning:remote_exec_provisioners/main.tf:29,5-29:Unsupported connection attribute:Connection attribute \"timeout\" has no equivalent on the Pulumi command:remote:Connection type and was dropped."
+]

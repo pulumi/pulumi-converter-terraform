@@ -2542,21 +2542,66 @@ func convertProvisioner(
 	state *convertState,
 	info ProviderInfoSource, scopes *scopes,
 	provisioner *configs.Provisioner,
+	resourceConnectionTokens hclwrite.Tokens,
 	resourceName string, resourcePath string, provisionerIndex int,
 	forEach hcl.Expression,
 	target *hclwrite.Body,
 ) {
-	if provisioner.Type != "local-exec" {
-		// We don't support anything other than local-exec for now
+	switch provisioner.Type {
+	case "local-exec":
+		convertLocalExecProvisioner(state, scopes, provisioner,
+			resourceName, resourcePath, provisionerIndex, forEach, target)
+	case "remote-exec":
+		convertRemoteExecProvisioner(state, scopes, provisioner,
+			resourceConnectionTokens, resourceName, resourcePath, provisionerIndex, forEach, target)
+	default:
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagWarning,
+			Summary:  "Unsupported provisioner type",
+			Detail: fmt.Sprintf("Provisioner type %q is not supported by the converter; "+
+				"only \"local-exec\" and \"remote-exec\" are translated.", provisioner.Type),
+			Subject: provisioner.DeclRange.Ptr(),
+		})
 		target.AppendUnstructuredTokens(hclwrite.Tokens{
 			&hclwrite.Token{
 				Type:  hclsyntax.TokenComment,
 				Bytes: []byte("// Unsupported provisioner type " + provisioner.Type),
 			},
 		})
-		return
 	}
+}
 
+// provisionerDependsOn builds the `dependsOn` token list for a generated provisioner resource.
+// The first provisioner depends on the parent resource; each subsequent one depends on the
+// previous provisioner. When the parent has for_each (forEach != nil), we omit the brackets so
+// that PCL's range option pairs each parent iteration with the corresponding provisioner.
+func provisionerDependsOn(
+	resourceName string, provisionerIndex int, forEach hcl.Expression,
+) hclwrite.Tokens {
+	var dependsOn hclwrite.Tokens
+	if forEach == nil {
+		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenOBrack, "["))
+	}
+	if provisionerIndex == 0 {
+		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenIdent, resourceName))
+	} else {
+		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenIdent,
+			fmt.Sprintf("%sProvisioner%d", resourceName, provisionerIndex-1)))
+	}
+	if forEach == nil {
+		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenCBrack, "]"))
+	}
+	return dependsOn
+}
+
+func convertLocalExecProvisioner(
+	state *convertState,
+	scopes *scopes,
+	provisioner *configs.Provisioner,
+	resourceName string, resourcePath string, provisionerIndex int,
+	forEach hcl.Expression,
+	target *hclwrite.Body,
+) {
 	provisionerName := fmt.Sprintf("%sProvisioner%d", resourceName, provisionerIndex)
 
 	labels := []string{provisionerName, "command:local:Command"}
@@ -2573,25 +2618,7 @@ func convertProvisioner(
 		optionsBlockBody.SetAttributeRaw("range", forEachExpr)
 	}
 
-	// The first provisioner dependsOn the resource we're provisioning, each provisioner after that depends on
-	// the previous provisioner
-	var dependsOn hclwrite.Tokens
-	if forEach == nil {
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenOBrack, "["))
-	}
-
-	if provisionerIndex == 0 {
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenIdent, resourceName))
-	} else {
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenIdent,
-			fmt.Sprintf("%sProvisioner%d", resourceName, (provisionerIndex-1))))
-	}
-
-	if forEach == nil {
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenCBrack, "]"))
-	}
-
-	optionsBlockBody.SetAttributeRaw("dependsOn", dependsOn)
+	optionsBlockBody.SetAttributeRaw("dependsOn", provisionerDependsOn(resourceName, provisionerIndex, forEach))
 
 	scopes.self = hcl.Traversal{hcl.TraverseRoot{Name: resourceName}}
 	scopes.selfPath = resourcePath
@@ -2631,6 +2658,439 @@ func convertProvisioner(
 	}
 
 	target.AppendBlock(block)
+}
+
+// connectionFieldMap maps a Terraform `connection` block attribute name onto the
+// equivalent property name on the Pulumi command:remote:Connection / ProxyConnection
+// types. Bastion fields are accumulated into a `proxy` sub-object.
+var connectionFieldMap = map[string]string{
+	"host":             "host",
+	"port":             "port",
+	"user":             "user",
+	"password":         "password",
+	"private_key":      "privateKey",
+	"host_key":         "hostKey",
+	"bastion_host":     "host",
+	"bastion_port":     "port",
+	"bastion_user":     "user",
+	"bastion_password": "password",
+	"bastion_host_key": "hostKey",
+}
+
+// connectionUnsupportedFields enumerates `connection` block attributes that have no
+// equivalent on the Pulumi command:remote:Connection type. Hitting one of these emits
+// a converter warning so users know their config is being silently dropped.
+var connectionUnsupportedFields = map[string]bool{
+	"agent":               true,
+	"agent_identity":      true,
+	"certificate":         true,
+	"script_path":         true,
+	"target_platform":     true,
+	"timeout":             true,
+	"type":                true, // we always emit ssh; winrm is unsupported
+	"bastion_certificate": true,
+}
+
+// convertConnection converts a Terraform `connection` block into PCL tokens for the
+// Pulumi command:remote:Connection input. Returns nil when connection is nil; the caller
+// is responsible for emitting a diagnostic if a missing connection is an error in context.
+func convertConnection(
+	state *convertState, scopes *scopes, connection *configs.Connection,
+) hclwrite.Tokens {
+	if connection == nil {
+		return nil
+	}
+
+	attrs, _ := connection.Config.JustAttributes()
+
+	// Sort attribute names so the generated PCL is deterministic.
+	names := make([]string, 0, len(attrs))
+	for name := range attrs {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	var topAttrs, bastionAttrs []hclwrite.ObjectAttrTokens
+	for _, name := range names {
+		attr := attrs[name]
+		value := convertExpression(state, false, scopes, "", attr.Expr)
+		mapped, ok := connectionFieldMap[name]
+		if !ok {
+			if !connectionUnsupportedFields[name] {
+				state.appendDiagnostic(&hcl.Diagnostic{
+					Severity: hcl.DiagWarning,
+					Summary:  "Unrecognized connection attribute",
+					Detail: fmt.Sprintf("Connection attribute %q is not recognized and was not "+
+						"translated to the Pulumi command:remote:Connection input.", name),
+					Subject: attr.Range.Ptr(),
+				})
+				continue
+			}
+			state.appendDiagnostic(&hcl.Diagnostic{
+				Severity: hcl.DiagWarning,
+				Summary:  "Unsupported connection attribute",
+				Detail: fmt.Sprintf("Connection attribute %q has no equivalent on the Pulumi "+
+					"command:remote:Connection type and was dropped.", name),
+				Subject: attr.Range.Ptr(),
+			})
+			continue
+		}
+		entry := hclwrite.ObjectAttrTokens{
+			Name:  hclwrite.TokensForIdentifier(mapped),
+			Value: value,
+		}
+		if strings.HasPrefix(name, "bastion_") {
+			bastionAttrs = append(bastionAttrs, entry)
+		} else {
+			topAttrs = append(topAttrs, entry)
+		}
+	}
+
+	if len(bastionAttrs) > 0 {
+		topAttrs = append(topAttrs, hclwrite.ObjectAttrTokens{
+			Name:  hclwrite.TokensForIdentifier("proxy"),
+			Value: hclwrite.TokensForObject(bastionAttrs),
+		})
+	}
+
+	return hclwrite.TokensForObject(topAttrs)
+}
+
+// joinInvoke wraps `invoke("std:index:join", { separator, input }).result` for the given
+// separator string and input expression tokens.
+func joinInvoke(separator string, input hclwrite.Tokens) hclwrite.Tokens {
+	args := hclwrite.TokensForObject([]hclwrite.ObjectAttrTokens{
+		{
+			Name:  hclwrite.TokensForIdentifier("separator"),
+			Value: hclwrite.TokensForValue(cty.StringVal(separator)),
+		},
+		{
+			Name:  hclwrite.TokensForIdentifier("input"),
+			Value: input,
+		},
+	})
+	call := hclwrite.TokensForFunctionCall("invoke",
+		hclwrite.TokensForValue(cty.StringVal("std:index:join")), args)
+	call = append(call, makeToken(hclsyntax.TokenDot, "."))
+	call = append(call, makeToken(hclsyntax.TokenIdent, "result"))
+	return call
+}
+
+// fileAssetCall wraps `fileAsset(<path expr>)`.
+func fileAssetCall(pathExpr hclwrite.Tokens) hclwrite.Tokens {
+	return hclwrite.TokensForFunctionCall("fileAsset", pathExpr)
+}
+
+// remotePathExpr returns the tokens for a string template like
+// "/tmp/<provisionerName>" (or with a `-${range.key}` suffix).
+func remotePathExpr(provisionerName string, withRangeKey bool) hclwrite.Tokens {
+	if !withRangeKey {
+		return hclwrite.TokensForValue(cty.StringVal("/tmp/" + provisionerName))
+	}
+	// "/tmp/<provisionerName>-${range.key}"
+	literal := "/tmp/" + provisionerName + "-"
+	tokens := hclwrite.Tokens{
+		{Type: hclsyntax.TokenOQuote, Bytes: []byte("\"")},
+		{Type: hclsyntax.TokenQuotedLit, Bytes: []byte(literal)},
+		{Type: hclsyntax.TokenTemplateInterp, Bytes: []byte("${")},
+		{Type: hclsyntax.TokenIdent, Bytes: []byte("range")},
+		{Type: hclsyntax.TokenDot, Bytes: []byte(".")},
+		{Type: hclsyntax.TokenIdent, Bytes: []byte("key")},
+		{Type: hclsyntax.TokenTemplateSeqEnd, Bytes: []byte("}")},
+		{Type: hclsyntax.TokenCQuote, Bytes: []byte("\"")},
+	}
+	return tokens
+}
+
+func convertRemoteExecProvisioner(
+	state *convertState,
+	scopes *scopes,
+	provisioner *configs.Provisioner,
+	resourceConnectionTokens hclwrite.Tokens,
+	resourceName string, resourcePath string, provisionerIndex int,
+	forEach hcl.Expression,
+	target *hclwrite.Body,
+) {
+	if provisioner.When == configs.ProvisionerWhenDestroy {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagWarning,
+			Summary:  "remote-exec provisioner with when=destroy is not supported",
+			Detail: "Translating destroy-time remote-exec provisioners would require running " +
+				"a remote command during resource deletion, which is not currently supported by the converter.",
+			Subject: provisioner.DeclRange.Ptr(),
+		})
+		return
+	}
+
+	scopes.self = hcl.Traversal{hcl.TraverseRoot{Name: resourceName}}
+	scopes.selfPath = resourcePath
+	defer func() { scopes.self, scopes.selfPath = nil, "" }()
+
+	// Provisioner-level connection takes precedence over the resource-level one.
+	// The resource-level tokens (and any associated diagnostics) are computed once
+	// by the caller and reused, so we only re-walk a connection block here when
+	// this provisioner overrides it.
+	var connectionTokens hclwrite.Tokens
+	if provisioner.Connection != nil {
+		connectionTokens = convertConnection(state, scopes, provisioner.Connection)
+	} else {
+		connectionTokens = resourceConnectionTokens
+	}
+	if connectionTokens == nil {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "remote-exec provisioner is missing a connection block",
+			Detail: "remote-exec requires a connection block on the provisioner or the parent resource " +
+				"specifying at least the host to connect to.",
+			Subject: provisioner.DeclRange.Ptr(),
+		})
+		return
+	}
+
+	provisionerName := fmt.Sprintf("%sProvisioner%d", resourceName, provisionerIndex)
+
+	attrs, _ := provisioner.Config.JustAttributes()
+	var inlineExpr, scriptExpr, scriptsExpr hcl.Expression
+	for _, attr := range attrs {
+		switch attr.Name {
+		case "inline":
+			inlineExpr = attr.Expr
+		case "script":
+			scriptExpr = attr.Expr
+		case "scripts":
+			scriptsExpr = attr.Expr
+		default:
+			state.appendDiagnostic(&hcl.Diagnostic{
+				Severity: hcl.DiagWarning,
+				Summary:  "Unrecognized remote-exec attribute",
+				Detail: fmt.Sprintf("Attribute %q on a remote-exec provisioner is not recognized "+
+					"and was not translated.", attr.Name),
+				Subject: attr.Range.Ptr(),
+			})
+		}
+	}
+
+	provided := 0
+	for _, e := range []hcl.Expression{inlineExpr, scriptExpr, scriptsExpr} {
+		if e != nil {
+			provided++
+		}
+	}
+	if provided == 0 {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "remote-exec provisioner has no command",
+			Detail:   "remote-exec requires exactly one of `inline`, `script`, or `scripts`.",
+			Subject:  provisioner.DeclRange.Ptr(),
+		})
+		return
+	}
+	if provided > 1 {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "remote-exec provisioner has multiple command sources",
+			Detail:   "remote-exec must specify exactly one of `inline`, `script`, or `scripts`.",
+			Subject:  provisioner.DeclRange.Ptr(),
+		})
+		return
+	}
+
+	switch {
+	case inlineExpr != nil:
+		emitRemoteInline(state, scopes, connectionTokens, inlineExpr,
+			provisionerName, resourceName, provisionerIndex, forEach, target)
+	case scriptExpr != nil:
+		emitRemoteScript(state, scopes, connectionTokens, scriptExpr,
+			provisionerName, resourceName, provisionerIndex, forEach, target)
+	case scriptsExpr != nil:
+		emitRemoteScripts(state, scopes, connectionTokens, scriptsExpr,
+			provisionerName, resourceName, provisionerIndex, forEach, provisioner.DeclRange, target)
+	}
+}
+
+func setForEachRange(
+	state *convertState, scopes *scopes, body *hclwrite.Body, forEach hcl.Expression,
+) {
+	if forEach == nil {
+		return
+	}
+	forEachExpr := convertExpression(state, true, scopes, "", forEach)
+	scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
+	scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
+	body.SetAttributeRaw("range", forEachExpr)
+}
+
+func emitRemoteInline(
+	state *convertState, scopes *scopes,
+	connectionTokens hclwrite.Tokens, inlineExpr hcl.Expression,
+	provisionerName, resourceName string, provisionerIndex int,
+	forEach hcl.Expression, target *hclwrite.Body,
+) {
+	block := hclwrite.NewBlock("resource", []string{provisionerName, "command:remote:Command"})
+	body := block.Body()
+	options := body.AppendNewBlock("options", nil).Body()
+	setForEachRange(state, scopes, options, forEach)
+	options.SetAttributeRaw("dependsOn", provisionerDependsOn(resourceName, provisionerIndex, forEach))
+
+	body.SetAttributeRaw("connection", connectionTokens)
+	inlineTokens := convertExpression(state, true, scopes, "", inlineExpr)
+	body.SetAttributeRaw("create", joinInvoke("\n", inlineTokens))
+
+	target.AppendBlock(block)
+}
+
+func emitRemoteScript(
+	state *convertState, scopes *scopes,
+	connectionTokens hclwrite.Tokens, scriptExpr hcl.Expression,
+	provisionerName, resourceName string, provisionerIndex int,
+	forEach hcl.Expression, target *hclwrite.Body,
+) {
+	copyName := provisionerName + "Copy"
+	remotePath := remotePathExpr(provisionerName, false)
+
+	// CopyToRemote
+	copyBlock := hclwrite.NewBlock("resource", []string{copyName, "command:remote:CopyToRemote"})
+	copyBody := copyBlock.Body()
+	copyOptions := copyBody.AppendNewBlock("options", nil).Body()
+	setForEachRange(state, scopes, copyOptions, forEach)
+	copyOptions.SetAttributeRaw("dependsOn", provisionerDependsOn(resourceName, provisionerIndex, forEach))
+
+	copyBody.SetAttributeRaw("connection", connectionTokens)
+	scriptTokens := convertExpression(state, true, scopes, "", scriptExpr)
+	copyBody.SetAttributeRaw("source", fileAssetCall(scriptTokens))
+	copyBody.SetAttributeRaw("remotePath", remotePath)
+	target.AppendBlock(copyBlock)
+
+	// Command
+	cmdBlock := hclwrite.NewBlock("resource", []string{provisionerName, "command:remote:Command"})
+	cmdBody := cmdBlock.Body()
+	cmdOptions := cmdBody.AppendNewBlock("options", nil).Body()
+	setForEachRange(state, scopes, cmdOptions, forEach)
+
+	// dependsOn = [<copyName>] (or just <copyName> when forEach is set)
+	var dependsOn hclwrite.Tokens
+	if forEach == nil {
+		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenOBrack, "["))
+	}
+	dependsOn = append(dependsOn, makeToken(hclsyntax.TokenIdent, copyName))
+	if forEach == nil {
+		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenCBrack, "]"))
+	}
+	cmdOptions.SetAttributeRaw("dependsOn", dependsOn)
+
+	cmdBody.SetAttributeRaw("connection", connectionTokens)
+	cmdBody.SetAttributeRaw("create", remotePathExprAsBashCommand(provisionerName, false))
+	target.AppendBlock(cmdBlock)
+}
+
+// remotePathExprAsBashCommand returns tokens for a literal string like
+// "bash /tmp/<provisionerName>" (or with `-${range.key}`).
+func remotePathExprAsBashCommand(provisionerName string, withRangeKey bool) hclwrite.Tokens {
+	if !withRangeKey {
+		return hclwrite.TokensForValue(cty.StringVal("bash /tmp/" + provisionerName))
+	}
+	literal := "bash /tmp/" + provisionerName + "-"
+	return hclwrite.Tokens{
+		{Type: hclsyntax.TokenOQuote, Bytes: []byte("\"")},
+		{Type: hclsyntax.TokenQuotedLit, Bytes: []byte(literal)},
+		{Type: hclsyntax.TokenTemplateInterp, Bytes: []byte("${")},
+		{Type: hclsyntax.TokenIdent, Bytes: []byte("range")},
+		{Type: hclsyntax.TokenDot, Bytes: []byte(".")},
+		{Type: hclsyntax.TokenIdent, Bytes: []byte("key")},
+		{Type: hclsyntax.TokenTemplateSeqEnd, Bytes: []byte("}")},
+		{Type: hclsyntax.TokenCQuote, Bytes: []byte("\"")},
+	}
+}
+
+func emitRemoteScripts(
+	state *convertState, scopes *scopes,
+	connectionTokens hclwrite.Tokens, scriptsExpr hcl.Expression,
+	provisionerName, resourceName string, provisionerIndex int,
+	forEach hcl.Expression, declRange hcl.Range, target *hclwrite.Body,
+) {
+	if forEach != nil {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "remote-exec scripts on a for_each resource is not supported",
+			Detail: "Combining a remote-exec provisioner's `scripts` list with a parent resource's " +
+				"for_each would require nested iteration which the converter does not currently emit.",
+			Subject: declRange.Ptr(),
+		})
+		return
+	}
+
+	copyName := provisionerName + "Copy"
+
+	// CopyToRemote with options.range = scriptsExpr (parallel copy).
+	copyBlock := hclwrite.NewBlock("resource", []string{copyName, "command:remote:CopyToRemote"})
+	copyBody := copyBlock.Body()
+	copyOptions := copyBody.AppendNewBlock("options", nil).Body()
+
+	scriptsTokens := convertExpression(state, true, scopes, "", scriptsExpr)
+	copyOptions.SetAttributeRaw("range", scriptsTokens)
+	// Each iteration depends on the parent resource (PCL pairs by index when both sides have range).
+	copyOptions.SetAttributeRaw("dependsOn", provisionerDependsOn(resourceName, provisionerIndex, nil))
+
+	copyBody.SetAttributeRaw("connection", connectionTokens)
+	// source = fileAsset(range.value)
+	rangeValue := hclwrite.Tokens{
+		{Type: hclsyntax.TokenIdent, Bytes: []byte("range")},
+		{Type: hclsyntax.TokenDot, Bytes: []byte(".")},
+		{Type: hclsyntax.TokenIdent, Bytes: []byte("value")},
+	}
+	copyBody.SetAttributeRaw("source", fileAssetCall(rangeValue))
+	copyBody.SetAttributeRaw("remotePath", remotePathExpr(provisionerName, true))
+	target.AppendBlock(copyBlock)
+
+	// Command - sequential invocation via `&&`-joined bash invocations.
+	cmdBlock := hclwrite.NewBlock("resource", []string{provisionerName, "command:remote:Command"})
+	cmdBody := cmdBlock.Body()
+	cmdOptions := cmdBody.AppendNewBlock("options", nil).Body()
+
+	// The Copy resource is iterated via `range`, so its identifier resolves to a
+	// list of resources. Pass it bare to dependsOn, not wrapped in another list.
+	cmdOptions.SetAttributeRaw("dependsOn", hclwrite.Tokens{
+		makeToken(hclsyntax.TokenIdent, copyName),
+	})
+
+	cmdBody.SetAttributeRaw("connection", connectionTokens)
+
+	// create = invoke("std:index:join", {
+	//     separator = " && ",
+	//     input = [for k, v in <scripts> : "bash /tmp/<provisionerName>-${k}"]
+	// }).result
+	listTokens := buildScriptsForExpr(state, scopes, scriptsExpr, provisionerName)
+	cmdBody.SetAttributeRaw("create", joinInvoke(" && ", listTokens))
+	target.AppendBlock(cmdBlock)
+}
+
+// buildScriptsForExpr returns tokens for `[for k, v in <scripts> : "bash /tmp/<provisionerName>-${k}"]`.
+func buildScriptsForExpr(
+	state *convertState, scopes *scopes, scriptsExpr hcl.Expression, provisionerName string,
+) hclwrite.Tokens {
+	scriptsTokens := convertExpression(state, false, scopes, "", scriptsExpr)
+	literal := "bash /tmp/" + provisionerName + "-"
+
+	tokens := hclwrite.Tokens{ //nolint:prealloc
+		{Type: hclsyntax.TokenOBrack, Bytes: []byte("[")},
+		{Type: hclsyntax.TokenIdent, Bytes: []byte("for")},
+		{Type: hclsyntax.TokenIdent, Bytes: []byte("k")},
+		{Type: hclsyntax.TokenComma, Bytes: []byte(",")},
+		{Type: hclsyntax.TokenIdent, Bytes: []byte("v")},
+		{Type: hclsyntax.TokenIdent, Bytes: []byte("in")},
+	}
+	tokens = append(tokens, scriptsTokens...)
+	tokens = append(tokens,
+		&hclwrite.Token{Type: hclsyntax.TokenColon, Bytes: []byte(":")},
+		&hclwrite.Token{Type: hclsyntax.TokenOQuote, Bytes: []byte("\"")},
+		&hclwrite.Token{Type: hclsyntax.TokenQuotedLit, Bytes: []byte(literal)},
+		&hclwrite.Token{Type: hclsyntax.TokenTemplateInterp, Bytes: []byte("${")},
+		&hclwrite.Token{Type: hclsyntax.TokenIdent, Bytes: []byte("k")},
+		&hclwrite.Token{Type: hclsyntax.TokenTemplateSeqEnd, Bytes: []byte("}")},
+		&hclwrite.Token{Type: hclsyntax.TokenCQuote, Bytes: []byte("\"")},
+		&hclwrite.Token{Type: hclsyntax.TokenCBrack, Bytes: []byte("]")},
+	)
+	return tokens
 }
 
 func convertManagedResources(state *convertState,
@@ -2769,9 +3229,24 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 	target.AppendBlock(block)
 	target.AppendUnstructuredTokens(trailing)
 
-	// Add "command:Command" resources to handle provisioners
+	// Add "command:<kind>:Command" resources to handle provisioners. Convert the
+	// resource-level connection block once and reuse those tokens across every
+	// provisioner that does not specify its own — this way unsupported-attribute
+	// warnings are emitted exactly once per `connection` block.
+	var resourceConnectionTokens hclwrite.Tokens
+	if managedResource.Managed != nil && managedResource.Managed.Connection != nil {
+		// scopes.self must be set for self.X references; convertConnection runs in
+		// the resource scope, but the connection block is evaluated against the
+		// parent resource's identifier.
+		prevSelf, prevSelfPath := scopes.self, scopes.selfPath
+		scopes.self = hcl.Traversal{hcl.TraverseRoot{Name: pulumiName}}
+		scopes.selfPath = path
+		resourceConnectionTokens = convertConnection(state, scopes, managedResource.Managed.Connection)
+		scopes.self, scopes.selfPath = prevSelf, prevSelfPath
+	}
 	for idx, provisioner := range managedResource.Managed.Provisioners {
 		convertProvisioner(state, info, scopes, provisioner,
+			resourceConnectionTokens,
 			pulumiName, path, idx, managedResource.ForEach, target)
 	}
 }
