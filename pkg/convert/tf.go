@@ -2433,6 +2433,9 @@ func impliedProvider(typeName string) string {
 
 // Best guess at converting a tf type to a pulumi type
 func impliedToken(typeName string) string {
+	if mapping, ok := customResourceMappings[typeName]; ok {
+		return mapping.pulumiToken
+	}
 	if under := strings.Index(typeName, "_"); under != -1 {
 		provider := typeName[:under]
 		typeName = typeName[under+1:]
@@ -2645,7 +2648,10 @@ func convertManagedResources(state *convertState,
 	pulumiName := root.Name
 
 	resourceToken := impliedToken(managedResource.Type)
-	if root.ResourceInfo != nil {
+	// For resources with a custom mapping (e.g. helm_release → kubernetes:helm.sh/v3:Release)
+	// the impliedToken value is authoritative: provider info from a parameterized
+	// terraform-provider fallback would otherwise override it with the wrong token.
+	if root.ResourceInfo != nil && !isCustomResourceMapping(managedResource.Type) {
 		resourceToken = root.ResourceInfo.Tok.String()
 	}
 
@@ -2754,7 +2760,13 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 		blockBody.AppendBlock(options)
 	}
 
-	resourceArgs := convertBody(state, scopes, path, managedResource.Config)
+	var resourceArgs bodyAttrsTokens
+	if mapping, custom := customResourceMappings[managedResource.Type]; custom {
+		resourceArgs = mapping.convert(state, scopes, path, managedResource.Config)
+	} else {
+		resourceArgs = convertBody(state, scopes, path, managedResource.Config)
+	}
+
 	for _, arg := range resourceArgs {
 		blockBody.SetAttributeRaw(arg.Name, arg.Value)
 	}
@@ -3272,8 +3284,14 @@ func translateModuleSourceCode(
 
 			// for non-Pulumi TF providers that don't have a corresponding declaration in required_providers
 			// we try to resolve the latest version from the registry and add it ourselves
-			// so that they can be parameterized via terraform-provider (any TF provider feature)
-			if _, seen := requiredProviders[provider]; !seen && isTerraformProvider(provider) {
+			// so that they can be parameterized via terraform-provider (any TF provider feature).
+			//
+			// Resources with a custom mapping (e.g. helm_release → kubernetes:helm.sh/v3:Release)
+			// route to a different Pulumi package, so we don't need a parameterized package block for
+			// the TF-side provider.
+			if _, seen := requiredProviders[provider]; !seen &&
+				isTerraformProvider(provider) &&
+				!isCustomResourceMapping(managedResource.Type) {
 				providerSpec, err := providerInfoResolver.ResolveLatest(provider)
 				if err != nil {
 					state.appendDiagnostic(&hcl.Diagnostic{
@@ -3288,7 +3306,7 @@ func translateModuleSourceCode(
 			}
 
 			providerInfo, err := info.GetProviderInfo(provider, requiredProviders[provider])
-			if err != nil {
+			if err != nil && !isCustomResourceMapping(managedResource.Type) {
 				state.appendDiagnostic(&hcl.Diagnostic{
 					Subject:  &managedResource.DeclRange,
 					Severity: hcl.DiagWarning,
@@ -3304,7 +3322,9 @@ func translateModuleSourceCode(
 			}
 
 			resourceToken := impliedToken(managedResource.Type)
-			if root.ResourceInfo != nil {
+			// See the matching guard in convertManagedResource: for custom-mapped resources
+			// impliedToken is authoritative, so don't let a parameterized provider info override it.
+			if root.ResourceInfo != nil && !isCustomResourceMapping(managedResource.Type) {
 				resourceToken = root.ResourceInfo.Tok.String()
 			}
 			tokenParts := strings.Split(resourceToken, ":")
