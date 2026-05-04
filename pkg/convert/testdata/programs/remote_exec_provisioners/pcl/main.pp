@@ -16,6 +16,10 @@ resource "remoteExecResource" "simple:index:resource" {
 resource "remoteExecResourceProvisioner0" "command:remote:Command" {
   options {
     dependsOn = [remoteExecResource]
+    customTimeouts = {
+      create = "30s"
+      update = "30s"
+    }
   }
   connection = {
     host       = "primary.example.com"
@@ -40,6 +44,10 @@ resource "remoteExecResourceProvisioner0" "command:remote:Command" {
 resource "remoteExecResourceProvisioner1Copy" "command:remote:CopyToRemote" {
   options {
     dependsOn = [remoteExecResourceProvisioner0]
+    customTimeouts = {
+      create = "30s"
+      update = "30s"
+    }
   }
   connection = {
     host       = "primary.example.com"
@@ -62,6 +70,10 @@ resource "remoteExecResourceProvisioner1Copy" "command:remote:CopyToRemote" {
 resource "remoteExecResourceProvisioner1" "command:remote:Command" {
   options {
     dependsOn = [remoteExecResourceProvisioner1Copy]
+    customTimeouts = {
+      create = "30s"
+      update = "30s"
+    }
   }
   connection = {
     host       = "primary.example.com"
@@ -84,6 +96,10 @@ resource "remoteExecResourceProvisioner2Copy" "command:remote:CopyToRemote" {
   options {
     range     = scripts
     dependsOn = [remoteExecResourceProvisioner1]
+    customTimeouts = {
+      create = "30s"
+      update = "30s"
+    }
   }
   connection = {
     host       = "primary.example.com"
@@ -106,6 +122,10 @@ resource "remoteExecResourceProvisioner2Copy" "command:remote:CopyToRemote" {
 resource "remoteExecResourceProvisioner2" "command:remote:Command" {
   options {
     dependsOn = remoteExecResourceProvisioner2Copy
+    customTimeouts = {
+      create = "30s"
+      update = "30s"
+    }
   }
   connection = {
     host       = "primary.example.com"

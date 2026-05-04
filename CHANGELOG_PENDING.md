@@ -15,7 +15,9 @@
   to upload the script before invoking it; `scripts` parallelizes the upload via
   `range` and runs each script sequentially. The TF `connection` block is mapped to
   the Pulumi `Connection` input, including `bastion_*` fields which become a `proxy`
-  sub-object.
+  sub-object. The `connection.timeout` attribute is propagated to a
+  `customTimeouts` resource option (`create` and `update`) on every generated
+  Command/CopyToRemote.
   [#430](https://github.com/pulumi/pulumi-converter-terraform/issues/430)
 
 ### Bug Fixes

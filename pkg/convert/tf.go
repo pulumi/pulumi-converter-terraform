@@ -2542,7 +2542,7 @@ func convertProvisioner(
 	state *convertState,
 	info ProviderInfoSource, scopes *scopes,
 	provisioner *configs.Provisioner,
-	resourceConnectionTokens hclwrite.Tokens,
+	resourceConnectionTokens, resourceConnectionTimeout hclwrite.Tokens,
 	resourceName string, resourcePath string, provisionerIndex int,
 	forEach hcl.Expression,
 	target *hclwrite.Body,
@@ -2553,7 +2553,8 @@ func convertProvisioner(
 			resourceName, resourcePath, provisionerIndex, forEach, target)
 	case "remote-exec":
 		convertRemoteExecProvisioner(state, scopes, provisioner,
-			resourceConnectionTokens, resourceName, resourcePath, provisionerIndex, forEach, target)
+			resourceConnectionTokens, resourceConnectionTimeout,
+			resourceName, resourcePath, provisionerIndex, forEach, target)
 	default:
 		state.appendDiagnostic(&hcl.Diagnostic{
 			Severity: hcl.DiagWarning,
@@ -2686,19 +2687,21 @@ var connectionUnsupportedFields = map[string]bool{
 	"certificate":         true,
 	"script_path":         true,
 	"target_platform":     true,
-	"timeout":             true,
 	"type":                true, // we always emit ssh; winrm is unsupported
 	"bastion_certificate": true,
 }
 
 // convertConnection converts a Terraform `connection` block into PCL tokens for the
-// Pulumi command:remote:Connection input. Returns nil when connection is nil; the caller
-// is responsible for emitting a diagnostic if a missing connection is an error in context.
+// Pulumi command:remote:Connection input. Returns nil tokens when connection is nil;
+// the caller is responsible for emitting a diagnostic if a missing connection is an
+// error in context. The `timeout` attribute has no equivalent on the
+// command:remote:Connection type, so it is returned separately so the caller can apply
+// it as a `customTimeouts` resource option on every generated Command resource.
 func convertConnection(
 	state *convertState, scopes *scopes, connection *configs.Connection,
-) hclwrite.Tokens {
+) (conn, timeout hclwrite.Tokens) {
 	if connection == nil {
-		return nil
+		return nil, nil
 	}
 
 	attrs, _ := connection.Config.JustAttributes()
@@ -2714,6 +2717,10 @@ func convertConnection(
 	for _, name := range names {
 		attr := attrs[name]
 		value := convertExpression(state, false, scopes, "", attr.Expr)
+		if name == "timeout" {
+			timeout = value
+			continue
+		}
 		mapped, ok := connectionFieldMap[name]
 		if !ok {
 			if !connectionUnsupportedFields[name] {
@@ -2753,7 +2760,43 @@ func convertConnection(
 		})
 	}
 
-	return hclwrite.TokensForObject(topAttrs)
+	return hclwrite.TokensForObject(topAttrs), timeout
+}
+
+// customTimeoutsTokens returns tokens for the value of a `customTimeouts` option
+// containing whichever of create/update were supplied. Returns nil when both are nil
+// so the caller can omit the option entirely.
+func customTimeoutsTokens(create, update hclwrite.Tokens) hclwrite.Tokens {
+	var attrs []hclwrite.ObjectAttrTokens
+	if create != nil {
+		attrs = append(attrs, hclwrite.ObjectAttrTokens{
+			Name:  hclwrite.TokensForIdentifier("create"),
+			Value: cloneTokens(create),
+		})
+	}
+	if update != nil {
+		attrs = append(attrs, hclwrite.ObjectAttrTokens{
+			Name:  hclwrite.TokensForIdentifier("update"),
+			Value: cloneTokens(update),
+		})
+	}
+	if len(attrs) == 0 {
+		return nil
+	}
+	return hclwrite.TokensForObject(attrs)
+}
+
+// cloneTokens returns a deep-ish copy of t — the slice and each token struct are
+// fresh, but Bytes is shared. Used when the same expression needs to appear in
+// more than one place in the emitted output without aliasing through hclwrite's
+// token-formatting mutations.
+func cloneTokens(t hclwrite.Tokens) hclwrite.Tokens {
+	out := make(hclwrite.Tokens, len(t))
+	for i, tok := range t {
+		cp := *tok
+		out[i] = &cp
+	}
+	return out
 }
 
 // joinInvoke wraps `invoke("std:index:join", { separator, input }).result` for the given
@@ -2806,7 +2849,7 @@ func convertRemoteExecProvisioner(
 	state *convertState,
 	scopes *scopes,
 	provisioner *configs.Provisioner,
-	resourceConnectionTokens hclwrite.Tokens,
+	resourceConnectionTokens, resourceConnectionTimeout hclwrite.Tokens,
 	resourceName string, resourcePath string, provisionerIndex int,
 	forEach hcl.Expression,
 	target *hclwrite.Body,
@@ -2830,11 +2873,11 @@ func convertRemoteExecProvisioner(
 	// The resource-level tokens (and any associated diagnostics) are computed once
 	// by the caller and reused, so we only re-walk a connection block here when
 	// this provisioner overrides it.
-	var connectionTokens hclwrite.Tokens
+	var connectionTokens, timeoutTokens hclwrite.Tokens
 	if provisioner.Connection != nil {
-		connectionTokens = convertConnection(state, scopes, provisioner.Connection)
+		connectionTokens, timeoutTokens = convertConnection(state, scopes, provisioner.Connection)
 	} else {
-		connectionTokens = resourceConnectionTokens
+		connectionTokens, timeoutTokens = resourceConnectionTokens, resourceConnectionTimeout
 	}
 	if connectionTokens == nil {
 		state.appendDiagnostic(&hcl.Diagnostic{
@@ -2897,13 +2940,13 @@ func convertRemoteExecProvisioner(
 
 	switch {
 	case inlineExpr != nil:
-		emitRemoteInline(state, scopes, connectionTokens, inlineExpr,
+		emitRemoteInline(state, scopes, connectionTokens, timeoutTokens, inlineExpr,
 			provisionerName, resourceName, provisionerIndex, forEach, target)
 	case scriptExpr != nil:
-		emitRemoteScript(state, scopes, connectionTokens, scriptExpr,
+		emitRemoteScript(state, scopes, connectionTokens, timeoutTokens, scriptExpr,
 			provisionerName, resourceName, provisionerIndex, forEach, target)
 	case scriptsExpr != nil:
-		emitRemoteScripts(state, scopes, connectionTokens, scriptsExpr,
+		emitRemoteScripts(state, scopes, connectionTokens, timeoutTokens, scriptsExpr,
 			provisionerName, resourceName, provisionerIndex, forEach, provisioner.DeclRange, target)
 	}
 }
@@ -2922,7 +2965,7 @@ func setForEachRange(
 
 func emitRemoteInline(
 	state *convertState, scopes *scopes,
-	connectionTokens hclwrite.Tokens, inlineExpr hcl.Expression,
+	connectionTokens, timeoutTokens hclwrite.Tokens, inlineExpr hcl.Expression,
 	provisionerName, resourceName string, provisionerIndex int,
 	forEach hcl.Expression, target *hclwrite.Body,
 ) {
@@ -2931,6 +2974,9 @@ func emitRemoteInline(
 	options := body.AppendNewBlock("options", nil).Body()
 	setForEachRange(state, scopes, options, forEach)
 	options.SetAttributeRaw("dependsOn", provisionerDependsOn(resourceName, provisionerIndex, forEach))
+	if ct := customTimeoutsTokens(timeoutTokens, timeoutTokens); ct != nil {
+		options.SetAttributeRaw("customTimeouts", ct)
+	}
 
 	body.SetAttributeRaw("connection", connectionTokens)
 	inlineTokens := convertExpression(state, true, scopes, "", inlineExpr)
@@ -2941,7 +2987,7 @@ func emitRemoteInline(
 
 func emitRemoteScript(
 	state *convertState, scopes *scopes,
-	connectionTokens hclwrite.Tokens, scriptExpr hcl.Expression,
+	connectionTokens, timeoutTokens hclwrite.Tokens, scriptExpr hcl.Expression,
 	provisionerName, resourceName string, provisionerIndex int,
 	forEach hcl.Expression, target *hclwrite.Body,
 ) {
@@ -2954,6 +3000,9 @@ func emitRemoteScript(
 	copyOptions := copyBody.AppendNewBlock("options", nil).Body()
 	setForEachRange(state, scopes, copyOptions, forEach)
 	copyOptions.SetAttributeRaw("dependsOn", provisionerDependsOn(resourceName, provisionerIndex, forEach))
+	if ct := customTimeoutsTokens(timeoutTokens, timeoutTokens); ct != nil {
+		copyOptions.SetAttributeRaw("customTimeouts", ct)
+	}
 
 	copyBody.SetAttributeRaw("connection", connectionTokens)
 	scriptTokens := convertExpression(state, true, scopes, "", scriptExpr)
@@ -2977,6 +3026,9 @@ func emitRemoteScript(
 		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenCBrack, "]"))
 	}
 	cmdOptions.SetAttributeRaw("dependsOn", dependsOn)
+	if ct := customTimeoutsTokens(timeoutTokens, timeoutTokens); ct != nil {
+		cmdOptions.SetAttributeRaw("customTimeouts", ct)
+	}
 
 	cmdBody.SetAttributeRaw("connection", connectionTokens)
 	cmdBody.SetAttributeRaw("create", remotePathExprAsBashCommand(provisionerName, false))
@@ -3004,7 +3056,7 @@ func remotePathExprAsBashCommand(provisionerName string, withRangeKey bool) hclw
 
 func emitRemoteScripts(
 	state *convertState, scopes *scopes,
-	connectionTokens hclwrite.Tokens, scriptsExpr hcl.Expression,
+	connectionTokens, timeoutTokens hclwrite.Tokens, scriptsExpr hcl.Expression,
 	provisionerName, resourceName string, provisionerIndex int,
 	forEach hcl.Expression, declRange hcl.Range, target *hclwrite.Body,
 ) {
@@ -3030,6 +3082,9 @@ func emitRemoteScripts(
 	copyOptions.SetAttributeRaw("range", scriptsTokens)
 	// Each iteration depends on the parent resource (PCL pairs by index when both sides have range).
 	copyOptions.SetAttributeRaw("dependsOn", provisionerDependsOn(resourceName, provisionerIndex, nil))
+	if ct := customTimeoutsTokens(timeoutTokens, timeoutTokens); ct != nil {
+		copyOptions.SetAttributeRaw("customTimeouts", ct)
+	}
 
 	copyBody.SetAttributeRaw("connection", connectionTokens)
 	// source = fileAsset(range.value)
@@ -3052,6 +3107,9 @@ func emitRemoteScripts(
 	cmdOptions.SetAttributeRaw("dependsOn", hclwrite.Tokens{
 		makeToken(hclsyntax.TokenIdent, copyName),
 	})
+	if ct := customTimeoutsTokens(timeoutTokens, timeoutTokens); ct != nil {
+		cmdOptions.SetAttributeRaw("customTimeouts", ct)
+	}
 
 	cmdBody.SetAttributeRaw("connection", connectionTokens)
 
@@ -3233,7 +3291,7 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 	// resource-level connection block once and reuse those tokens across every
 	// provisioner that does not specify its own — this way unsupported-attribute
 	// warnings are emitted exactly once per `connection` block.
-	var resourceConnectionTokens hclwrite.Tokens
+	var resourceConnectionTokens, resourceConnectionTimeout hclwrite.Tokens
 	if managedResource.Managed != nil && managedResource.Managed.Connection != nil {
 		// scopes.self must be set for self.X references; convertConnection runs in
 		// the resource scope, but the connection block is evaluated against the
@@ -3241,12 +3299,13 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 		prevSelf, prevSelfPath := scopes.self, scopes.selfPath
 		scopes.self = hcl.Traversal{hcl.TraverseRoot{Name: pulumiName}}
 		scopes.selfPath = path
-		resourceConnectionTokens = convertConnection(state, scopes, managedResource.Managed.Connection)
+		resourceConnectionTokens, resourceConnectionTimeout = convertConnection(
+			state, scopes, managedResource.Managed.Connection)
 		scopes.self, scopes.selfPath = prevSelf, prevSelfPath
 	}
 	for idx, provisioner := range managedResource.Managed.Provisioners {
 		convertProvisioner(state, info, scopes, provisioner,
-			resourceConnectionTokens,
+			resourceConnectionTokens, resourceConnectionTimeout,
 			pulumiName, path, idx, managedResource.ForEach, target)
 	}
 }
