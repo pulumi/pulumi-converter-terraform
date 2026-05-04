@@ -11,6 +11,16 @@
   [#60](https://github.com/pulumi/pulumi-converter-terraform/issues/60)
 - Implemented specialized conversion for `helm_release` resources.
 
+- Convert `remote-exec` provisioners to `command:remote:Command`. The `inline` form
+  emits a single Command resource; `script` adds a paired `command:remote:CopyToRemote`
+  to upload the script before invoking it; `scripts` parallelizes the upload via
+  `range` and runs each script sequentially. The TF `connection` block is mapped to
+  the Pulumi `Connection` input, including `bastion_*` fields which become a `proxy`
+  sub-object. The `connection.timeout` attribute is propagated to a
+  `customTimeouts` resource option (`create` and `update`) on every generated
+  Command/CopyToRemote.
+  [#430](https://github.com/pulumi/pulumi-converter-terraform/issues/430)
+
 ### Bug Fixes
 
 - Fix dynamic blocks with list-typed `for_each` incorrectly wrapping the collection in `entries()`.

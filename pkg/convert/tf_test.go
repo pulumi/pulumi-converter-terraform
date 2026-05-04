@@ -94,6 +94,57 @@ func (s *TestRegistrySource) PackageMeta(
 	}, nil
 }
 
+func TestCustomTimeoutsTokens(t *testing.T) {
+	t.Parallel()
+
+	thirtyS := hclwrite.Tokens{
+		&hclwrite.Token{Type: hclsyntax.TokenOQuote, Bytes: []byte(`"`)},
+		&hclwrite.Token{Type: hclsyntax.TokenQuotedLit, Bytes: []byte("30s")},
+		&hclwrite.Token{Type: hclsyntax.TokenCQuote, Bytes: []byte(`"`)},
+	}
+	oneMin := hclwrite.Tokens{
+		&hclwrite.Token{Type: hclsyntax.TokenOQuote, Bytes: []byte(`"`)},
+		&hclwrite.Token{Type: hclsyntax.TokenQuotedLit, Bytes: []byte("1m")},
+		&hclwrite.Token{Type: hclsyntax.TokenCQuote, Bytes: []byte(`"`)},
+	}
+
+	cases := []struct {
+		name           string
+		create, update hclwrite.Tokens
+		expected       string
+	}{
+		{name: "neither", create: nil, update: nil, expected: ""},
+		{name: "create only", create: thirtyS, update: nil, expected: `{
+  create = "30s"
+}`},
+		{name: "update only", create: nil, update: thirtyS, expected: `{
+  update = "30s"
+}`},
+		{name: "both same value", create: thirtyS, update: thirtyS, expected: `{
+  create = "30s"
+  update = "30s"
+}`},
+		{name: "both differ", create: thirtyS, update: oneMin, expected: `{
+  create = "30s"
+  update = "1m"
+}`},
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := customTimeoutsTokens(tt.create, tt.update)
+			if tt.expected == "" {
+				assert.Nil(t, got)
+				return
+			}
+			f := hclwrite.NewEmptyFile()
+			f.Body().SetAttributeRaw("v", got)
+			assert.Equal(t, "v = "+tt.expected+"\n", string(hclwrite.Format(f.Bytes())))
+		})
+	}
+}
+
 func TestResolveLatestProviderVersion(t *testing.T) {
 	t.Parallel()
 	name := impliedProvider("tfe_organization")
