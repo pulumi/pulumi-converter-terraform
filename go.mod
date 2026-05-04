@@ -16,9 +16,9 @@ require (
 	github.com/hashicorp/terraform-svchost v0.1.1
 	github.com/metoro-io/mcp-golang v0.16.0
 	github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a
-	github.com/pulumi/providertest v0.6.0
-	github.com/pulumi/pulumi-terraform-bridge/v3 v3.124.0
-	github.com/pulumi/pulumi/pkg/v3 v3.228.1-0.20260330134725-4ce8adb33ee7
+	github.com/pulumi/providertest v0.7.0
+	github.com/pulumi/pulumi-terraform-bridge/v3 v3.128.0
+	github.com/pulumi/pulumi/pkg/v3 v3.234.0
 	github.com/pulumi/pulumi/sdk/v3 v3.228.1-0.20260330134725-4ce8adb33ee7
 	github.com/pulumi/terraform v0.13.0
 	github.com/spf13/afero v1.11.0
@@ -216,12 +216,12 @@ require (
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/pulumi/appdash v0.0.0-20231130102222-75f619a67231 // indirect
-	github.com/pulumi/esc v0.22.0 // indirect
+	github.com/pulumi/esc v0.23.0 // indirect
 	github.com/pulumi/inflector v0.2.1 // indirect
-	github.com/pulumi/pulumi-dotnet/pulumi-language-dotnet/v3 v3.101.2 // indirect
-	github.com/pulumi/pulumi-java/pkg v1.21.2 // indirect
-	github.com/pulumi/pulumi-yaml v1.30.1 // indirect
-	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260403091840-c453fc9c72e0 // indirect
+	github.com/pulumi/pulumi-dotnet/pulumi-language-dotnet/v3 v3.104.0 // indirect
+	github.com/pulumi/pulumi-java/pkg v1.22.0 // indirect
+	github.com/pulumi/pulumi-yaml v1.32.0 // indirect
+	github.com/pulumi/pulumi/sdk/pcl/v3 v3.234.0 // indirect
 	github.com/pulumi/terraform-diff-reader v0.0.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
