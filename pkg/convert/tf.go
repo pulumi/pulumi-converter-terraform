@@ -896,6 +896,13 @@ type convertState struct {
 	typeRenames pclOverlapRenames
 
 	sandboxedModuleNames map[string]string
+
+	// sourceFS and sourceDirectory let the converter inspect on-disk paths
+	// referenced by the input HCL (e.g. to decide between fileAsset and
+	// fileArchive for a literal path). Both are optional — when sourceFS is
+	// nil, callers fall back to dynamic forms.
+	sourceFS        afero.Fs
+	sourceDirectory string
 }
 
 type pclOverlapRenames struct {
@@ -2558,12 +2565,16 @@ func convertProvisioner(
 		convertRemoteExecProvisioner(state, scopes, provisioner,
 			resourceConnectionTokens, resourceConnectionTimeout,
 			resourceName, resourcePath, provisionerIndex, forEach, target)
+	case "file":
+		convertFileProvisioner(state, scopes, provisioner,
+			resourceConnectionTokens, resourceConnectionTimeout,
+			resourceName, resourcePath, provisionerIndex, forEach, target)
 	default:
 		state.appendDiagnostic(&hcl.Diagnostic{
 			Severity: hcl.DiagWarning,
 			Summary:  "Unsupported provisioner type",
 			Detail: fmt.Sprintf("Provisioner type %q is not supported by the converter; "+
-				"only \"local-exec\" and \"remote-exec\" are translated.", provisioner.Type),
+				"only \"local-exec\", \"remote-exec\", and \"file\" are translated.", provisioner.Type),
 			Subject: provisioner.DeclRange.Ptr(),
 		})
 		target.AppendUnstructuredTokens(hclwrite.Tokens{
@@ -3154,6 +3165,159 @@ func buildScriptsForExpr(
 	return tokens
 }
 
+// fileAssetOrArchiveExpr returns PCL tokens for the source asset of a Terraform
+// `file` provisioner. CopyToRemote.source can be a fileAsset (file) or
+// fileArchive (directory); Terraform doesn't expose this distinction in HCL, so
+// we resolve it like this:
+//
+//   - Literal path that exists on disk: stat it once at convert time and emit
+//     fileAsset or fileArchive directly.
+//   - Anything else (variable references, interpolations, paths that don't
+//     resolve at convert time): emit `try(fileAsset(p), fileArchive(p))` so
+//     Pulumi picks the correct form at runtime.
+func fileAssetOrArchiveExpr(
+	state *convertState, scopes *scopes, sourceExpr hcl.Expression,
+) hclwrite.Tokens {
+	pathTokens := convertExpression(state, true, scopes, "", sourceExpr)
+
+	if syn, ok := sourceExpr.(hclsyntax.Expression); ok {
+		if literal, isIdent := matchStaticString(syn); literal != nil && !isIdent {
+			fullPath := filepath.Join(state.sourceDirectory, *literal)
+			if info, err := state.sourceFS.Stat(fullPath); err == nil {
+				if info.IsDir() {
+					return hclwrite.TokensForFunctionCall("fileArchive", pathTokens)
+				}
+				return hclwrite.TokensForFunctionCall("fileAsset", pathTokens)
+			}
+		}
+	}
+
+	return hclwrite.TokensForFunctionCall("try",
+		hclwrite.TokensForFunctionCall("fileAsset", pathTokens),
+		hclwrite.TokensForFunctionCall("fileArchive", pathTokens),
+	)
+}
+
+// convertFileProvisioner translates a Terraform `file` provisioner into a single
+// command:remote:CopyToRemote resource. The provisioner copies a local file or
+// directory (`source`) or inline string (`content`) to a path on the remote
+// (`destination`).
+func convertFileProvisioner(
+	state *convertState,
+	scopes *scopes,
+	provisioner *configs.Provisioner,
+	resourceConnectionTokens, resourceConnectionTimeout hclwrite.Tokens,
+	resourceName string, resourcePath string, provisionerIndex int,
+	forEach hcl.Expression,
+	target *hclwrite.Body,
+) {
+	if provisioner.When == configs.ProvisionerWhenDestroy {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagWarning,
+			Summary:  "file provisioner with when=destroy is not supported",
+			Detail: "The file provisioner only runs at create-time in Terraform; " +
+				"`when = destroy` is rejected by Terraform itself, so the converter does not translate it.",
+			Subject: provisioner.DeclRange.Ptr(),
+		})
+		return
+	}
+
+	scopes.self = hcl.Traversal{hcl.TraverseRoot{Name: resourceName}}
+	scopes.selfPath = resourcePath
+	defer func() { scopes.self, scopes.selfPath = nil, "" }()
+
+	var connectionTokens, timeoutTokens hclwrite.Tokens
+	if provisioner.Connection != nil {
+		connectionTokens, timeoutTokens = convertConnection(state, scopes, provisioner.Connection)
+	} else {
+		connectionTokens, timeoutTokens = resourceConnectionTokens, resourceConnectionTimeout
+	}
+	if connectionTokens == nil {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "file provisioner is missing a connection block",
+			Detail: "the file provisioner requires a connection block on the provisioner or the parent resource " +
+				"specifying at least the host to connect to.",
+			Subject: provisioner.DeclRange.Ptr(),
+		})
+		return
+	}
+
+	attrs, _ := provisioner.Config.JustAttributes()
+	var sourceExpr, contentExpr, destinationExpr hcl.Expression
+	for _, attr := range attrs {
+		switch attr.Name {
+		case "source":
+			sourceExpr = attr.Expr
+		case "content":
+			contentExpr = attr.Expr
+		case "destination":
+			destinationExpr = attr.Expr
+		default:
+			state.appendDiagnostic(&hcl.Diagnostic{
+				Severity: hcl.DiagWarning,
+				Summary:  "Unrecognized file provisioner attribute",
+				Detail: fmt.Sprintf("Attribute %q on a file provisioner is not recognized "+
+					"and was not translated.", attr.Name),
+				Subject: attr.Range.Ptr(),
+			})
+		}
+	}
+
+	if destinationExpr == nil {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "file provisioner is missing destination",
+			Detail:   "file provisioner requires a `destination` attribute.",
+			Subject:  provisioner.DeclRange.Ptr(),
+		})
+		return
+	}
+	if sourceExpr == nil && contentExpr == nil {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "file provisioner has no source",
+			Detail:   "file provisioner requires exactly one of `source` or `content`.",
+			Subject:  provisioner.DeclRange.Ptr(),
+		})
+		return
+	}
+	if sourceExpr != nil && contentExpr != nil {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "file provisioner has both source and content",
+			Detail:   "file provisioner must specify exactly one of `source` or `content`.",
+			Subject:  provisioner.DeclRange.Ptr(),
+		})
+		return
+	}
+
+	provisionerName := fmt.Sprintf("%sProvisioner%d", resourceName, provisionerIndex)
+
+	block := hclwrite.NewBlock("resource", []string{provisionerName, "command:remote:CopyToRemote"})
+	body := block.Body()
+	options := body.AppendNewBlock("options", nil).Body()
+	setForEachRange(state, scopes, options, forEach)
+	options.SetAttributeRaw("dependsOn", provisionerDependsOn(resourceName, provisionerIndex, forEach))
+	if ct := customTimeoutsTokens(timeoutTokens, timeoutTokens); ct != nil {
+		options.SetAttributeRaw("customTimeouts", ct)
+	}
+
+	body.SetAttributeRaw("connection", connectionTokens)
+
+	var sourceTokens hclwrite.Tokens
+	if sourceExpr != nil {
+		sourceTokens = fileAssetOrArchiveExpr(state, scopes, sourceExpr)
+	} else {
+		contentTokens := convertExpression(state, true, scopes, "", contentExpr)
+		sourceTokens = hclwrite.TokensForFunctionCall("stringAsset", contentTokens)
+	}
+	body.SetAttributeRaw("source", sourceTokens)
+	body.SetAttributeRaw("remotePath", convertExpression(state, true, scopes, "", destinationExpr))
+
+	target.AppendBlock(block)
+}
+
 func convertManagedResources(state *convertState,
 	info ProviderInfoSource, scopes *scopes,
 	managedResource *configs.Resource,
@@ -3711,6 +3875,8 @@ func translateModuleSourceCode(
 			nameToRename: make(map[string]string),
 			renameToName: make(map[string]string),
 		},
+		sourceFS:        sourceRoot,
+		sourceDirectory: sourceDirectory,
 	}
 
 	// First go through and add everything to the items list so we can sort it by source order
