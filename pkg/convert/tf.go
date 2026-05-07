@@ -2130,7 +2130,13 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 	blockLists := make(map[string][]bodyAttrsTokens)
 	for _, block := range content.Blocks {
 		if block.Type == "timeouts" {
-			// Timeouts are a special resource option block, we can't currently convert that PCL so just skip
+			// Static `timeouts {}` is lifted to a `customTimeouts` resource option in
+			// convertManagedResources; skip it here.
+			continue
+		}
+		if block.Type == "dynamic" && len(block.Labels) > 0 && block.Labels[0] == "timeouts" {
+			// `dynamic "timeouts" {}` is lifted to a `customTimeouts` resource option
+			// in convertManagedResources; skip it here.
 			continue
 		}
 
@@ -2775,6 +2781,119 @@ func convertConnection(
 	}
 
 	return hclwrite.TokensForObject(topAttrs), timeout
+}
+
+// extractResourceCustomTimeouts looks for a static `timeouts {}` or
+// `dynamic "timeouts" {}` block in body and returns tokens for the value of a
+// `customTimeouts` resource option. Returns nil if no timeouts block is present
+// or none of the recognized fields (create/update/delete) are set.
+func extractResourceCustomTimeouts(
+	state *convertState, scopes *scopes, body hcl.Body,
+) hclwrite.Tokens {
+	synBody, ok := body.(*hclsyntax.Body)
+	if !ok {
+		return nil
+	}
+	for _, block := range synBody.Blocks {
+		switch {
+		case block.Type == "timeouts":
+			return staticTimeoutsToCustomTimeouts(state, scopes, block)
+		case block.Type == "dynamic" && len(block.Labels) > 0 && block.Labels[0] == "timeouts":
+			return dynamicTimeoutsToCustomTimeouts(state, scopes, block)
+		}
+	}
+	return nil
+}
+
+// timeoutFieldNames are the fields in a TF `timeouts {}` block that map to
+// Pulumi's `customTimeouts` resource option. (TF's `read` field has no Pulumi
+// equivalent and is dropped.)
+var timeoutFieldNames = []string{"create", "update", "delete"}
+
+func staticTimeoutsToCustomTimeouts(
+	state *convertState, scopes *scopes, block *hclsyntax.Block,
+) hclwrite.Tokens {
+	var attrs []hclwrite.ObjectAttrTokens
+	for _, name := range timeoutFieldNames {
+		attr, ok := block.Body.Attributes[name]
+		if !ok {
+			continue
+		}
+		expr := convertExpression(state, true, scopes, "", attr.Expr)
+		attrs = append(attrs, hclwrite.ObjectAttrTokens{
+			Name:  hclwrite.TokensForIdentifier(name),
+			Value: expr,
+		})
+	}
+	if len(attrs) == 0 {
+		return nil
+	}
+	return hclwrite.TokensForObject(attrs)
+}
+
+func dynamicTimeoutsToCustomTimeouts(
+	state *convertState, scopes *scopes, block *hclsyntax.Block,
+) hclwrite.Tokens {
+	forEachAttr, hasForEach := block.Body.Attributes["for_each"]
+	if !hasForEach {
+		return nil
+	}
+
+	iterator := block.Labels[0]
+	if iteratorAttr, ok := block.Body.Attributes["iterator"]; ok {
+		if str, _ := matchStaticString(iteratorAttr.Expr); str != nil {
+			iterator = *str
+		}
+	}
+
+	var contentBlock *hclsyntax.Block
+	for _, b := range block.Body.Blocks {
+		if b.Type == "content" {
+			contentBlock = b
+			break
+		}
+	}
+	if contentBlock == nil {
+		return nil
+	}
+
+	pulumiEntry, cleanup := scopes.addNestedScopeUniqueName("entry", "", "")
+	defer cleanup()
+	scopes.push(map[string]string{
+		iterator + ".value": pulumiEntry,
+	})
+	defer scopes.pop()
+
+	var attrs []hclwrite.ObjectAttrTokens
+	for _, name := range timeoutFieldNames {
+		attr, ok := contentBlock.Body.Attributes[name]
+		if !ok {
+			continue
+		}
+		expr := convertExpression(state, true, scopes, "", attr.Expr)
+		attrs = append(attrs, hclwrite.ObjectAttrTokens{
+			Name:  hclwrite.TokensForIdentifier(name),
+			Value: expr,
+		})
+	}
+	if len(attrs) == 0 {
+		return nil
+	}
+	objectTokens := hclwrite.TokensForObject(attrs)
+
+	forEachTokens := convertExpression(state, true, scopes, "", forEachAttr.Expr)
+
+	// singleOrNone([for entry in <forEach> : { create = ..., delete = ..., update = ... }])
+	listTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
+	listTokens = append(listTokens, makeToken(hclsyntax.TokenIdent, "for"))
+	listTokens = append(listTokens, makeToken(hclsyntax.TokenIdent, pulumiEntry))
+	listTokens = append(listTokens, makeToken(hclsyntax.TokenIdent, "in"))
+	listTokens = append(listTokens, forEachTokens...)
+	listTokens = append(listTokens, makeToken(hclsyntax.TokenColon, ":"))
+	listTokens = append(listTokens, objectTokens...)
+	listTokens = append(listTokens, makeToken(hclsyntax.TokenCBrack, "]"))
+
+	return hclwrite.TokensForFunctionCall("singleOrNone", listTokens)
 }
 
 // customTimeoutsTokens returns tokens for the value of a `customTimeouts` option
@@ -3436,6 +3555,13 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 		scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
 		scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
 		options.Body().SetAttributeRaw("range", forEachExpr)
+	}
+
+	if ct := extractResourceCustomTimeouts(state, scopes, managedResource.Config); ct != nil {
+		if options == nil {
+			options = hclwrite.NewBlock("options", nil)
+		}
+		options.Body().SetAttributeRaw("customTimeouts", ct)
 	}
 
 	if options != nil {
