@@ -8,18 +8,18 @@ config "timeouts" "map(string)" {
 resource "withDynamicTimeouts" "test:index/resource:Resource" {
   __logicalName = "with_dynamic_timeouts"
   options {
-    customTimeouts = singleOrNone([for entry in [timeouts] : {
+    customTimeouts = {
       create = invoke("std:index:lookup", {
-        map     = entry
+        map     = timeouts
         key     = "create"
         default = null
       }).result
       delete = invoke("std:index:lookup", {
-        map     = entry
+        map     = timeouts
         key     = "delete"
         default = null
       }).result
-    }])
+    }
   }
   value = "x"
 }
