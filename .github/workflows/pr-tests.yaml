@@ -2,9 +2,6 @@ name: Run Acceptance Tests from PR
 
 on:
   pull_request:
-    paths-ignore:
-      - 'CHANGELOG.md'
-      - 'CHANGELOG_PENDING.md'
 
 jobs:
   lint:

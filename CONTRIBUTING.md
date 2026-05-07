@@ -81,6 +81,48 @@ $ gofumpt -w path/to/file.go
 $ gofumpt -w path/to/dir
 ```
 
+## Releasing
+
+Releases are cut by pushing a `vX.Y.Z` tag. The
+[`Publish Release`](.github/workflows/publish-release.yaml) workflow runs lint and
+tests, then invokes GoReleaser to publish binaries, using `CHANGELOG_PENDING.md`
+as the GitHub release notes.
+
+### During development
+
+As you land changes, add an entry under the appropriate heading in
+`CHANGELOG_PENDING.md` (`### Improvements` or `### Bug Fixes`). Reference the
+relevant issue or PR.
+
+### Cutting a release
+
+1. Pick the commit on `main` you want to release and confirm
+   `CHANGELOG_PENDING.md` reflects everything that landed since the last tag.
+2. Tag that commit and push the tag:
+
+   ```bash
+   git tag v1.3.0 <commit-sha>
+   git push origin v1.3.0
+   ```
+
+   This triggers
+   [`publish-release.yaml`](.github/workflows/publish-release.yaml), which runs
+   the full lint + test stages and then publishes the release with GoReleaser.
+3. Open a "Changelog cleanup for vX.Y.Z" PR that:
+   - Moves all entries from `CHANGELOG_PENDING.md` into `CHANGELOG.md` under a
+     new `## X.Y.Z` heading at the top.
+   - Resets `CHANGELOG_PENDING.md` to empty `### Improvements` and
+     `### Bug Fixes` headings.
+
+   See [#434](https://github.com/pulumi/pulumi-converter-terraform/pull/434) for
+   a recent example.
+
+### Prereleases
+
+Prerelease tags of the form `vX.Y.Z-<suffix>` (e.g. `v1.3.0-beta.1`) trigger
+[`publish-prerelease.yaml`](.github/workflows/publish-prerelease.yaml), which
+publishes through `.goreleaser.prerelease.yml`.
+
 ## Getting Help
 
 We're sure there are rough edges and we appreciate you helping out. If you want to talk with other folks in the Pulumi community (including members of the Pulumi team) come hang out in the `#contribute` channel on the [Pulumi Community Slack](https://slack.pulumi.com/).
