@@ -2813,42 +2813,32 @@ var timeoutFieldNames = []string{"create", "update", "delete"}
 func staticTimeoutsToCustomTimeouts(
 	state *convertState, scopes *scopes, block *hclsyntax.Block,
 ) hclwrite.Tokens {
-	attrs := make([]hclwrite.ObjectAttrTokens, 0, len(timeoutFieldNames))
-	for _, name := range timeoutFieldNames {
-		attr, ok := block.Body.Attributes[name]
-		if !ok {
-			continue
-		}
-		expr := convertExpression(state, true, scopes, "", attr.Expr)
-		attrs = append(attrs, hclwrite.ObjectAttrTokens{
-			Name:  hclwrite.TokensForIdentifier(name),
-			Value: expr,
-		})
-	}
-
-	// Diagnose any other attributes — TF's `read` plus typos — in source order
-	// so warnings point at the actual attribute ranges deterministically.
-	unknown := make([]string, 0, len(block.Body.Attributes))
-	for name := range block.Body.Attributes {
-		if !slices.Contains(timeoutFieldNames, name) {
+	attrs := slices.Sorted(maps.Keys(block.Body.Attributes))
+	timeouts := make([]hclwrite.ObjectAttrTokens, 0, len(timeoutFieldNames))
+	var unknown []string
+	for _, name := range attrs {
+		if slices.Contains(timeoutFieldNames, name) {
+			expr := convertExpression(state, true, scopes, "", block.Body.Attributes[name].Expr)
+			timeouts = append(timeouts, hclwrite.ObjectAttrTokens{
+				Name:  hclwrite.TokensForIdentifier(name),
+				Value: expr,
+			})
+		} else {
 			unknown = append(unknown, name)
+			state.appendDiagnostic(&hcl.Diagnostic{
+				Severity: hcl.DiagWarning,
+				Summary:  "Unsupported timeouts attribute",
+				Detail: fmt.Sprintf("Timeouts attribute %q has no equivalent on the Pulumi "+
+					"customTimeouts resource option and was dropped.", name),
+				Subject: block.Body.Attributes[name].Range().Ptr(),
+			})
 		}
 	}
-	sort.Strings(unknown)
-	for _, name := range unknown {
-		state.appendDiagnostic(&hcl.Diagnostic{
-			Severity: hcl.DiagWarning,
-			Summary:  "Unsupported timeouts attribute",
-			Detail: fmt.Sprintf("Timeouts attribute %q has no equivalent on the Pulumi "+
-				"customTimeouts resource option and was dropped.", name),
-			Subject: block.Body.Attributes[name].Range().Ptr(),
-		})
-	}
 
-	if len(attrs) == 0 {
+	if len(timeouts)+len(unknown) == 0 {
 		return nil
 	}
-	tokens := hclwrite.TokensForObject(attrs)
+	tokens := hclwrite.TokensForObject(timeouts)
 	if len(unknown) > 0 {
 		tokens = withDroppedTimeoutsComment(tokens, unknown)
 	}
