@@ -1,9 +1,9 @@
 resource "aResource" "renames:index/index:resource" {
   __logicalName = "a_resource"
-  theNumber     = 1
   theResource = {
     theInnerString = "hello"
   }
+  theNumber = 1
 }
 
 output "someOutputA" {
@@ -18,10 +18,10 @@ output "someOutputA" {
 // Error: unknown property 'theInnerString' among [innerString]
 // Error: cannot traverse value of type union(none, object({innerString = union(none, string)}, annotated(0xc000681c40)))
 aDataSource = invoke("renames:index/index:dataSource", {
-  theNumber = 2
   theResource = {
     theInnerString = "hello"
   }
+  theNumber = 2
 })
 
 output "someOutputC" {
@@ -39,8 +39,8 @@ resource "manyResource" "renames:index/index:resource" {
   options {
     range = 2
   }
-  theNumber = 1
   theResource = {
     theInnerString = "hello"
   }
+  theNumber = 1
 }

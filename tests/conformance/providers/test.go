@@ -17,6 +17,7 @@ package providers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -47,6 +48,11 @@ func TestProvider() *schema.Provider {
 						Computed: true,
 						Elem:     &schema.Schema{Type: schema.TypeString},
 					},
+				},
+				Timeouts: &schema.ResourceTimeout{
+					Create: schema.DefaultTimeout(30 * time.Minute),
+					Update: schema.DefaultTimeout(30 * time.Minute),
+					Delete: schema.DefaultTimeout(30 * time.Minute),
 				},
 				CreateContext: func(_ context.Context, d *schema.ResourceData, _ any) diag.Diagnostics {
 					d.SetId("test-id")

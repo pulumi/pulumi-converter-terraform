@@ -7,3 +7,10 @@
   `stringAsset(...)`.
 
 ### Bug Fixes
+
+- Convert resource `timeouts` blocks to a `customTimeouts` resource option instead of
+  silently dropping them or emitting them as a resource attribute. Both static
+  `timeouts {}` blocks and `dynamic "timeouts" {}` blocks are now lifted to the
+  `customTimeouts` option on the generated resource.
+  [#104](https://github.com/pulumi/pulumi-converter-terraform/issues/104)
+  [#184](https://github.com/pulumi/pulumi-converter-terraform/issues/184)

@@ -2130,7 +2130,13 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 	blockLists := make(map[string][]bodyAttrsTokens)
 	for _, block := range content.Blocks {
 		if block.Type == "timeouts" {
-			// Timeouts are a special resource option block, we can't currently convert that PCL so just skip
+			// Static `timeouts {}` is lifted to a `customTimeouts` resource option in
+			// convertManagedResources; skip it here.
+			continue
+		}
+		if block.Type == "dynamic" && len(block.Labels) > 0 && block.Labels[0] == "timeouts" {
+			// `dynamic "timeouts" {}` is lifted to a `customTimeouts` resource option
+			// in convertManagedResources; skip it here.
 			continue
 		}
 
@@ -2267,8 +2273,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 	}
 
 	// As above, iterate in sorted order
-	names = slices.Collect(maps.Keys(content.Attributes))
-	sort.Strings(names)
+	names = sourceOrderedAttrs(content.Attributes)
 	for _, name := range names {
 		attr := content.Attributes[name]
 		attrPath := appendPath(fullyQualifiedPath, attr.Name)
@@ -2318,7 +2323,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 			Value:  expr,
 		})
 	}
-	sort.Sort(newAttributes)
+
 	return newAttributes
 }
 
@@ -2775,6 +2780,181 @@ func convertConnection(
 	}
 
 	return hclwrite.TokensForObject(topAttrs), timeout
+}
+
+// extractResourceCustomTimeouts looks for a static `timeouts {}` or
+// `dynamic "timeouts" {}` block in body and returns tokens for the value of a
+// `customTimeouts` resource option. Returns nil if no timeouts block is present
+// or none of the recognized fields (create/update/delete) are set.
+func extractResourceCustomTimeouts(
+	state *convertState, scopes *scopes, body hcl.Body,
+) hclwrite.Tokens {
+	synBody, ok := body.(*hclsyntax.Body)
+	if !ok {
+		return nil
+	}
+	for _, block := range synBody.Blocks {
+		switch {
+		case block.Type == "timeouts":
+			return staticTimeoutsToCustomTimeouts(state, scopes, block)
+		case block.Type == "dynamic" && len(block.Labels) > 0 && block.Labels[0] == "timeouts":
+			return dynamicTimeoutsToCustomTimeouts(state, scopes, block)
+		}
+	}
+	return nil
+}
+
+// timeoutFieldNames are the fields in a TF `timeouts {}` block that map to
+// Pulumi's `customTimeouts` resource option. TF also supports `read`, which
+// has no Pulumi equivalent and is dropped with a warning.
+var timeoutFieldNames = []string{"create", "update", "delete"}
+
+func staticTimeoutsToCustomTimeouts(
+	state *convertState, scopes *scopes, block *hclsyntax.Block,
+) hclwrite.Tokens {
+	attrs := slices.Collect(maps.Keys(block.Body.Attributes))
+	sort.Slice(attrs, func(i, j int) bool {
+		return block.Body.Attributes[attrs[i]].SrcRange.Start.Line <
+			block.Body.Attributes[attrs[j]].SrcRange.Start.Line
+	})
+	timeouts := make([]hclwrite.ObjectAttrTokens, 0, len(timeoutFieldNames))
+	var unknown []string
+	for _, name := range attrs {
+		if slices.Contains(timeoutFieldNames, name) {
+			expr := convertExpression(state, true, scopes, "", block.Body.Attributes[name].Expr)
+			timeouts = append(timeouts, hclwrite.ObjectAttrTokens{
+				Name:  hclwrite.TokensForIdentifier(name),
+				Value: expr,
+			})
+		} else {
+			unknown = append(unknown, name)
+			state.appendDiagnostic(&hcl.Diagnostic{
+				Severity: hcl.DiagWarning,
+				Summary:  "Unsupported timeouts attribute",
+				Detail: fmt.Sprintf("Timeouts attribute %q has no equivalent on the Pulumi "+
+					"customTimeouts resource option and was dropped.", name),
+				Subject: block.Body.Attributes[name].Range().Ptr(),
+			})
+		}
+	}
+
+	if len(timeouts)+len(unknown) == 0 {
+		return nil
+	}
+	tokens := hclwrite.TokensForObject(timeouts)
+	if len(unknown) > 0 {
+		tokens = withDroppedTimeoutsComment(tokens, unknown)
+	}
+	return tokens
+}
+
+// withDroppedTimeoutsComment splices a comment listing dropped timeouts
+// attributes into the customTimeouts object literal on its own line above the
+// first attribute. Stays inside the ObjectConsExpression body so the program
+// codegens render the value unchanged.
+func withDroppedTimeoutsComment(objectTokens hclwrite.Tokens, dropped []string) hclwrite.Tokens {
+	comment := &hclwrite.Token{
+		Type: hclsyntax.TokenComment,
+		Bytes: []byte(fmt.Sprintf(
+			"// dropped unsupported timeouts attribute(s): %s\n",
+			strings.Join(dropped, ", "))),
+	}
+	// TokensForObject emits `{`, `\n`, then attribute tokens. Insert after
+	// the newline so the comment sits on its own line above the first attr.
+	for i := 0; i < len(objectTokens)-1; i++ {
+		if objectTokens[i].Type == hclsyntax.TokenOBrace &&
+			objectTokens[i+1].Type == hclsyntax.TokenNewline {
+			out := make(hclwrite.Tokens, 0, len(objectTokens)+1)
+			out = append(out, objectTokens[:i+2]...)
+			out = append(out, comment)
+			out = append(out, objectTokens[i+2:]...)
+			return out
+		}
+	}
+	return objectTokens
+}
+
+func dynamicTimeoutsToCustomTimeouts(
+	state *convertState, scopes *scopes, block *hclsyntax.Block,
+) hclwrite.Tokens {
+	forEachAttr, hasForEach := block.Body.Attributes["for_each"]
+	if !hasForEach {
+		return nil
+	}
+
+	iterator := block.Labels[0]
+	if iteratorAttr, ok := block.Body.Attributes["iterator"]; ok {
+		if str, _ := matchStaticString(iteratorAttr.Expr); str != nil {
+			iterator = *str
+		}
+	}
+
+	var contentBlock *hclsyntax.Block
+	for _, b := range block.Body.Blocks {
+		if b.Type == "content" {
+			contentBlock = b
+			break
+		}
+	}
+	if contentBlock == nil {
+		return nil
+	}
+
+	// `dynamic "timeouts"` iterates over 0 or 1 elements (timeouts is a
+	// maxItems=1 block). We substitute `iterator.value` with
+	// `singleOrNone(<for_each>)` — null when the for_each is empty, the sole
+	// element otherwise — and wrap each emitted field in `try(<expr>, null)`
+	// so the false branch evaluates safely without indexing into an empty
+	// tuple. customTimeouts fields that resolve to null are treated by Pulumi
+	// as "no override".
+	//
+	// The result must be a literal ObjectConsExpression because the python
+	// and go program codegens cast the customTimeouts value directly to
+	// *model.ObjectConsExpression.
+	forEachTokens := convertExpression(state, true, scopes, "", forEachAttr.Expr)
+	iterValueTokens := hclwrite.TokensForFunctionCall("singleOrNone", forEachTokens)
+
+	placeholder, cleanup := scopes.addNestedScopeUniqueName("__timeoutsValue", "", "")
+	defer cleanup()
+	scopes.push(map[string]string{
+		iterator + ".value": placeholder,
+	})
+	defer scopes.pop()
+
+	attrs := make([]hclwrite.ObjectAttrTokens, 0, len(timeoutFieldNames))
+	for _, name := range timeoutFieldNames {
+		attr, ok := contentBlock.Body.Attributes[name]
+		if !ok {
+			continue
+		}
+		expr := convertExpression(state, true, scopes, "", attr.Expr)
+		expr = substituteIdentTokens(expr, placeholder, iterValueTokens)
+		attrs = append(attrs, hclwrite.ObjectAttrTokens{
+			Name: hclwrite.TokensForIdentifier(name),
+			Value: hclwrite.TokensForFunctionCall("try", expr, hclwrite.Tokens{
+				makeToken(hclsyntax.TokenIdent, "null"),
+			}),
+		})
+	}
+	if len(attrs) == 0 {
+		return nil
+	}
+	return hclwrite.TokensForObject(attrs)
+}
+
+// substituteIdentTokens replaces every TokenIdent whose Bytes equal name with
+// a deep copy of replacement.
+func substituteIdentTokens(tokens hclwrite.Tokens, name string, replacement hclwrite.Tokens) hclwrite.Tokens {
+	out := make(hclwrite.Tokens, 0, len(tokens))
+	for _, tok := range tokens {
+		if tok.Type == hclsyntax.TokenIdent && string(tok.Bytes) == name {
+			out = append(out, cloneTokens(replacement)...)
+			continue
+		}
+		cp := *tok
+		out = append(out, &cp)
+	}
+	return out
 }
 
 // customTimeoutsTokens returns tokens for the value of a `customTimeouts` option
@@ -3436,6 +3616,13 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 		scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
 		scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
 		options.Body().SetAttributeRaw("range", forEachExpr)
+	}
+
+	if ct := extractResourceCustomTimeouts(state, scopes, managedResource.Config); ct != nil {
+		if options == nil {
+			options = hclwrite.NewBlock("options", nil)
+		}
+		options.Body().SetAttributeRaw("customTimeouts", ct)
 	}
 
 	if options != nil {
@@ -4377,19 +4564,7 @@ func translateModuleSourceCode(
 				})
 			}
 
-			// We need to iterate over the attributes in a stable order to ensure we get the same output
-			attrKeys := make([]string, 0, len(content.Attributes))
-			for name := range content.Attributes {
-				attrKeys = append(attrKeys, name)
-			}
-			sort.Slice(attrKeys, func(i, j int) bool {
-				ia := content.Attributes[attrKeys[i]]
-				ja := content.Attributes[attrKeys[j]]
-
-				return ia.Range.Start.Line < ja.Range.Start.Line
-			})
-
-			for _, attrKey := range attrKeys {
+			for _, attrKey := range sourceOrderedAttrs(content.Attributes) {
 				// Evauluate and marshal the attribute to a YAML like value for Pulumi config
 				value := content.Attributes[attrKey]
 				val, diags := scopes.EvalExpr(value.Expr)
@@ -4851,4 +5026,15 @@ func getTrackingBug(call *hclsyntax.FunctionCallExpr) string {
 	}
 
 	return r
+}
+
+func sourceOrderedAttrs(attrs hcl.Attributes) []string {
+	attrKeys := slices.Collect(maps.Keys(attrs))
+	sort.Slice(attrKeys, func(i, j int) bool {
+		ia := attrs[attrKeys[i]]
+		ja := attrs[attrKeys[j]]
+
+		return ia.Range.Start.Line < ja.Range.Start.Line
+	})
+	return attrKeys
 }
