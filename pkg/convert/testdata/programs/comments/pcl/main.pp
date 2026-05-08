@@ -11,6 +11,11 @@ aBool = true
 
 // Check we keep data source comments
 aDataSource = invoke("complex:index/index:dataSource", {
+  innerMapObject = {
+
+    // In objects
+    innerString = "hello again"
+  }
 
   // About properties
   aBool   = aBool
@@ -23,30 +28,25 @@ aDataSource = invoke("complex:index/index:dataSource", {
     a = true
     b = false
   }
-  innerMapObject = {
-
-    // In objects
-    innerString = "hello again"
-  }
 })
 
 
 // Check that we keep resource comments
 resource "aResource" "complex:index/index:resource" {
   __logicalName = "a_resource"
-  aBool         = true
-  aNumber       = 2.3 // Trailing comments on properties
+  innerMapObject = {
+
+    // In objects
+    innerString = "hello again"
+  }
+  aBool   = true
+  aNumber = 2.3 // Trailing comments on properties
 
   aString     = "hello world"
   aListOfInts = [1, 2, 3]
   aMapOfBool = {
     a = true
     b = false
-  }
-  innerMapObject = {
-
-    // In objects
-    innerString = "hello again"
   }
 }
 

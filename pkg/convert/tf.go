@@ -2273,8 +2273,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 	}
 
 	// As above, iterate in sorted order
-	names = slices.Collect(maps.Keys(content.Attributes))
-	sort.Strings(names)
+	names = sourceOrderedAttrs(content.Attributes)
 	for _, name := range names {
 		attr := content.Attributes[name]
 		attrPath := appendPath(fullyQualifiedPath, attr.Name)
@@ -2324,7 +2323,7 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 			Value:  expr,
 		})
 	}
-	sort.Sort(newAttributes)
+
 	return newAttributes
 }
 
@@ -2813,7 +2812,11 @@ var timeoutFieldNames = []string{"create", "update", "delete"}
 func staticTimeoutsToCustomTimeouts(
 	state *convertState, scopes *scopes, block *hclsyntax.Block,
 ) hclwrite.Tokens {
-	attrs := slices.Sorted(maps.Keys(block.Body.Attributes))
+	attrs := slices.Collect(maps.Keys(block.Body.Attributes))
+	sort.Slice(attrs, func(i, j int) bool {
+		return block.Body.Attributes[attrs[i]].SrcRange.Start.Line <
+			block.Body.Attributes[attrs[j]].SrcRange.Start.Line
+	})
 	timeouts := make([]hclwrite.ObjectAttrTokens, 0, len(timeoutFieldNames))
 	var unknown []string
 	for _, name := range attrs {
@@ -4561,19 +4564,7 @@ func translateModuleSourceCode(
 				})
 			}
 
-			// We need to iterate over the attributes in a stable order to ensure we get the same output
-			attrKeys := make([]string, 0, len(content.Attributes))
-			for name := range content.Attributes {
-				attrKeys = append(attrKeys, name)
-			}
-			sort.Slice(attrKeys, func(i, j int) bool {
-				ia := content.Attributes[attrKeys[i]]
-				ja := content.Attributes[attrKeys[j]]
-
-				return ia.Range.Start.Line < ja.Range.Start.Line
-			})
-
-			for _, attrKey := range attrKeys {
+			for _, attrKey := range sourceOrderedAttrs(content.Attributes) {
 				// Evauluate and marshal the attribute to a YAML like value for Pulumi config
 				value := content.Attributes[attrKey]
 				val, diags := scopes.EvalExpr(value.Expr)
@@ -5035,4 +5026,15 @@ func getTrackingBug(call *hclsyntax.FunctionCallExpr) string {
 	}
 
 	return r
+}
+
+func sourceOrderedAttrs(attrs hcl.Attributes) []string {
+	attrKeys := slices.Collect(maps.Keys(attrs))
+	sort.Slice(attrKeys, func(i, j int) bool {
+		ia := attrs[attrKeys[i]]
+		ja := attrs[attrKeys[j]]
+
+		return ia.Range.Start.Line < ja.Range.Start.Line
+	})
+	return attrKeys
 }
