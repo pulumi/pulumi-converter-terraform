@@ -2806,14 +2806,23 @@ func extractResourceCustomTimeouts(
 }
 
 // timeoutFieldNames are the fields in a TF `timeouts {}` block that map to
-// Pulumi's `customTimeouts` resource option. (TF's `read` field has no Pulumi
-// equivalent and is dropped.)
+// Pulumi's `customTimeouts` resource option. TF also supports `read`, which
+// has no Pulumi equivalent and is dropped with a warning.
 var timeoutFieldNames = []string{"create", "update", "delete"}
+
+func isTimeoutFieldName(name string) bool {
+	for _, n := range timeoutFieldNames {
+		if n == name {
+			return true
+		}
+	}
+	return false
+}
 
 func staticTimeoutsToCustomTimeouts(
 	state *convertState, scopes *scopes, block *hclsyntax.Block,
 ) hclwrite.Tokens {
-	var attrs []hclwrite.ObjectAttrTokens
+	attrs := make([]hclwrite.ObjectAttrTokens, 0, len(timeoutFieldNames))
 	for _, name := range timeoutFieldNames {
 		attr, ok := block.Body.Attributes[name]
 		if !ok {
@@ -2825,10 +2834,57 @@ func staticTimeoutsToCustomTimeouts(
 			Value: expr,
 		})
 	}
+
+	// Diagnose any other attributes — TF's `read` plus typos — in source order
+	// so warnings point at the actual attribute ranges deterministically.
+	unknown := make([]string, 0, len(block.Body.Attributes))
+	for name := range block.Body.Attributes {
+		if !isTimeoutFieldName(name) {
+			unknown = append(unknown, name)
+		}
+	}
+	sort.Strings(unknown)
+	for _, name := range unknown {
+		state.appendDiagnostic(&hcl.Diagnostic{
+			Severity: hcl.DiagWarning,
+			Summary:  "Unsupported timeouts attribute",
+			Detail: fmt.Sprintf("Timeouts attribute %q has no equivalent on the Pulumi "+
+				"customTimeouts resource option and was dropped.", name),
+			Subject: block.Body.Attributes[name].Range().Ptr(),
+		})
+	}
+
 	if len(attrs) == 0 {
 		return nil
 	}
-	return hclwrite.TokensForObject(attrs)
+	tokens := hclwrite.TokensForObject(attrs)
+	if len(unknown) > 0 {
+		tokens = withDroppedTimeoutsComment(tokens, unknown)
+	}
+	return tokens
+}
+
+// withDroppedTimeoutsComment splices a comment listing dropped timeouts
+// attributes into the customTimeouts object literal, just after the opening
+// brace so it stays inside the ObjectConsExpression body and the program
+// codegens render the value unchanged.
+func withDroppedTimeoutsComment(objectTokens hclwrite.Tokens, dropped []string) hclwrite.Tokens {
+	comment := &hclwrite.Token{
+		Type: hclsyntax.TokenComment,
+		Bytes: []byte(fmt.Sprintf(
+			"// dropped unsupported timeouts attribute(s): %s\n",
+			strings.Join(dropped, ", "))),
+	}
+	for i, tok := range objectTokens {
+		if tok.Type == hclsyntax.TokenOBrace {
+			out := make(hclwrite.Tokens, 0, len(objectTokens)+1)
+			out = append(out, objectTokens[:i+1]...)
+			out = append(out, comment)
+			out = append(out, objectTokens[i+1:]...)
+			return out
+		}
+	}
+	return objectTokens
 }
 
 func dynamicTimeoutsToCustomTimeouts(

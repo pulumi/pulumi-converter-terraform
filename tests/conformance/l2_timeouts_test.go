@@ -59,36 +59,48 @@ resource "test_resource" "with_timeouts" {
 	})
 }
 
-// TestL2TimeoutsDynamic asserts that a `dynamic "timeouts"` block is converted
-// to a Pulumi `customTimeouts` resource option.
-//
-// This is the pattern used by terraform-aws-modules/eks for its fargate-profile
-// and managed-node-group submodules. Today the converter emits the dynamic
-// block as a regular resource attribute, producing PCL that fails to bind with
-// `unsupported attribute 'timeouts'`.
-func TestL2TimeoutsDynamic(t *testing.T) {
-	t.Parallel()
-	conformance.AssertConversion(t, conformance.TestCase{
-		Providers: []conformance.Provider{
-			{Name: "test", Factory: providers.TestProvider},
-		},
-		Input: map[string]string{"main.tf": `
-variable "timeouts" {
-  type    = map(string)
-  default = { create = "5m", delete = "30s" }
+// dynamicTimeoutsHCL exercises the `dynamic "timeouts"` pattern used by
+// terraform-aws-modules/eks (fargate-profile, managed-node-group) where
+// timeouts are wired through a per-module variable and a one-element
+// for_each so the block is included only when values are supplied.
+const dynamicTimeoutsHCL = `
+variable "timeout_create" {
+  type    = string
+  default = "5m"
+}
+
+variable "timeout_delete" {
+  type    = string
+  default = "30s"
 }
 
 resource "test_resource" "with_dynamic_timeouts" {
   value = "x"
   dynamic "timeouts" {
-    for_each = [var.timeouts]
+    for_each = [{ create = var.timeout_create, delete = var.timeout_delete }]
     content {
       create = lookup(timeouts.value, "create", null)
       delete = lookup(timeouts.value, "delete", null)
     }
   }
 }
-`},
+`
+
+// TestL2TimeoutsDynamic asserts that a `dynamic "timeouts"` block is converted
+// to a Pulumi `customTimeouts` resource option.
+//
+// Today the converter emits the dynamic block as a regular resource attribute,
+// producing PCL that fails to bind with `unsupported attribute 'timeouts'`.
+//
+// This case runs without overriding the timeout vars — the resource picks up
+// the defaults declared in the HCL.
+func TestL2TimeoutsDynamic(t *testing.T) {
+	t.Parallel()
+	conformance.AssertConversion(t, conformance.TestCase{
+		Providers: []conformance.Provider{
+			{Name: "test", Factory: providers.TestProvider},
+		},
+		Input: map[string]string{"main.tf": dynamicTimeoutsHCL},
 		AssertState: func(t *testing.T, resources []apitype.ResourceV3) {
 			t.Helper()
 			r := findResource(resources, "with_dynamic_timeouts")
@@ -96,6 +108,33 @@ resource "test_resource" "with_dynamic_timeouts" {
 			assert.Equal(t, &resource.CustomTimeouts{
 				Create: 5 * 60.0,
 				Delete: 30.0,
+			}, r.CustomTimeouts)
+		},
+	})
+}
+
+// TestL2TimeoutsDynamicWithConfig is the same `dynamic "timeouts"` program but
+// with the timeout vars overridden via Config. Asserts the substituted
+// for_each tuple element is evaluated at deploy time, not baked in at
+// conversion time — a different config produces a different CustomTimeouts.
+func TestL2TimeoutsDynamicWithConfig(t *testing.T) {
+	t.Parallel()
+	conformance.AssertConversion(t, conformance.TestCase{
+		Providers: []conformance.Provider{
+			{Name: "test", Factory: providers.TestProvider},
+		},
+		Config: map[string]string{
+			"timeout_create": "10m",
+			"timeout_delete": "1m",
+		},
+		Input: map[string]string{"main.tf": dynamicTimeoutsHCL},
+		AssertState: func(t *testing.T, resources []apitype.ResourceV3) {
+			t.Helper()
+			r := findResource(resources, "with_dynamic_timeouts")
+			require.NotNil(t, r, "resource 'with_dynamic_timeouts' not found in state")
+			assert.Equal(t, &resource.CustomTimeouts{
+				Create: 10 * 60.0,
+				Delete: 60.0,
 			}, r.CustomTimeouts)
 		},
 	})

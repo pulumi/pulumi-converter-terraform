@@ -1,0 +1,4 @@
+[
+  "warning:timeouts_drops_unknown/main.tf:5,9-20:Unsupported timeouts attribute:Timeouts attribute \"read\" has no equivalent on the Pulumi customTimeouts resource option and was dropped.",
+  "warning:timeouts_drops_unknown/main.tf:6,9-28:Unsupported timeouts attribute:Timeouts attribute \"unrecognized\" has no equivalent on the Pulumi customTimeouts resource option and was dropped."
+]
