@@ -2810,15 +2810,6 @@ func extractResourceCustomTimeouts(
 // has no Pulumi equivalent and is dropped with a warning.
 var timeoutFieldNames = []string{"create", "update", "delete"}
 
-func isTimeoutFieldName(name string) bool {
-	for _, n := range timeoutFieldNames {
-		if n == name {
-			return true
-		}
-	}
-	return false
-}
-
 func staticTimeoutsToCustomTimeouts(
 	state *convertState, scopes *scopes, block *hclsyntax.Block,
 ) hclwrite.Tokens {
@@ -2839,7 +2830,7 @@ func staticTimeoutsToCustomTimeouts(
 	// so warnings point at the actual attribute ranges deterministically.
 	unknown := make([]string, 0, len(block.Body.Attributes))
 	for name := range block.Body.Attributes {
-		if !isTimeoutFieldName(name) {
+		if !slices.Contains(timeoutFieldNames, name) {
 			unknown = append(unknown, name)
 		}
 	}
@@ -2865,8 +2856,8 @@ func staticTimeoutsToCustomTimeouts(
 }
 
 // withDroppedTimeoutsComment splices a comment listing dropped timeouts
-// attributes into the customTimeouts object literal, just after the opening
-// brace so it stays inside the ObjectConsExpression body and the program
+// attributes into the customTimeouts object literal on its own line above the
+// first attribute. Stays inside the ObjectConsExpression body so the program
 // codegens render the value unchanged.
 func withDroppedTimeoutsComment(objectTokens hclwrite.Tokens, dropped []string) hclwrite.Tokens {
 	comment := &hclwrite.Token{
@@ -2875,12 +2866,15 @@ func withDroppedTimeoutsComment(objectTokens hclwrite.Tokens, dropped []string) 
 			"// dropped unsupported timeouts attribute(s): %s\n",
 			strings.Join(dropped, ", "))),
 	}
-	for i, tok := range objectTokens {
-		if tok.Type == hclsyntax.TokenOBrace {
+	// TokensForObject emits `{`, `\n`, then attribute tokens. Insert after
+	// the newline so the comment sits on its own line above the first attr.
+	for i := 0; i < len(objectTokens)-1; i++ {
+		if objectTokens[i].Type == hclsyntax.TokenOBrace &&
+			objectTokens[i+1].Type == hclsyntax.TokenNewline {
 			out := make(hclwrite.Tokens, 0, len(objectTokens)+1)
-			out = append(out, objectTokens[:i+1]...)
+			out = append(out, objectTokens[:i+2]...)
 			out = append(out, comment)
-			out = append(out, objectTokens[i+1:]...)
+			out = append(out, objectTokens[i+2:]...)
 			return out
 		}
 	}
@@ -2913,21 +2907,20 @@ func dynamicTimeoutsToCustomTimeouts(
 		return nil
 	}
 
-	// Convert the for_each tokens with the resource scope, then build an
-	// expression for the single value referenced by `iterator.value`.
-	// `dynamic "timeouts"` may iterate over 0 or 1 elements (timeouts is a
-	// maxItems=1 block), so we substitute `iterator.value` with the first
-	// element of the for_each tuple. When the for_each is a literal
-	// single-element tuple `[X]` we substitute `X` directly to keep the
-	// output readable.
+	// `dynamic "timeouts"` iterates over 0 or 1 elements (timeouts is a
+	// maxItems=1 block). We substitute `iterator.value` with
+	// `singleOrNone(<for_each>)` — null when the for_each is empty, the sole
+	// element otherwise — and wrap each emitted field in `try(<expr>, null)`
+	// so the false branch evaluates safely without indexing into an empty
+	// tuple. customTimeouts fields that resolve to null are treated by Pulumi
+	// as "no override".
+	//
+	// The result must be a literal ObjectConsExpression because the python
+	// and go program codegens cast the customTimeouts value directly to
+	// *model.ObjectConsExpression.
 	forEachTokens := convertExpression(state, true, scopes, "", forEachAttr.Expr)
-	indexedForEachTokens := indexFirstElement(forEachAttr.Expr, forEachTokens)
+	iterValueTokens := hclwrite.TokensForFunctionCall("singleOrNone", forEachTokens)
 
-	// Convert content body with `iterator.value` mapped to a unique
-	// placeholder identifier; then textually substitute that identifier with
-	// `indexedForEachTokens` so the resulting customTimeouts object is a
-	// literal ObjectConsExpression — required by the python and go program
-	// codegen which casts the customTimeouts value to *model.ObjectConsExpression.
 	placeholder, cleanup := scopes.addNestedScopeUniqueName("__timeoutsValue", "", "")
 	defer cleanup()
 	scopes.push(map[string]string{
@@ -2942,45 +2935,18 @@ func dynamicTimeoutsToCustomTimeouts(
 			continue
 		}
 		expr := convertExpression(state, true, scopes, "", attr.Expr)
-		expr = substituteIdentTokens(expr, placeholder, indexedForEachTokens)
+		expr = substituteIdentTokens(expr, placeholder, iterValueTokens)
 		attrs = append(attrs, hclwrite.ObjectAttrTokens{
-			Name:  hclwrite.TokensForIdentifier(name),
-			Value: expr,
+			Name: hclwrite.TokensForIdentifier(name),
+			Value: hclwrite.TokensForFunctionCall("try", expr, hclwrite.Tokens{
+				makeToken(hclsyntax.TokenIdent, "null"),
+			}),
 		})
 	}
 	if len(attrs) == 0 {
 		return nil
 	}
 	return hclwrite.TokensForObject(attrs)
-}
-
-// indexFirstElement returns tokens that select the first element of forEach.
-// When forEach is a literal single-element tuple `[X]` we return X's tokens
-// directly to keep the output readable; otherwise we return `(<forEach>)[0]`.
-func indexFirstElement(forEachExpr hcl.Expression, forEachTokens hclwrite.Tokens) hclwrite.Tokens {
-	if tuple, ok := forEachExpr.(*hclsyntax.TupleConsExpr); ok && len(tuple.Exprs) == 1 {
-		// forEachTokens already wraps the single element with `[ ]`.
-		// Strip the outer brackets to get the inner element tokens.
-		if len(forEachTokens) >= 2 &&
-			forEachTokens[0].Type == hclsyntax.TokenOBrack &&
-			forEachTokens[len(forEachTokens)-1].Type == hclsyntax.TokenCBrack {
-			inner := forEachTokens[1 : len(forEachTokens)-1]
-			out := make(hclwrite.Tokens, 0, len(inner))
-			for _, tok := range inner {
-				cp := *tok
-				out = append(out, &cp)
-			}
-			return out
-		}
-	}
-	out := make(hclwrite.Tokens, 0, len(forEachTokens)+5)
-	out = append(out, makeToken(hclsyntax.TokenOParen, "("))
-	out = append(out, cloneTokens(forEachTokens)...)
-	out = append(out, makeToken(hclsyntax.TokenCParen, ")"))
-	out = append(out, makeToken(hclsyntax.TokenOBrack, "["))
-	out = append(out, makeToken(hclsyntax.TokenNumberLit, "0"))
-	out = append(out, makeToken(hclsyntax.TokenCBrack, "]"))
-	return out
 }
 
 // substituteIdentTokens replaces every TokenIdent whose Bytes equal name with
