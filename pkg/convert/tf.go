@@ -2197,25 +2197,50 @@ func convertBody(state *convertState, scopes *scopes, fullyQualifiedPath string,
 				}
 			}
 
-			// Build [for key, val in collection: body] or
-			// [for val in collection: body] depending on whether the
-			// key variable was used. The two-variable form handles both
-			// maps and lists without needing entries().
-			dynamicTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "for"))
-			if tokensContainIdent(bodyTokens, pulumiEachKey) {
-				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, pulumiEachKey))
-				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenComma, ","))
+			var dynamicTokens hclwrite.Tokens
+			if cond, single, isGate := detectConditionalGateForEach(forEachAttr.Expr); isGate {
+				// Gate idiom: `for_each = <cond> ? [<x>] : []`. The dynamic
+				// block exists iff cond is true. Lower to a conditional list
+				// whose body is the converted content with <iter>.value /
+				// <iter>.key inlined as <x> and 0, sidestepping the binder
+				// issue from #228 where a tuple-of-numbers for_each makes the
+				// iterator's value type a union that breaks downstream
+				// traversal binding.
+				condTokens := convertExpression(state, true, scopes, fullyQualifiedPath, cond)
+				singleTokens := convertExpression(state, true, scopes, "", single)
+				zeroTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenNumberLit, "0")}
+				bodyTokens = substituteIdentTokens(bodyTokens, pulumiEachVal, singleTokens)
+				bodyTokens = substituteIdentTokens(bodyTokens, pulumiEachKey, zeroTokens)
+
+				dynamicTokens = append(dynamicTokens, condTokens...)
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenQuestion, "?"))
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenOBrack, "["))
+				dynamicTokens = append(dynamicTokens, bodyTokens...)
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenCBrack, "]"))
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenColon, ":"))
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenOBrack, "["))
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenCBrack, "]"))
+			} else {
+				// Build [for key, val in collection: body] or
+				// [for val in collection: body] depending on whether the
+				// key variable was used. The two-variable form handles both
+				// maps and lists without needing entries().
+				dynamicTokens = hclwrite.Tokens{makeToken(hclsyntax.TokenOBrack, "[")}
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "for"))
+				if tokensContainIdent(bodyTokens, pulumiEachKey) {
+					dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, pulumiEachKey))
+					dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenComma, ","))
+				}
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, pulumiEachVal))
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "in"))
+
+				forEachExprTokens := convertExpression(state, true, scopes, fullyQualifiedPath, forEachAttr.Expr)
+				dynamicTokens = append(dynamicTokens, forEachExprTokens...)
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenColon, ":"))
+
+				dynamicTokens = append(dynamicTokens, bodyTokens...)
+				dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenCBrack, "]"))
 			}
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, pulumiEachVal))
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenIdent, "in"))
-
-			forEachExprTokens := convertExpression(state, true, scopes, fullyQualifiedPath, forEachAttr.Expr)
-			dynamicTokens = append(dynamicTokens, forEachExprTokens...)
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenColon, ":"))
-
-			dynamicTokens = append(dynamicTokens, bodyTokens...)
-			dynamicTokens = append(dynamicTokens, makeToken(hclsyntax.TokenCBrack, "]"))
 
 			if !isList {
 				// This is a block attribute, not a list
@@ -2952,6 +2977,124 @@ func dynamicTimeoutsToCustomTimeouts(
 	return hclwrite.TokensForObject(attrs)
 }
 
+// detectTosetForEach matches `toset(<inner>)` and returns <inner>. TF requires
+// `for_each` on a resource to be either a map or a set of strings, and
+// `toset(<list>)` is the canonical idiom for the latter. When the inner
+// expression is folded into a PCL for-object (`{ for s in <inner> : s => s }`)
+// the resulting range is a string-keyed map, which PCL's binder makes
+// indexable by string (see `binder_resource.go` rangeKey == StringType).
+func detectTosetForEach(expr hcl.Expression) (hcl.Expression, bool) {
+	call, ok := expr.(*hclsyntax.FunctionCallExpr)
+	if !ok || call.Name != "toset" || len(call.Args) != 1 {
+		return nil, false
+	}
+	return call.Args[0], true
+}
+
+// detectConditionalGateForEach matches the gate idiom
+//
+//	<cond> ? [<x>] : []
+//
+// where both branches are tuple literals, the truthy branch has exactly one
+// element, and the falsy branch is empty. This pattern is most commonly seen
+// on `dynamic` blocks to conditionally include a single instance; the inner
+// element `<x>` is just a placeholder and is rarely referenced from the body.
+// Returns the condition and the single tuple element.
+func detectConditionalGateForEach(expr hcl.Expression) (hcl.Expression, hcl.Expression, bool) {
+	cond, ok := expr.(*hclsyntax.ConditionalExpr)
+	if !ok {
+		return nil, nil, false
+	}
+	truthy, ok := cond.TrueResult.(*hclsyntax.TupleConsExpr)
+	if !ok || len(truthy.Exprs) != 1 {
+		return nil, nil, false
+	}
+	falsy, ok := cond.FalseResult.(*hclsyntax.TupleConsExpr)
+	if !ok || len(falsy.Exprs) != 0 {
+		return nil, nil, false
+	}
+	return cond.Condition, truthy.Exprs[0], true
+}
+
+// convertForEachToRange converts a TF `for_each` expression into PCL tokens
+// for the resource's `range` attribute. It also installs scope bindings so
+// references to `each.key` / `each.value` in the resource body convert
+// correctly, and returns:
+//
+//   - a post-processing function to apply to each body attribute's tokens
+//     after the body has been converted (used for the gate pattern where
+//     `each.value`/`each.key` are inlined as literals), or nil; and
+//   - a cleanup function to call after the body has been processed.
+//
+// Two TF patterns are detected and rewritten:
+//
+//  1. `toset(<inner>)` — emitted as `{ for entry in <inner> : entry => entry }`
+//     so PCL sees a string-keyed map and lets the resource be indexed by
+//     string. Without this rewrite the converter emits the std.toset invoke,
+//     which types as a list/set and forces integer indexing.
+//
+//  2. `<cond> ? [<x>] : []` — emitted as `<cond>` (a boolean), letting PCL
+//     create an optional resource. References to `each.value` and `each.key`
+//     in the body are inlined as `<x>` and `0`, respectively.
+//
+// Any other expression is passed through unchanged.
+func convertForEachToRange(
+	state *convertState, scopes *scopes, forEach hcl.Expression,
+) (hclwrite.Tokens, func(hclwrite.Tokens) hclwrite.Tokens, func()) {
+	if inner, ok := detectTosetForEach(forEach); ok {
+		innerTokens := convertExpression(state, true, scopes, "", inner)
+		scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
+		scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
+		return tosetForEachRangeTokens(innerTokens), nil, func() {}
+	}
+	if cond, single, ok := detectConditionalGateForEach(forEach); ok {
+		condTokens := convertExpression(state, true, scopes, "", cond)
+		singleTokens := convertExpression(state, true, scopes, "", single)
+		zeroTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenNumberLit, "0")}
+
+		valPlaceholder, cleanupVal := scopes.addNestedScopeUniqueName("eachValue", "", "")
+		keyPlaceholder, cleanupKey := scopes.addNestedScopeUniqueName("eachKey", "", "")
+		scopes.push(map[string]string{
+			"each.value": valPlaceholder,
+			"each.key":   keyPlaceholder,
+		})
+		post := func(tokens hclwrite.Tokens) hclwrite.Tokens {
+			tokens = substituteIdentTokens(tokens, valPlaceholder, singleTokens)
+			tokens = substituteIdentTokens(tokens, keyPlaceholder, zeroTokens)
+			return tokens
+		}
+		cleanup := func() {
+			scopes.pop()
+			cleanupKey()
+			cleanupVal()
+		}
+		return condTokens, post, cleanup
+	}
+	rangeTokens := convertExpression(state, true, scopes, "", forEach)
+	scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
+	scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
+	return rangeTokens, nil, func() {}
+}
+
+// tosetForEachRangeTokens emits `{ for entry in <inner> : entry => entry }`,
+// the PCL form of TF's `toset(<inner>)` for use as a resource's `range`
+// expression. The for-object's `entry` iterator is scoped to this expression
+// only, so the name does not need to be made unique against the outer scope.
+func tosetForEachRangeTokens(innerTokens hclwrite.Tokens) hclwrite.Tokens {
+	const iter = "entry"
+	tokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrace, "{")}
+	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, "for"))
+	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, iter))
+	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, "in"))
+	tokens = append(tokens, innerTokens...)
+	tokens = append(tokens, makeToken(hclsyntax.TokenColon, ":"))
+	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, iter))
+	tokens = append(tokens, makeToken(hclsyntax.TokenFatArrow, "=>"))
+	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, iter))
+	tokens = append(tokens, makeToken(hclsyntax.TokenCBrace, "}"))
+	return tokens
+}
+
 // substituteIdentTokens replaces every TokenIdent whose Bytes equal name with
 // a deep copy of replacement.
 func substituteIdentTokens(tokens hclwrite.Tokens, name string, replacement hclwrite.Tokens) hclwrite.Tokens {
@@ -3630,14 +3773,16 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 		scopes.countIndex = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
 		options.Body().SetAttributeRaw("range", countExpr)
 	}
+	var forEachPostProcess func(hclwrite.Tokens) hclwrite.Tokens
+	var forEachCleanup func()
 	if managedResource.ForEach != nil {
 		if options == nil {
 			options = hclwrite.NewBlock("options", nil)
 		}
-		forEachExpr := convertExpression(state, true, scopes, "", managedResource.ForEach)
-		scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
-		scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
-		options.Body().SetAttributeRaw("range", forEachExpr)
+		rangeTokens, post, cleanup := convertForEachToRange(state, scopes, managedResource.ForEach)
+		forEachPostProcess = post
+		forEachCleanup = cleanup
+		options.Body().SetAttributeRaw("range", rangeTokens)
 	}
 
 	if ct := extractResourceCustomTimeouts(state, scopes, managedResource.Config); ct != nil {
@@ -3659,9 +3804,16 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 	}
 
 	for _, arg := range resourceArgs {
-		blockBody.SetAttributeRaw(arg.Name, arg.Value)
+		value := arg.Value
+		if forEachPostProcess != nil {
+			value = forEachPostProcess(value)
+		}
+		blockBody.SetAttributeRaw(arg.Name, value)
 	}
 
+	if forEachCleanup != nil {
+		forEachCleanup()
+	}
 	// Clear any index we set
 	scopes.countIndex = nil
 	scopes.eachKey = nil
