@@ -3082,7 +3082,8 @@ func convertForEachToRange(
 // only, so the name does not need to be made unique against the outer scope.
 func tosetForEachRangeTokens(innerTokens hclwrite.Tokens) hclwrite.Tokens {
 	const iter = "entry"
-	tokens := hclwrite.Tokens{makeToken(hclsyntax.TokenOBrace, "{")}
+	tokens := make(hclwrite.Tokens, 0, 9+len(innerTokens))
+	tokens = append(tokens, makeToken(hclsyntax.TokenOBrace, "{"))
 	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, "for"))
 	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, iter))
 	tokens = append(tokens, makeToken(hclsyntax.TokenIdent, "in"))
