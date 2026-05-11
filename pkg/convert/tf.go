@@ -428,10 +428,10 @@ var tfFunctionRenames = map[string]string{
 	"sensitive":    "secret",
 	"nonsensitive": "unsecret",
 	"jsonencode":   "toJSON",
-	"length":     "length",
-	"element":    "element",
-	"try":        "try",
-	"can":        "can",
+	"length":       "length",
+	"element":      "element",
+	"try":          "try",
+	"can":          "can",
 }
 
 //nolint:gosec // G101: these are not credentials, they are Pulumi resource tokens
