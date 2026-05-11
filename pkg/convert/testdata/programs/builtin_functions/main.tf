@@ -15,7 +15,7 @@ locals {
 
     # The `nonsensitive` examples make use of a local `mixed_content`.
     # We don't use jsondecode(var.mixed_content_json) here because we don't want to depend on the jsondecode function working.
-    mixed_content = { "password" = "hunter2" }
+    mixed_content = { "username" = "admin", "password" = "hunter2" }
 }
 
 # The `nonsensitive` examples make use of a variable `mixed_content_json`.

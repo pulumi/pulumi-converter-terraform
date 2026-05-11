@@ -425,12 +425,13 @@ func projectListToSingleton(tokens hclwrite.Tokens) hclwrite.Tokens {
 // 4. Left exactly as is (e.g. length), this is a no-op rename.
 // 5. Assumed to be not supported.
 var tfFunctionRenames = map[string]string{
-	"sensitive":  "secret",
-	"jsonencode": "toJSON",
-	"length":     "length",
-	"element":    "element",
-	"try":        "try",
-	"can":        "can",
+	"sensitive":    "secret",
+	"nonsensitive": "unsecret",
+	"jsonencode":   "toJSON",
+	"length":       "length",
+	"element":      "element",
+	"try":          "try",
+	"can":          "can",
 }
 
 //nolint:gosec // G101: these are not credentials, they are Pulumi resource tokens

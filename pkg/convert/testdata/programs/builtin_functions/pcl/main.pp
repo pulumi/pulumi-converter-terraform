@@ -15,6 +15,7 @@ foo = {
 # The `nonsensitive` examples make use of a local `mixed_content`.
 # We don't use jsondecode(var.mixed_content_json) here because we don't want to depend on the jsondecode function working.
 mixedContent = {
+  "username" = "admin"
   "password" = "hunter2"
 }
 
@@ -1014,19 +1015,19 @@ output "funcNonsensitive2" {
   value = mixedContent["password"]
 }
 output "funcNonsensitive3" {
-  value = notImplemented("nonsensitive(local.mixed_content[\"username\"])")
+  value = unsecret(mixedContent["username"])
 }
 output "funcNonsensitive4" {
-  value = notImplemented("nonsensitive(\"clear\")")
+  value = unsecret("clear")
 }
 output "funcNonsensitive5" {
-  value = notImplemented("nonsensitive(var.mixed_content_json)")
+  value = unsecret(mixedContentJson)
 }
 output "funcNonsensitive6" {
-  value = notImplemented("nonsensitive(local.mixed_content)")
+  value = unsecret(mixedContent)
 }
 output "funcNonsensitive7" {
-  value = notImplemented("nonsensitive(local.mixed_content[\"password\"])")
+  value = unsecret(mixedContent["password"])
 }
 
 
