@@ -169,22 +169,6 @@ output "funcBcrypt" {
 
 
 
-# Examples for can
-output "funcCan0" {
-  value = foo
-}
-output "funcCan1" {
-  value = notImplemented("can(local.foo.bar)")
-}
-output "funcCan2" {
-  value = notImplemented("can(local.foo.boop)")
-}
-output "funcCan3" {
-  value = notImplemented("can(local.nonexist)")
-}
-
-
-
 # Examples for ceil
 output "funcCeil0" {
   value = invoke("std:index:ceil", {

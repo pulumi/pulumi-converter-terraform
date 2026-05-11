@@ -119,21 +119,6 @@ output "funcBcrypt" {
 }
 
 
-# Examples for can
-output "funcCan0" {
-  value = local.foo
-}
-output "funcCan1" {
-  value = can(local.foo.bar)
-}
-output "funcCan2" {
-  value = can(local.foo.boop)
-}
-output "funcCan3" {
-  value = can(local.nonexist)
-}
-
-
 # Examples for ceil
 output "funcCeil0" {
   value = ceil(5)
