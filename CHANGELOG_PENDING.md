@@ -1,5 +1,9 @@
 ### Improvements
 
+- Convert the Terraform `can` builtin to the PCL `can` intrinsic, now that the
+  PCL code generator supports it.
+  [#295](https://github.com/pulumi/pulumi-converter-terraform/pull/295)
+
 - Convert `file` provisioners to `command:remote:CopyToRemote`. The `source` form
   emits `fileAsset(...)` or `fileArchive(...)` when the path can be resolved at convert
   time, falling back to `try(fileAsset(p), fileArchive(p))` for non-literal paths so

@@ -21,7 +21,7 @@ def trimext(file: str) -> str:
 # Functions that are tested via conformance tests rather than this generated test.
 # These are excluded because their TF doc examples use intentionally invalid
 # expressions (e.g. accessing non-existent properties) that PCL's binder rejects.
-skip = {"try"}
+skip = {"try", "can"}
 
 # Some functions don't have any examples in the Terraform docs. They _must_ have overrides here else we error on generation.
 overrides = {
