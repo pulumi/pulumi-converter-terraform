@@ -18,11 +18,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/pulumi/terraform/pkg/addrs"
 	"github.com/pulumi/terraform/pkg/getproviders"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProjectListToSingleton(t *testing.T) {
@@ -143,6 +145,94 @@ func TestCustomTimeoutsTokens(t *testing.T) {
 			assert.Equal(t, "v = "+tt.expected+"\n", string(hclwrite.Format(f.Bytes())))
 		})
 	}
+}
+
+func parseExprForTest(t *testing.T, src string) hclsyntax.Expression {
+	t.Helper()
+	expr, diags := hclsyntax.ParseExpression([]byte(src), "test.hcl", hcl.Pos{Line: 1, Column: 1})
+	require.False(t, diags.HasErrors(), "parse failed: %s", diags)
+	return expr
+}
+
+func TestDetectTosetForEach(t *testing.T) {
+	t.Parallel()
+
+	t.Run("matches toset(list)", func(t *testing.T) {
+		t.Parallel()
+		inner, ok := detectTosetForEach(parseExprForTest(t, `toset(["a", "b"])`))
+		require.True(t, ok)
+		tuple, isTuple := inner.(*hclsyntax.TupleConsExpr)
+		require.True(t, isTuple, "expected tuple, got %T", inner)
+		assert.Len(t, tuple.Exprs, 2)
+	})
+
+	t.Run("rejects other function", func(t *testing.T) {
+		t.Parallel()
+		_, ok := detectTosetForEach(parseExprForTest(t, `tolist(["a"])`))
+		assert.False(t, ok)
+	})
+
+	t.Run("rejects wrong arity", func(t *testing.T) {
+		t.Parallel()
+		_, ok := detectTosetForEach(parseExprForTest(t, `toset(["a"], ["b"])`))
+		assert.False(t, ok)
+	})
+
+	t.Run("rejects non-function expression", func(t *testing.T) {
+		t.Parallel()
+		_, ok := detectTosetForEach(parseExprForTest(t, `var.x`))
+		assert.False(t, ok)
+	})
+}
+
+func TestDetectConditionalGateForEach(t *testing.T) {
+	t.Parallel()
+
+	t.Run("matches gate", func(t *testing.T) {
+		t.Parallel()
+		cond, single, ok := detectConditionalGateForEach(parseExprForTest(t, `var.enabled ? [1] : []`))
+		require.True(t, ok)
+		_, condOK := cond.(*hclsyntax.ScopeTraversalExpr)
+		assert.True(t, condOK, "expected traversal for condition, got %T", cond)
+		lit, isLit := single.(*hclsyntax.LiteralValueExpr)
+		require.True(t, isLit, "expected literal element, got %T", single)
+		assert.True(t, lit.Val.AsBigFloat().IsInt())
+	})
+
+	t.Run("rejects two-element truthy branch", func(t *testing.T) {
+		t.Parallel()
+		_, _, ok := detectConditionalGateForEach(parseExprForTest(t, `var.x ? [1, 2] : []`))
+		assert.False(t, ok)
+	})
+
+	t.Run("rejects non-empty falsy branch", func(t *testing.T) {
+		t.Parallel()
+		_, _, ok := detectConditionalGateForEach(parseExprForTest(t, `var.x ? [1] : [0]`))
+		assert.False(t, ok)
+	})
+
+	t.Run("rejects non-tuple branches", func(t *testing.T) {
+		t.Parallel()
+		_, _, ok := detectConditionalGateForEach(parseExprForTest(t, `var.x ? toset([1]) : toset([])`))
+		assert.False(t, ok)
+	})
+
+	t.Run("rejects non-conditional expression", func(t *testing.T) {
+		t.Parallel()
+		_, _, ok := detectConditionalGateForEach(parseExprForTest(t, `var.x`))
+		assert.False(t, ok)
+	})
+}
+
+func TestTosetForEachRangeTokens(t *testing.T) {
+	t.Parallel()
+	inner := hclwrite.Tokens{
+		&hclwrite.Token{Type: hclsyntax.TokenIdent, Bytes: []byte("xs")},
+	}
+	got := tosetForEachRangeTokens(inner)
+	f := hclwrite.NewEmptyFile()
+	f.Body().SetAttributeRaw("v", got)
+	assert.Equal(t, "v = { for entry in xs : entry => entry }\n", string(hclwrite.Format(f.Bytes())))
 }
 
 func TestResolveLatestProviderVersion(t *testing.T) {
