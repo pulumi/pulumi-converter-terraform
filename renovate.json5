@@ -3,4 +3,22 @@
   extends: [
     'github>pulumi/renovate-config//default.json5',
   ],
+  packageRules: [
+    {
+      // sdk/pcl has no release tags of its own. Renovate otherwise mis-resolves
+      // it to a sibling submodule's tag (see renovatebot/renovate#34705).
+      // Updates are driven by the pkg/v3 postUpgradeTask below.
+      matchManagers: ['gomod'],
+      matchPackageNames: ['github.com/pulumi/pulumi/sdk/pcl/v3'],
+      enabled: false,
+    },
+    {
+      matchManagers: ['gomod'],
+      matchPackageNames: ['github.com/pulumi/pulumi/pkg/v3'],
+      postUpgradeTasks: {
+        commands: ['make sync-pcl'],
+        executionMode: 'branch',
+      },
+    },
+  ],
 }
