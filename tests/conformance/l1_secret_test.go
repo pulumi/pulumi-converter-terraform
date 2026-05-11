@@ -24,15 +24,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestL1Secret asserts that the TF `sensitive` function is converted to PCL's
-// `secret` intrinsic, and that the resulting stack output is encoded as a
-// secret in Pulumi state.
+// TestL1Secret asserts that the secret encoding in Pulumi state comes from
+// the TF `sensitive(...)` function (converted to PCL `secret(...)`), not from
+// the `sensitive = true` annotation on the output itself.
+//
+// Both outputs are marked `sensitive = true` (TF requires this for any output
+// whose value is sensitive), but only the one wrapped in `sensitive(...)`
+// ends up secret-encoded in Pulumi state.
 func TestL1Secret(t *testing.T) {
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
 		Input: map[string]string{"main.tf": `
 output "wrapped" {
   value     = sensitive("hello")
+  sensitive = true
+}
+
+output "marked_only" {
+  value     = "world"
   sensitive = true
 }
 `},
@@ -50,7 +59,10 @@ output "wrapped" {
 			assert.Equal(t, map[string]any{
 				sig.Key:     sig.Secret,
 				"plaintext": `"hello"`,
-			}, stack.Outputs["wrapped"])
+			}, stack.Outputs["wrapped"], "sensitive(...) should produce a secret-encoded output")
+
+			assert.Equal(t, "world", stack.Outputs["markedOnly"],
+				"sensitive = true alone should not produce a secret-encoded output")
 		},
 	})
 }
