@@ -14,3 +14,6 @@
   `customTimeouts` option on the generated resource.
   [#104](https://github.com/pulumi/pulumi-converter-terraform/issues/104)
   [#184](https://github.com/pulumi/pulumi-converter-terraform/issues/184)
+
+- Stop emitting deprecated package block labels in generated PCL, using the
+  `baseProviderName` attribute instead.  [#405](https://github.com/pulumi/pulumi-converter-terraform/pull/405)
