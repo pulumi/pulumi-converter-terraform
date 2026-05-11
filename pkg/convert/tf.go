@@ -2593,25 +2593,35 @@ func convertProvisioner(
 
 // provisionerDependsOn builds the `dependsOn` token list for a generated provisioner resource.
 // The first provisioner depends on the parent resource; each subsequent one depends on the
-// previous provisioner. When the parent has for_each (forEach != nil), we omit the brackets so
-// that PCL's range option pairs each parent iteration with the corresponding provisioner.
+// previous provisioner. When the parent has for_each (forEach != nil), the target resource
+// is a map of resources, so we flatten it to a list via a for expression.
 func provisionerDependsOn(
 	resourceName string, provisionerIndex int, forEach hcl.Expression,
 ) hclwrite.Tokens {
-	var dependsOn hclwrite.Tokens
-	if forEach == nil {
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenOBrack, "["))
-	}
+	var target string
 	if provisionerIndex == 0 {
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenIdent, resourceName))
+		target = resourceName
 	} else {
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenIdent,
-			fmt.Sprintf("%sProvisioner%d", resourceName, provisionerIndex-1)))
+		target = fmt.Sprintf("%sProvisioner%d", resourceName, provisionerIndex-1)
 	}
 	if forEach == nil {
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenCBrack, "]"))
+		return hclwrite.Tokens{
+			makeToken(hclsyntax.TokenOBrack, "["),
+			makeToken(hclsyntax.TokenIdent, target),
+			makeToken(hclsyntax.TokenCBrack, "]"),
+		}
 	}
-	return dependsOn
+	// [for _r in <target>: _r]
+	return hclwrite.Tokens{
+		makeToken(hclsyntax.TokenOBrack, "["),
+		makeToken(hclsyntax.TokenIdent, "for"),
+		makeToken(hclsyntax.TokenIdent, "_r"),
+		makeToken(hclsyntax.TokenIdent, "in"),
+		makeToken(hclsyntax.TokenIdent, target),
+		makeToken(hclsyntax.TokenColon, ":"),
+		makeToken(hclsyntax.TokenIdent, "_r"),
+		makeToken(hclsyntax.TokenCBrack, "]"),
+	}
 }
 
 func convertLocalExecProvisioner(
@@ -3210,14 +3220,26 @@ func emitRemoteScript(
 	cmdOptions := cmdBody.AppendNewBlock("options", nil).Body()
 	setForEachRange(state, scopes, cmdOptions, forEach)
 
-	// dependsOn = [<copyName>] (or just <copyName> when forEach is set)
+	// dependsOn = [<copyName>], flattened via a for expression when forEach is set
+	// (the Copy resource is then a map of resources, not assignable to list(dynamic)).
 	var dependsOn hclwrite.Tokens
 	if forEach == nil {
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenOBrack, "["))
-	}
-	dependsOn = append(dependsOn, makeToken(hclsyntax.TokenIdent, copyName))
-	if forEach == nil {
-		dependsOn = append(dependsOn, makeToken(hclsyntax.TokenCBrack, "]"))
+		dependsOn = hclwrite.Tokens{
+			makeToken(hclsyntax.TokenOBrack, "["),
+			makeToken(hclsyntax.TokenIdent, copyName),
+			makeToken(hclsyntax.TokenCBrack, "]"),
+		}
+	} else {
+		dependsOn = hclwrite.Tokens{
+			makeToken(hclsyntax.TokenOBrack, "["),
+			makeToken(hclsyntax.TokenIdent, "for"),
+			makeToken(hclsyntax.TokenIdent, "_r"),
+			makeToken(hclsyntax.TokenIdent, "in"),
+			makeToken(hclsyntax.TokenIdent, copyName),
+			makeToken(hclsyntax.TokenColon, ":"),
+			makeToken(hclsyntax.TokenIdent, "_r"),
+			makeToken(hclsyntax.TokenCBrack, "]"),
+		}
 	}
 	cmdOptions.SetAttributeRaw("dependsOn", dependsOn)
 	if ct := customTimeoutsTokens(timeoutTokens, timeoutTokens); ct != nil {

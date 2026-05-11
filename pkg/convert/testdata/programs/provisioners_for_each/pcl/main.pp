@@ -19,7 +19,7 @@ resource "localExecResource" "simple:index:resource" {
 resource "localExecResourceProvisioner0" "command:local:Command" {
   options {
     range     = echoData
-    dependsOn = localExecResource
+    dependsOn = [for _r in localExecResource : _r]
   }
   create = "echo ${range.value}"
 }
