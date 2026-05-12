@@ -3017,63 +3017,26 @@ func detectConditionalGateForEach(expr hcl.Expression) (hcl.Expression, hcl.Expr
 }
 
 // convertForEachToRange converts a TF `for_each` expression into PCL tokens
-// for the resource's `range` attribute. It also installs scope bindings so
+// for the resource's `range` attribute and installs scope bindings so
 // references to `each.key` / `each.value` in the resource body convert
-// correctly, and returns:
+// correctly.
 //
-//   - a post-processing function to apply to each body attribute's tokens
-//     after the body has been converted (used for the gate pattern where
-//     `each.value`/`each.key` are inlined as literals), or nil; and
-//   - a cleanup function to call after the body has been processed.
-//
-// Two TF patterns are detected and rewritten:
-//
-//  1. `toset(<inner>)` — emitted as `{ for entry in <inner> : entry => entry }`
-//     so PCL sees a string-keyed map and lets the resource be indexed by
-//     string. Without this rewrite the converter emits the std.toset invoke,
-//     which types as a list/set and forces integer indexing.
-//
-//  2. `<cond> ? [<x>] : []` — emitted as `<cond>` (a boolean), letting PCL
-//     create an optional resource. References to `each.value` and `each.key`
-//     in the body are inlined as `<x>` and `0`, respectively.
+// `for_each = toset(<inner>)` is rewritten to
+// `{ for entry in <inner> : entry => entry }` so PCL sees a string-keyed map
+// and lets the resource be indexed by string. Without this rewrite the
+// converter emits the `std.toset` invoke, which types as a list/set and
+// forces integer indexing.
 //
 // Any other expression is passed through unchanged.
 func convertForEachToRange(
 	state *convertState, scopes *scopes, forEach hcl.Expression,
-) (hclwrite.Tokens, func(hclwrite.Tokens) hclwrite.Tokens, func()) {
-	if inner, ok := detectTosetForEach(forEach); ok {
-		innerTokens := convertExpression(state, true, scopes, "", inner)
-		scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
-		scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
-		return tosetForEachRangeTokens(innerTokens), nil, func() {}
-	}
-	if cond, single, ok := detectConditionalGateForEach(forEach); ok {
-		condTokens := convertExpression(state, true, scopes, "", cond)
-		singleTokens := convertExpression(state, true, scopes, "", single)
-		zeroTokens := hclwrite.Tokens{makeToken(hclsyntax.TokenNumberLit, "0")}
-
-		valPlaceholder, cleanupVal := scopes.addNestedScopeUniqueName("eachValue", "", "")
-		keyPlaceholder, cleanupKey := scopes.addNestedScopeUniqueName("eachKey", "", "")
-		scopes.push(map[string]string{
-			"each.value": valPlaceholder,
-			"each.key":   keyPlaceholder,
-		})
-		post := func(tokens hclwrite.Tokens) hclwrite.Tokens {
-			tokens = substituteIdentTokens(tokens, valPlaceholder, singleTokens)
-			tokens = substituteIdentTokens(tokens, keyPlaceholder, zeroTokens)
-			return tokens
-		}
-		cleanup := func() {
-			scopes.pop()
-			cleanupKey()
-			cleanupVal()
-		}
-		return condTokens, post, cleanup
-	}
-	rangeTokens := convertExpression(state, true, scopes, "", forEach)
+) hclwrite.Tokens {
 	scopes.eachKey = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "key"}}
 	scopes.eachValue = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
-	return rangeTokens, nil, func() {}
+	if inner, ok := detectTosetForEach(forEach); ok {
+		return tosetForEachRangeTokens(convertExpression(state, true, scopes, "", inner))
+	}
+	return convertExpression(state, true, scopes, "", forEach)
 }
 
 // tosetForEachRangeTokens emits `{ for entry in <inner> : entry => entry }`,
@@ -3774,16 +3737,11 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 		scopes.countIndex = hcl.Traversal{hcl.TraverseRoot{Name: "range"}, hcl.TraverseAttr{Name: "value"}}
 		options.Body().SetAttributeRaw("range", countExpr)
 	}
-	var forEachPostProcess func(hclwrite.Tokens) hclwrite.Tokens
-	var forEachCleanup func()
 	if managedResource.ForEach != nil {
 		if options == nil {
 			options = hclwrite.NewBlock("options", nil)
 		}
-		rangeTokens, post, cleanup := convertForEachToRange(state, scopes, managedResource.ForEach)
-		forEachPostProcess = post
-		forEachCleanup = cleanup
-		options.Body().SetAttributeRaw("range", rangeTokens)
+		options.Body().SetAttributeRaw("range", convertForEachToRange(state, scopes, managedResource.ForEach))
 	}
 
 	if ct := extractResourceCustomTimeouts(state, scopes, managedResource.Config); ct != nil {
@@ -3805,16 +3763,9 @@ See https://www.pulumi.com/docs/iac/concepts/options/deletebeforereplace/ for de
 	}
 
 	for _, arg := range resourceArgs {
-		value := arg.Value
-		if forEachPostProcess != nil {
-			value = forEachPostProcess(value)
-		}
-		blockBody.SetAttributeRaw(arg.Name, value)
+		blockBody.SetAttributeRaw(arg.Name, arg.Value)
 	}
 
-	if forEachCleanup != nil {
-		forEachCleanup()
-	}
 	// Clear any index we set
 	scopes.countIndex = nil
 	scopes.eachKey = nil

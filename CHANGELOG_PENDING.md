@@ -19,5 +19,6 @@
   `baseProviderName` attribute instead.  [#405](https://github.com/pulumi/pulumi-converter-terraform/pull/405)
 
 - Convert `for_each = toset(<list>)` to a string-keyed PCL for-object and lower the
-  `<cond> ? [<x>] : []` gate idiom to a conditional list with `each.value`/`each.key` inlined.
+  `<cond> ? [<x>] : []` gate idiom on `dynamic` blocks to a conditional list with
+  `each.value`/`each.key` inlined.
   [#228](https://github.com/pulumi/pulumi-converter-terraform/issues/228)
