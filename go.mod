@@ -18,8 +18,8 @@ require (
 	github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a
 	github.com/pulumi/providertest v0.7.0
 	github.com/pulumi/pulumi-terraform-bridge/v3 v3.129.2
-	github.com/pulumi/pulumi/pkg/v3 v3.238.0
-	github.com/pulumi/pulumi/sdk/v3 v3.238.0
+	github.com/pulumi/pulumi/pkg/v3 v3.239.0
+	github.com/pulumi/pulumi/sdk/v3 v3.239.0
 	github.com/pulumi/terraform v0.13.0
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/pflag v1.0.10
