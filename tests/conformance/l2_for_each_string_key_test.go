@@ -21,13 +21,19 @@ import (
 	"github.com/pulumi/pulumi-converter-terraform/tests/conformance/providers"
 )
 
-// TestL2ForEachStringKey reproduces a converter bug where for_each with a set of strings
-// produces PCL that uses range-based indexing. TF allows string-key access like
-// test_resource.mapped["alpha"], but the converted PCL treats the result as a list,
-// causing "a number is required" at runtime.
+// TestL2ForEachStringKey exercises the canonical TF idiom for using a set of
+// strings as a resource's `for_each`: wrapping a list with `toset(...)`.
+//
+// In TF, `for_each = toset(<list>)` produces a string-keyed map of instances
+// where each.key == each.value, so `test_resource.mapped["alpha"]` is a valid
+// lookup. Naively converting this to PCL emits
+// `range = invoke("std:index:toset", ...).result`, which types as a list/set
+// and forces the resource to be indexed by integer — `mapped["alpha"]` then
+// fails to bind ("a number is required"). The converter sidesteps this by
+// rewriting `toset(<x>)` into `{ for entry in <x> : entry => entry }` so PCL
+// sees a string-keyed map directly.
 func TestL2ForEachStringKey(t *testing.T) {
 	// https://github.com/pulumi/pulumi-converter-terraform/issues/228
-	t.Skip("for_each with string keys produces range-based indexing")
 	t.Parallel()
 	conformance.AssertConversion(t, conformance.TestCase{
 		Providers: []conformance.Provider{
