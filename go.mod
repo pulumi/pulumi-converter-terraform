@@ -18,8 +18,8 @@ require (
 	github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a
 	github.com/pulumi/providertest v0.7.0
 	github.com/pulumi/pulumi-terraform-bridge/v3 v3.129.2
-	github.com/pulumi/pulumi/pkg/v3 v3.241.0
-	github.com/pulumi/pulumi/sdk/v3 v3.241.0
+	github.com/pulumi/pulumi/pkg/v3 v3.242.0
+	github.com/pulumi/pulumi/sdk/v3 v3.242.0
 	github.com/pulumi/terraform v0.13.0
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/pflag v1.0.10
@@ -219,7 +219,7 @@ require (
 	github.com/pulumi/esc v0.24.0 // indirect
 	github.com/pulumi/inflector v0.2.1 // indirect
 	github.com/pulumi/pulumi-dotnet/pulumi-language-dotnet/v3 v3.106.2 // indirect
-	github.com/pulumi/pulumi-java v1.27.0 // indirect
+	github.com/pulumi/pulumi-java v1.28.0 // indirect
 	github.com/pulumi/pulumi-yaml v1.34.0 // indirect
 	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260508220805-9c1a089100e2 // indirect
 	github.com/pulumi/terraform-diff-reader v0.0.2 // indirect
@@ -288,8 +288,8 @@ require (
 	google.golang.org/api v0.271.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20260128011058-8636f8732409 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260511170946-3700d4141b60 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260511170946-3700d4141b60 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260519071638-aa98bba5eb94 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260519071638-aa98bba5eb94 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
