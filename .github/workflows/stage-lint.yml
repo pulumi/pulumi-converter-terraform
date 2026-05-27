@@ -37,6 +37,15 @@ jobs:
             exit 1
           fi
 
+      - run: make sync-pcl
+      - name: Fail if make sync-pcl changed go.mod
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error sdk/pcl out of sync with pkg; run \`make sync-pcl\` and commit the result"
+            git --no-pager diff
+            exit 1
+          fi
+
       - name: Lint
         env:
           GOFLAGS: "-buildvcs=false"

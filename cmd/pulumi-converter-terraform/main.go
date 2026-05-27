@@ -33,6 +33,8 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/pflag"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type tfConverter struct{}
@@ -192,6 +194,12 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	return &plugin.ConvertProgramResponse{
 		Diagnostics: diags,
 	}, nil
+}
+
+func (*tfConverter) ConvertSnippet(_ context.Context,
+	_ *plugin.ConvertSnippetRequest,
+) (*plugin.ConvertSnippetResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "ConvertSnippet is not implemented")
 }
 
 func main() {
