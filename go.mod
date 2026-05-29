@@ -17,7 +17,7 @@ require (
 	github.com/metoro-io/mcp-golang v0.16.0
 	github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a
 	github.com/pulumi/providertest v0.7.0
-	github.com/pulumi/pulumi-terraform-bridge/v3 v3.130.0
+	github.com/pulumi/pulumi-terraform-bridge/v3 v3.131.0
 	github.com/pulumi/pulumi/pkg/v3 v3.243.0
 	github.com/pulumi/pulumi/sdk/v3 v3.243.0
 	github.com/pulumi/terraform v0.13.0
