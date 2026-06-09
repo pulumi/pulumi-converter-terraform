@@ -16,7 +16,9 @@
       matchManagers: ['gomod'],
       matchPackageNames: ['github.com/pulumi/pulumi/pkg/v3'],
       postUpgradeTasks: {
-        commands: ['make sync-pcl'],
+        // The org Renovate config only allowlists `make build` and
+        // `make renovate`; the latter provisions Go via mise and runs sync-pcl.
+        commands: ['make renovate'],
         executionMode: 'branch',
       },
     },
