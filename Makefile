@@ -9,10 +9,19 @@ GOPATH          := $(shell go env GOPATH)
 # Additional arguments to pass to golangci-lint.
 GOLANGCI_LINT_ARGS ?=
 
-.PHONY: ensure format lint build test install sync-pcl
+.PHONY: ensure format lint build test install sync-pcl renovate
 
 ensure:
 	go mod tidy
+
+# Entry point for the pulumi-renovate bot's postUpgradeTasks (see
+# renovate.json5). Only `make build` and `make renovate` are allowlisted by the
+# org Renovate config, and the bot's container is hermetic with no Go toolchain,
+# so provision the versions pinned in mise.toml before delegating to sync-pcl.
+renovate:
+	@command -v mise >/dev/null 2>&1 || curl -fsSL https://mise.run | sh
+	@PATH="$$HOME/.local/bin:$$PATH"; \
+		mise trust && mise install && mise exec -- $(MAKE) sync-pcl
 
 # Pin github.com/pulumi/pulumi/sdk/pcl/v3 to the commit tagged as
 # pkg/$(pkg/v3-version) in pulumi/pulumi. sdk/pcl has no release tags of its

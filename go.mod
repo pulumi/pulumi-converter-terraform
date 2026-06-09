@@ -221,7 +221,7 @@ require (
 	github.com/pulumi/pulumi-dotnet/pulumi-language-dotnet/v3 v3.107.0 // indirect
 	github.com/pulumi/pulumi-java v1.29.0 // indirect
 	github.com/pulumi/pulumi-yaml v1.35.1 // indirect
-	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260523025423-917e3ae00a38 // indirect
+	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260604165023-bb4f3bf911f8 // indirect
 	github.com/pulumi/terraform-diff-reader v0.0.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
