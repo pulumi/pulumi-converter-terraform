@@ -219,7 +219,7 @@ func newTestLoader(t *testing.T, providerInfos map[string]*tfbridge.ProviderInfo
 		spec, err := tfgen.GenerateSchema(*info, sink)
 		require.NoError(t, err)
 
-		pkg, err := pschema.ImportSpec(spec, nil, pschema.ValidationOptions{})
+		pkg, err := pschema.ImportSpec(spec, nil, pschema.NewNullLoader(), pschema.ValidationOptions{})
 		require.NoError(t, err)
 
 		packages[pkg.Name] = pkg.Reference()

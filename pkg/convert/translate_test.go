@@ -318,7 +318,6 @@ func TestTranslate(t *testing.T) {
 			// If this is a partial test turn on the options to allow missing bits
 			partial := strings.HasPrefix(tt.name, "partial_")
 			pulumiOptions := []pcl.BindOption{
-				pcl.Loader(loader),
 				pcl.DirPath("/"),
 				pcl.ComponentBinder(componentProgramBinderFromAfero(pclFs)),
 			}
@@ -352,7 +351,7 @@ func TestTranslate(t *testing.T) {
 			}
 			logDiagnostics("parser", pulumiParser.Diagnostics)
 
-			_, diagnostics, err = pcl.BindProgram(pulumiParser.Files, pulumiOptions...)
+			_, diagnostics, err = pcl.BindProgram(pulumiParser.Files, loader, pulumiOptions...)
 			require.NoError(t, err)
 			require.False(t,
 				diagnostics.HasErrors(),
@@ -568,7 +567,7 @@ func componentProgramBinderFromAfero(fs afero.Fs) pcl.ComponentProgramBinder {
 		}
 
 		componentProgram, programDiags, err := pcl.BindProgram(parser.Files,
-			pcl.Loader(loader),
+			loader,
 			pcl.DirPath(componentSourceDir),
 			pcl.ComponentBinder(componentProgramBinderFromAfero(fs)))
 
