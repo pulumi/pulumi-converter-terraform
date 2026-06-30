@@ -3963,8 +3963,8 @@ github.com/pulumi/pulumi-yaml v1.37.1-0.20260625095908-de455163b2ed h1:iofk5h4kn
 github.com/pulumi/pulumi-yaml v1.37.1-0.20260625095908-de455163b2ed/go.mod h1:p4iLAcQVSvyKg2NkTrHS0rB2u64zbrqe2Ikr+EveTKU=
 github.com/pulumi/pulumi/pkg/v3 v3.248.0 h1:MkvI29cYE3QUEvSl+7kZrV5lQ6CBIt54WjYt2HEXDSg=
 github.com/pulumi/pulumi/pkg/v3 v3.248.0/go.mod h1:NBqXwZgQ9XVbqBQrxzrPPHttFCXg2Qe9rIZP/0NGMOk=
-github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260612093228-df58e0d55bd2 h1:+lm+66ft0i9nC8qDHlroPVO7DXZeJ98QQSkwpLsTF2w=
-github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260612093228-df58e0d55bd2/go.mod h1:azPoY0OM/t0vRa7n0K+LLy9VM2zKkaaqtIj4u0MD2sA=
+github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260624180030-dc7edd58bc13 h1:4l057YuKUFHhFEJX8AFyR/jMNQi8iXaQv0NuEvKrF1M=
+github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260624180030-dc7edd58bc13/go.mod h1:wzdOsxFuDCE72Np50FVjQBLY6Eao3u9mljd469OLg2c=
 github.com/pulumi/pulumi/sdk/v3 v3.248.0 h1:TwY9uuToQO8xIey4a7awRzNX7iJ/doDmZkl1MzxULCE=
 github.com/pulumi/pulumi/sdk/v3 v3.248.0/go.mod h1:67RnWlA0uRHJKjbOkk1Hqz8BNefYv8csNLgln1EmmII=
 github.com/pulumi/terraform v0.13.0 h1:psSxMLdLsWiZrE6aZIpoGKCqYMV7tzxKZyOt0cTn/f0=
