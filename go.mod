@@ -17,9 +17,9 @@ require (
 	github.com/metoro-io/mcp-golang v0.16.0
 	github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a
 	github.com/pulumi/providertest v0.7.0
-	github.com/pulumi/pulumi-terraform-bridge/v3 v3.133.1-0.20260629201527-8bbef4679f76
-	github.com/pulumi/pulumi/pkg/v3 v3.248.0
-	github.com/pulumi/pulumi/sdk/v3 v3.248.0
+	github.com/pulumi/pulumi-terraform-bridge/v3 v3.133.1-0.20260705030756-051dee8eaa65
+	github.com/pulumi/pulumi/pkg/v3 v3.250.0
+	github.com/pulumi/pulumi/sdk/v3 v3.250.0
 	github.com/pulumi/terraform v0.13.0
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/pflag v1.0.10
@@ -27,7 +27,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.42.0
 	github.com/zclconf/go-cty v1.17.0
 	golang.org/x/crypto v0.53.0
-	google.golang.org/grpc v1.81.1
+	google.golang.org/grpc v1.82.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -43,7 +43,7 @@ require (
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect
-	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.31.0 // indirect
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.32.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.55.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.55.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
@@ -215,9 +215,9 @@ require (
 	github.com/pulumi/appdash v0.0.0-20231130102222-75f619a67231 // indirect
 	github.com/pulumi/esc v0.25.0 // indirect
 	github.com/pulumi/inflector v0.2.1 // indirect
-	github.com/pulumi/pulumi-dotnet/pulumi-language-dotnet/v3 v3.107.3 // indirect
+	github.com/pulumi/pulumi-dotnet/pulumi-language-dotnet/v3 v3.107.4-0.20260702161323-9b264bdaa376 // indirect
 	github.com/pulumi/pulumi-java v1.32.0 // indirect
-	github.com/pulumi/pulumi-yaml v1.37.1-0.20260625095908-de455163b2ed // indirect
+	github.com/pulumi/pulumi-yaml v1.37.1-0.20260702150055-d5d9dc89b88c // indirect
 	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260624180030-dc7edd58bc13 // indirect
 	github.com/pulumi/terraform-diff-reader v0.0.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -257,7 +257,7 @@ require (
 	go.opentelemetry.io/collector/featuregate v1.61.0 // indirect
 	go.opentelemetry.io/collector/pdata v1.61.0 // indirect
 	go.opentelemetry.io/contrib/bridges/otelslog v0.19.0 // indirect
-	go.opentelemetry.io/contrib/detectors/gcp v1.42.0 // indirect
+	go.opentelemetry.io/contrib/detectors/gcp v1.43.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.67.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.67.0 // indirect
 	go.opentelemetry.io/otel v1.44.0 // indirect
@@ -287,8 +287,8 @@ require (
 	google.golang.org/api v0.272.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20260316180232-0b37fe3546d5 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260622175928-b703f567277d // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260622175928-b703f567277d // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260630182238-925bb5da69e7 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260630182238-925bb5da69e7 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	lukechampine.com/frand v1.5.1 // indirect
