@@ -472,6 +472,7 @@ func TestTranslateParameterized(t *testing.T) {
 			_ context.Context,
 			provider string,
 			hint *convert.MapperPackageHint,
+			_ string,
 		) ([]byte, error) {
 			seen[provider] = hint
 			return []byte{}, nil

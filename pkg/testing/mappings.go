@@ -32,6 +32,7 @@ func (l *TestFileMapper) GetMapping(
 	_ context.Context,
 	provider string,
 	hint *convert.MapperPackageHint,
+	_ string,
 ) ([]byte, error) {
 	pulumiProvider := provider
 	if hint != nil {
@@ -88,6 +89,7 @@ type MockMapper struct {
 		context.Context,
 		string,
 		*convert.MapperPackageHint,
+		string,
 	) ([]byte, error)
 }
 
@@ -95,10 +97,11 @@ func (m *MockMapper) GetMapping(
 	ctx context.Context,
 	provider string,
 	hint *convert.MapperPackageHint,
+	ecosystem string,
 ) ([]byte, error) {
 	if m.GetMappingF == nil {
 		panic("GetMappingF is not implemented")
 	}
 
-	return m.GetMappingF(ctx, provider, hint)
+	return m.GetMappingF(ctx, provider, hint, ecosystem)
 }

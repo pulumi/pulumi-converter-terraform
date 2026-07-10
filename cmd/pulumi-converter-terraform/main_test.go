@@ -32,7 +32,7 @@ import (
 
 type testMapper struct{}
 
-func (m *testMapper) GetMapping(context.Context, string, *convert.MapperPackageHint) ([]byte, error) {
+func (m *testMapper) GetMapping(context.Context, string, *convert.MapperPackageHint, string) ([]byte, error) {
 	return nil, nil
 }
 
