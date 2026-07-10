@@ -112,7 +112,7 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 		}
 	}
 
-	mapping, err := s.mapper.GetMapping(context.TODO(), tfProvider, hint)
+	mapping, err := s.mapper.GetMapping(context.TODO(), tfProvider, hint, "terraform")
 	if err != nil {
 		return nil, err
 	}
