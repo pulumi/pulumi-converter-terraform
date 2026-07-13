@@ -134,7 +134,11 @@ func (d *Driver) parseOutputs(t *testing.T) map[string]string {
 		if err := json.Unmarshal(v.Value, &s); err == nil {
 			result[k] = s
 		} else {
-			result[k] = string(v.Value)
+			var decoded any
+			require.NoError(t, json.Unmarshal(v.Value, &decoded))
+			canonical, err := json.Marshal(decoded)
+			require.NoError(t, err)
+			result[k] = string(canonical)
 		}
 	}
 	return result
