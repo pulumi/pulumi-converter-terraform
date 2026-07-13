@@ -1,6 +1,6 @@
 [tools]
 
 go = '1.25.9'
-pulumi = 'latest'
+pulumi = '3.251.0'
 golangci-lint = "2.11.4"
-opentofu = 'latest'
+opentofu = '1.12.3'
