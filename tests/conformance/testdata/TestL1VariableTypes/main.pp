@@ -1,7 +1,7 @@
-config "tags" "map(string)" {
+config "tags" "map(optional(string))" {
 }
 
-config "ports" "list(number)" {
+config "ports" "list(optional(number))" {
 }
 
 config "config" "object({enabled=bool, name=string})" {

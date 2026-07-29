@@ -4,7 +4,7 @@
 config "privateKey" "string" {
 }
 
-config "scripts" "list(string)" {
+config "scripts" "list(optional(string))" {
 }
 
 resource "remoteExecResource" "simple:index:resource" {

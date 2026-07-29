@@ -1,4 +1,4 @@
-config "rules" "list(object({port=number, protocol=string}))" {
+config "rules" "list(optional(object({port=number, protocol=string})))" {
   default = [{
     port     = 80
     protocol = "tcp"

@@ -1,4 +1,4 @@
-config "users" "list(object({age=number, name=string}))" {
+config "users" "list(optional(object({age=number, name=string})))" {
 }
 
 output "names" {

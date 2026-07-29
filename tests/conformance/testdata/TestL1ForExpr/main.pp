@@ -1,7 +1,7 @@
-config "names" "list(string)" {
+config "names" "list(optional(string))" {
 }
 
-config "labels" "map(string)" {
+config "labels" "map(optional(string))" {
 }
 
 output "upperNames" {

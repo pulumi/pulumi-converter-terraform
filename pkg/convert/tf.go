@@ -95,30 +95,28 @@ func inferPrimitiveType(input cty.Type, defaultType string) string {
 	return defaultType
 }
 
+func optionalElement(elementType string) string {
+	if elementType == "any" {
+		return elementType
+	}
+	return fmt.Sprintf("optional(%s)", elementType)
+}
+
 func convertCtyType(typ cty.Type) string {
-	if typ.Equals(cty.Number) {
+	switch {
+	case typ.Equals(cty.Number):
 		return "number"
-	}
-	if typ.Equals(cty.Bool) {
+	case typ.Equals(cty.Bool):
 		return "bool"
-	}
-	if typ.Equals(cty.String) {
+	case typ.Equals(cty.String):
 		return "string"
-	}
-	if typ.IsListType() {
+	case typ.IsListType(), typ.IsSetType():
 		elementType := convertCtyType(typ.ElementType())
-		return fmt.Sprintf("list(%s)", elementType)
-	}
-	if typ.IsMapType() {
+		return fmt.Sprintf("list(%s)", optionalElement(elementType))
+	case typ.IsMapType():
 		elementType := convertCtyType(typ.ElementType())
-		return fmt.Sprintf("map(%s)", elementType)
-	}
-	if typ.IsSetType() {
-		// handle sets like lists
-		elementType := convertCtyType(typ.ElementType())
-		return fmt.Sprintf("list(%s)", elementType)
-	}
-	if typ.IsObjectType() {
+		return fmt.Sprintf("map(%s)", optionalElement(elementType))
+	case typ.IsObjectType():
 		attributeKeys := []string{}
 		for attributeKey := range typ.AttributeTypes() {
 			attributeKeys = append(attributeKeys, attributeKey)
@@ -153,10 +151,10 @@ func convertCtyType(typ cty.Type) string {
 		}
 
 		return fmt.Sprintf("object({%s})", attributePairs)
+	default:
+		// If we got here it's probably the "dynamic type" and we just report back "any"
+		return "any"
 	}
-
-	// If we got here it's probably the "dynamic type" and we just report back "any"
-	return "any"
 }
 
 // Returns true if the token type is trivia (a comment or new line)
@@ -2428,25 +2426,6 @@ func convertVariable(state *convertState, scopes *scopes,
 		// Only do this for primitive types. For complex types such as objects and lists
 		// keep the type dynamic since it is usually used as such
 		pulumiType = inferPrimitiveType(variable.Default.Type(), pulumiType)
-	}
-
-	// If the default value contains null elements in a list or set, wrap the element
-	// type with optional() so that [null] is a valid default in PCL.
-	// Terraform's cty type system supports typed nulls inside collections, but PCL
-	// requires the element type to be explicitly optional.
-	if !variable.Default.IsNull() && variable.Default.IsKnown() &&
-		(variable.Type.IsListType() || variable.Type.IsSetType()) {
-		hasNull := false
-		for it := variable.Default.ElementIterator(); it.Next(); {
-			_, v := it.Element()
-			if v.IsNull() {
-				hasNull = true
-				break
-			}
-		}
-		if hasNull {
-			pulumiType = fmt.Sprintf("list(optional(%s))", convertCtyType(variable.Type.ElementType()))
-		}
 	}
 
 	// Don't add the "any" type explicitly, it's the default
