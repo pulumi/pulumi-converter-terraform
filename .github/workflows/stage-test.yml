@@ -52,10 +52,13 @@ jobs:
         run: |
           pulumi plugin install resource aws
           pulumi plugin install resource azure
+          pulumi plugin install resource external
           pulumi plugin install resource gcp
           pulumi plugin install resource kubernetes
+          pulumi plugin install resource null
           pulumi plugin install resource random
           pulumi plugin install resource std
+          pulumi plugin install resource terraform-provider
 
       - name: Build and install
         run: make install
