@@ -12,7 +12,7 @@ config "templateFileSuffix" "string" {
   description = "The filename suffix that indicates that a file is a Terraform template file rather than a static file."
 }
 
-config "fileTypes" "map(string)" {
+config "fileTypes" "map(optional(string))" {
   default = {
     ".3g2"    = "video/3gpp2"
     ".3gp"    = "video/3gpp"

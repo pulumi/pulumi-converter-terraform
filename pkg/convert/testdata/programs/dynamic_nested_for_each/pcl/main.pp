@@ -2,7 +2,7 @@ config "listvar" {
   default = ["2025"]
 }
 
-config "dynvar" "list(object({innerList=list(object({nestedValue=string})), innerValue=string}))" {
+config "dynvar" "list(optional(object({innerList=list(optional(object({nestedValue=string}))), innerValue=string})))" {
   default = []
 }
 

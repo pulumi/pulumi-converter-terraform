@@ -1,6 +1,6 @@
 # Test for provisioners feature in Terraform https://developer.hashicorp.com/terraform/language/resources/provisioners/syntax
 # In combination with for_each
-config "echoData" "map(string)" {
+config "echoData" "map(optional(string))" {
   default = {
     first  = "First"
     second = "Second"

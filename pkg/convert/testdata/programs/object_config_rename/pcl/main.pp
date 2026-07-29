@@ -5,18 +5,18 @@ config "simpleObjectConfig" "object({firstMember=number, secondMember=string})" 
   }
 }
 
-config "objectListConfig" "list(object({firstMember=number, secondMember=string}))" {
+config "objectListConfig" "list(optional(object({firstMember=number, secondMember=string})))" {
   default = [{
     firstMember  = 10
     secondMember = "hello"
   }]
 }
 
-config "objectListConfigEmpty" "list(object({firstMember=number, secondMember=string}))" {
+config "objectListConfigEmpty" "list(optional(object({firstMember=number, secondMember=string})))" {
   default = []
 }
 
-config "objectMapConfig" "map(object({firstMember=number, secondMember=string}))" {
+config "objectMapConfig" "map(optional(object({firstMember=number, secondMember=string})))" {
   default = {
     hello = {
       firstMember  = 10
@@ -25,7 +25,7 @@ config "objectMapConfig" "map(object({firstMember=number, secondMember=string}))
   }
 }
 
-config "objectMapConfigEmpty" "map(object({firstMember=number, secondMember=string}))" {
+config "objectMapConfigEmpty" "map(optional(object({firstMember=number, secondMember=string})))" {
   default = {}
 }
 

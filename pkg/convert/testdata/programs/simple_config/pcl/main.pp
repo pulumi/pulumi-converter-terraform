@@ -20,10 +20,10 @@ config "anyWithDefault" {
 config "boolIn" "bool" {
 }
 
-config "stringListIn" "list(string)" {
+config "stringListIn" "list(optional(string))" {
 }
 
-config "stringMapIn" "map(string)" {
+config "stringMapIn" "map(optional(string))" {
 }
 
 config "stringMapAnyIn" "map(any)" {

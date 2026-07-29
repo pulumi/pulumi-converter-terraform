@@ -1,4 +1,4 @@
-config "items" "list(string)" {
+config "items" "list(optional(string))" {
 }
 
 config "idx" "number" {

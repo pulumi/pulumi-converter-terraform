@@ -1,4 +1,4 @@
-config "ruleMap" "map(object({port=number}))" {
+config "ruleMap" "map(optional(object({port=number})))" {
   default = {
     tcp = {
       port = 80

@@ -95,30 +95,28 @@ func inferPrimitiveType(input cty.Type, defaultType string) string {
 	return defaultType
 }
 
+func optionalElement(elementType string) string {
+	if elementType == "any" {
+		return elementType
+	}
+	return fmt.Sprintf("optional(%s)", elementType)
+}
+
 func convertCtyType(typ cty.Type) string {
-	if typ.Equals(cty.Number) {
+	switch {
+	case typ.Equals(cty.Number):
 		return "number"
-	}
-	if typ.Equals(cty.Bool) {
+	case typ.Equals(cty.Bool):
 		return "bool"
-	}
-	if typ.Equals(cty.String) {
+	case typ.Equals(cty.String):
 		return "string"
-	}
-	if typ.IsListType() {
+	case typ.IsListType(), typ.IsSetType():
 		elementType := convertCtyType(typ.ElementType())
-		return fmt.Sprintf("list(%s)", elementType)
-	}
-	if typ.IsMapType() {
+		return fmt.Sprintf("list(%s)", optionalElement(elementType))
+	case typ.IsMapType():
 		elementType := convertCtyType(typ.ElementType())
-		return fmt.Sprintf("map(%s)", elementType)
-	}
-	if typ.IsSetType() {
-		// handle sets like lists
-		elementType := convertCtyType(typ.ElementType())
-		return fmt.Sprintf("list(%s)", elementType)
-	}
-	if typ.IsObjectType() {
+		return fmt.Sprintf("map(%s)", optionalElement(elementType))
+	case typ.IsObjectType():
 		attributeKeys := []string{}
 		for attributeKey := range typ.AttributeTypes() {
 			attributeKeys = append(attributeKeys, attributeKey)
@@ -153,10 +151,10 @@ func convertCtyType(typ cty.Type) string {
 		}
 
 		return fmt.Sprintf("object({%s})", attributePairs)
+	default:
+		// If we got here it's probably the "dynamic type" and we just report back "any"
+		return "any"
 	}
-
-	// If we got here it's probably the "dynamic type" and we just report back "any"
-	return "any"
 }
 
 // Returns true if the token type is trivia (a comment or new line)
