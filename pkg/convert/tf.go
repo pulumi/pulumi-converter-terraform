@@ -269,16 +269,31 @@ func getTrivaFromIndex(tokens hclsyntax.Tokens, first, last int, blockLike bool)
 // significant and return ["# leading trivia", "/* trailing trivia a */"] for local_a, and ["# leading trivia
 // b\n/* more leading trivia */", "# trailing trivia"] for local_b.
 
-func getTrivia(sources map[string][]byte, r hcl.Range, blockLike bool) (hclwrite.Tokens, hclwrite.Tokens) {
-	// Load the file referenced in the range
-	src, has := sources[r.Filename]
-	if !has {
-		// This shouldn't ever be hit, "sources" is a list of every file we parsed earlier and ranges should
-		// only come from those.
-		panic(fmt.Sprintf("Could not read '%s' to parse trivia", r.Filename))
+type sourceCache struct {
+	sources map[string][]byte
+	tokens  map[string]hclsyntax.Tokens
+}
+
+func newSourceCache(sources map[string][]byte) *sourceCache {
+	return &sourceCache{sources: sources, tokens: make(map[string]hclsyntax.Tokens, len(sources))}
+}
+
+func (s *sourceCache) tokensFor(filename string) hclsyntax.Tokens {
+	if tokens, ok := s.tokens[filename]; ok {
+		return tokens
 	}
-	tokens, _ := hclsyntax.LexConfig(src, r.Filename, hcl.Pos{Byte: 0, Line: 1, Column: 1})
-	// Ignore the diagnostics, we already know this is parsable because we've got the hcl.Range for it
+	src, ok := s.sources[filename]
+	if !ok {
+		panic(fmt.Sprintf("Could not read '%s' to parse trivia", filename))
+	}
+	tokens, _ := hclsyntax.LexConfig(src, filename, hcl.Pos{Byte: 0, Line: 1, Column: 1})
+	// Ignore diagnostics: loadConfigDir already established that this source is parsable.
+	s.tokens[filename] = tokens
+	return tokens
+}
+
+func getTrivia(sources *sourceCache, r hcl.Range, blockLike bool) (hclwrite.Tokens, hclwrite.Tokens) {
+	tokens := sources.tokensFor(r.Filename)
 
 	// Find the index of the first and last token matching the input
 	var first, last int
@@ -295,16 +310,8 @@ func getTrivia(sources map[string][]byte, r hcl.Range, blockLike bool) (hclwrite
 }
 
 // Given a HCL range for an attribute expression find the full range for that attribute
-func getAttributeRange(sources map[string][]byte, r hcl.Range) hcl.Range {
-	// Load the file referenced in the range
-	src, has := sources[r.Filename]
-	if !has {
-		// This shouldn't ever be hit, "sources" is a list of every file we parsed earlier and ranges should
-		// only come from those.
-		panic(fmt.Sprintf("Could not read '%s' to parse trivia", r.Filename))
-	}
-	tokens, _ := hclsyntax.LexConfig(src, r.Filename, hcl.Pos{Byte: 0, Line: 1, Column: 1})
-	// Ignore the diagnostics, we already know this is parsable because we've got the hcl.Range for it
+func getAttributeRange(sources *sourceCache, r hcl.Range) hcl.Range {
+	tokens := sources.tokensFor(r.Filename)
 
 	// Find the index of the first token matching the input range
 	var first int
@@ -332,16 +339,8 @@ func getAttributeRange(sources map[string][]byte, r hcl.Range) hcl.Range {
 }
 
 // Given a HCL range return the tokens for that range
-func getTokensForRange(sources map[string][]byte, r hcl.Range) hclwrite.Tokens {
-	// Load the file referenced in the range
-	src, has := sources[r.Filename]
-	if !has {
-		// This shouldn't ever be hit, "sources" is a list of every file we parsed earlier and ranges should
-		// only come from those.
-		panic(fmt.Sprintf("Could not read '%s' to parse trivia", r.Filename))
-	}
-	tokens, _ := hclsyntax.LexConfig(src, r.Filename, hcl.Pos{Byte: 0, Line: 1, Column: 1})
-	// Ignore the diagnostics, we already know this is parsable because we've got the hcl.Range for it
+func getTokensForRange(sources *sourceCache, r hcl.Range) hclwrite.Tokens {
+	tokens := sources.tokensFor(r.Filename)
 
 	// Find the tokens for this range
 	rangeTokens := make(hclwrite.Tokens, 0)
@@ -882,8 +881,8 @@ var tfFunctionStd = map[string]struct {
 }
 
 type convertState struct {
-	// The sources for the HCL files we're converting
-	sources map[string][]byte
+	// The sources and lazily lexed tokens for the HCL files we're converting.
+	sources *sourceCache
 
 	// Diagnostic messages from conversion
 	diagnostics hcl.Diagnostics
@@ -1417,7 +1416,7 @@ func convertTemplateExpr(state *convertState,
 func detectHeredocDelim(state *convertState, r hcl.Range) (string, string, bool) {
 	hereDocRegex := regexp.MustCompile(`^<<-?([[:alpha:]]+)\n`)
 
-	file := state.sources[r.Filename]
+	file := state.sources.sources[r.Filename]
 	start := r.Start.Byte
 	hereDocStr := hereDocRegex.FindSubmatch(file[start:])
 	if hereDocStr != nil {
@@ -4176,7 +4175,7 @@ func translateModuleSourceCode(
 	scopes.loader = loader
 
 	state := &convertState{
-		sources:              sources,
+		sources:              newSourceCache(sources),
 		diagnostics:          hcl.Diagnostics{},
 		rewriteObjectKeys:    true,
 		sandboxedModuleNames: make(map[string]string),
@@ -4349,7 +4348,7 @@ func translateModuleSourceCode(
 	}
 	for _, item := range items {
 		if item.moduleCall != nil {
-			leadingTrivia, _ := getTrivia(sources, item.moduleCall.DeclRange, false)
+			leadingTrivia, _ := getTrivia(state.sources, item.moduleCall.DeclRange, false)
 			packageName, wrapUsingTerraformModule := findPulumiTerraformModuleAnnotation(string(leadingTrivia.Bytes()))
 			moduleCall := item.moduleCall
 			moduleName := scopes.getOrAddPulumiName("module."+moduleCall.Name, "", "Component")
