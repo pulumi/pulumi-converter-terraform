@@ -16,7 +16,6 @@ package convert
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -30,6 +29,7 @@ import (
 	"github.com/pulumi/terraform/pkg/addrs"
 	"github.com/pulumi/terraform/pkg/configs"
 	"github.com/pulumi/terraform/pkg/getproviders"
+	"github.com/segmentio/encoding/json"
 )
 
 // ProviderInfoSource is an interface for retrieving information about a bridged Terraform provider.
@@ -122,9 +122,8 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 		return nil, errors.New(mappingMessage)
 	}
 
-	var info *tfbridge.MarshallableProviderInfo
-	err = json.Unmarshal(mapping, &info)
-	if err != nil {
+	var info tfbridge.MarshallableProviderInfo
+	if _, err := json.Parse(mapping, &info, json.ZeroCopy); err != nil {
 		return nil, fmt.Errorf("could not decode mapping information for provider %s: %s", tfProvider, mapping)
 	}
 
@@ -153,20 +152,36 @@ func (s *CachingProviderInfoSource) GetProviderInfo(
 	provider string,
 	requiredProvider *configs.RequiredProvider,
 ) (*tfbridge.ProviderInfo, error) {
-	if info, ok := s.getFromCache(provider); ok {
+	key := providerInfoCacheKey(provider, requiredProvider)
+	if info, ok := s.getFromCache(key); ok {
 		return info, nil
 	}
 
 	s.lock.Lock()
 	defer s.lock.Unlock()
+	// Another goroutine may have populated the entry while this caller waited.
+	if info, ok := s.entries[key]; ok {
+		return info, nil
+	}
 
 	info, err := s.source.GetProviderInfo(provider, requiredProvider)
 	if err != nil {
 		return nil, err
 	}
 
-	s.entries[provider] = info
+	s.entries[key] = info
 	return info, nil
+}
+
+func providerInfoCacheKey(provider string, requiredProvider *configs.RequiredProvider) string {
+	pulumiProvider := provider
+	if renamed, ok := pulumiRenamedProviderNames[provider]; ok {
+		pulumiProvider = renamed
+	}
+	if !isTerraformProvider(pulumiProvider) || requiredProvider == nil {
+		return provider
+	}
+	return provider + "\x00" + requiredProvider.Source + "\x00" + requiredProvider.Requirement.Required.String()
 }
 
 // getFromCache retrieves the provider information from the cache, taking a read lock to do so.

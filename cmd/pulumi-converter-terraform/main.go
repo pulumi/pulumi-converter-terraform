@@ -99,7 +99,7 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	if err != nil {
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
-	providerInfoSource := tfconvert.NewMapperProviderInfoSource(mapper)
+	var providerInfoSource tfconvert.ProviderInfoSource = tfconvert.NewMapperProviderInfoSource(mapper)
 	providerInfoResolver := tfconvert.NewProviderInfoResolver()
 
 	if req.LoaderTarget == "" {
@@ -111,6 +111,8 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	}
 
 	if *convertExamples != "" {
+		providerInfoSource = tfconvert.NewCachingProviderInfoSource(providerInfoSource)
+
 		//nolint:gosec // path is user-provided input from the CLI
 		examplesBytes, err := os.ReadFile(filepath.Join(req.SourceDirectory, *convertExamples))
 		if err != nil {
