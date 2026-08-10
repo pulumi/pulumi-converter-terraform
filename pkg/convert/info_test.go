@@ -20,6 +20,7 @@ import (
 
 	bridgetesting "github.com/pulumi/pulumi-converter-terraform/pkg/testing"
 	codegenconvert "github.com/pulumi/pulumi/pkg/v3/codegen/convert"
+	segmentjson "github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,7 +39,28 @@ func TestMapperProviderInfoSourceRejectsTrailingMappingData(t *testing.T) {
 	}
 
 	_, err := NewMapperProviderInfoSource(mapper).GetProviderInfo("aws", nil)
+	require.EqualError(t, err,
+		`could not decode mapping information for provider aws: unexpected trailing data "trailing data"`)
+}
+
+func TestMapperProviderInfoSourceReportsMappingSyntaxErrors(t *testing.T) {
+	t.Parallel()
+
+	mapper := &bridgetesting.MockMapper{
+		GetMappingF: func(
+			context.Context,
+			string,
+			*codegenconvert.MapperPackageHint,
+			string,
+		) ([]byte, error) {
+			return []byte("{"), nil
+		},
+	}
+
+	_, err := NewMapperProviderInfoSource(mapper).GetProviderInfo("aws", nil)
 	require.ErrorContains(t, err, "could not decode mapping information for provider aws")
+	var syntaxError *segmentjson.SyntaxError
+	require.ErrorAs(t, err, &syntaxError)
 }
 
 func TestMapperProviderInfoSourceAllowsTrailingMappingWhitespace(t *testing.T) {

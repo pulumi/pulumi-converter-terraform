@@ -50,7 +50,9 @@ func (*tfConverter) ConvertState(_ context.Context,
 	if err != nil {
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
-	providerInfoSource := tfconvert.NewMapperProviderInfoSource(mapper)
+	providerInfoSource := tfconvert.NewCachingProviderInfoSource(
+		tfconvert.NewMapperProviderInfoSource(mapper),
+	)
 
 	if len(req.Args) != 1 {
 		return nil, errors.New("expected exactly one argument")
@@ -99,7 +101,9 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	if err != nil {
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
-	providerInfoSource := tfconvert.NewMapperProviderInfoSource(mapper)
+	providerInfoSource := tfconvert.NewCachingProviderInfoSource(
+		tfconvert.NewMapperProviderInfoSource(mapper),
+	)
 	providerInfoResolver := tfconvert.NewProviderInfoResolver()
 
 	if req.LoaderTarget == "" {
@@ -111,10 +115,6 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	}
 
 	if *convertExamples != "" {
-		// Examples in one bulk request repeatedly use the same provider mappings. Keep the cache
-		// request-scoped so separate conversions cannot reuse mappings for different plugin state.
-		providerInfoSource = tfconvert.NewCachingProviderInfoSource(providerInfoSource)
-
 		//nolint:gosec // path is user-provided input from the CLI
 		examplesBytes, err := os.ReadFile(filepath.Join(req.SourceDirectory, *convertExamples))
 		if err != nil {

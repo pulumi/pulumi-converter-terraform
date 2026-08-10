@@ -127,8 +127,12 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 	// Keep mapping immutable after parsing: zero-copy strings retain its backing bytes for as
 	// long as the resulting ProviderInfo needs them.
 	remainder, err := json.Parse(mapping, &info, json.ZeroCopy)
-	if err != nil || len(remainder) != 0 {
-		return nil, fmt.Errorf("could not decode mapping information for provider %s: %s", tfProvider, mapping)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode mapping information for provider %s: %w", tfProvider, err)
+	}
+	if len(remainder) != 0 {
+		return nil, fmt.Errorf("could not decode mapping information for provider %s: "+
+			"unexpected trailing data %q", tfProvider, remainder)
 	}
 
 	return info.Unmarshal(), nil
