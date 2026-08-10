@@ -3,6 +3,8 @@
 - Cache HCL syntax tokens per source file to reduce converter CPU use and
   allocations.
   [#490](https://github.com/pulumi/pulumi-converter-terraform/pull/490)
+- Cache provider mappings during bulk example conversion to avoid repeated mapper
+  requests and mapping decodes. [#489](https://github.com/pulumi/pulumi-converter-terraform/pull/489)
 
 - Convert the Terraform `can` builtin to the PCL `can` intrinsic, now that the
   PCL code generator supports it.

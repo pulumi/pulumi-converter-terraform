@@ -15,8 +15,10 @@
 package convert
 
 import (
+	"errors"
 	"sync"
 	"testing"
+	"time"
 
 	version "github.com/hashicorp/go-version"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
@@ -67,6 +69,84 @@ func TestCachingProviderInfoSourceDeduplicatesConcurrentRequests(t *testing.T) {
 		require.NoError(t, errs[i])
 		require.Same(t, want, results[i])
 	}
+}
+
+func TestCachingProviderInfoSourceDoesNotBlockUnrelatedCachedKeys(t *testing.T) {
+	t.Parallel()
+
+	cachedInfo := &tfbridge.ProviderInfo{}
+	slowInfo := &tfbridge.ProviderInfo{}
+	slowStarted := make(chan struct{})
+	releaseSlow := make(chan struct{})
+	var releaseOnce sync.Once
+	release := func() { releaseOnce.Do(func() { close(releaseSlow) }) }
+	t.Cleanup(release)
+
+	source := providerInfoSourceFunc(func(
+		provider string, _ *configs.RequiredProvider,
+	) (*tfbridge.ProviderInfo, error) {
+		switch provider {
+		case "cached":
+			return cachedInfo, nil
+		case "slow":
+			close(slowStarted)
+			<-releaseSlow
+			return slowInfo, nil
+		default:
+			return nil, errors.New("unexpected provider")
+		}
+	})
+	cache := NewCachingProviderInfoSource(source)
+
+	got, err := cache.GetProviderInfo("cached", nil)
+	require.NoError(t, err)
+	require.Same(t, cachedInfo, got)
+
+	slowDone := make(chan error, 1)
+	go func() {
+		_, err := cache.GetProviderInfo("slow", nil)
+		slowDone <- err
+	}()
+	<-slowStarted
+
+	cachedDone := make(chan error, 1)
+	go func() {
+		got, err := cache.GetProviderInfo("cached", nil)
+		if err == nil && got != cachedInfo {
+			err = errors.New("cached provider info changed")
+		}
+		cachedDone <- err
+	}()
+
+	select {
+	case err := <-cachedDone:
+		require.NoError(t, err)
+	case <-time.After(time.Second):
+		t.Fatal("cached lookup blocked behind an unrelated source request")
+	}
+
+	release()
+	require.NoError(t, <-slowDone)
+}
+
+func TestCachingProviderInfoSourceDoesNotCacheErrors(t *testing.T) {
+	t.Parallel()
+
+	wantErr := errors.New("transient mapper failure")
+	calls := 0
+	source := providerInfoSourceFunc(func(
+		_ string, _ *configs.RequiredProvider,
+	) (*tfbridge.ProviderInfo, error) {
+		calls++
+		return nil, wantErr
+	})
+	cache := NewCachingProviderInfoSource(source)
+
+	_, err := cache.GetProviderInfo("aws", nil)
+	require.ErrorIs(t, err, wantErr)
+	_, err = cache.GetProviderInfo("aws", nil)
+	require.ErrorIs(t, err, wantErr)
+	require.Equal(t, 2, calls)
 }
 
 func TestCachingProviderInfoSourceSeparatesDynamicProviderIdentities(t *testing.T) {

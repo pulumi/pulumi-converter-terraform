@@ -30,6 +30,7 @@ import (
 	"github.com/pulumi/terraform/pkg/configs"
 	"github.com/pulumi/terraform/pkg/getproviders"
 	"github.com/segmentio/encoding/json"
+	"golang.org/x/sync/singleflight"
 )
 
 // ProviderInfoSource is an interface for retrieving information about a bridged Terraform provider.
@@ -125,7 +126,8 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 	var info tfbridge.MarshallableProviderInfo
 	// Keep mapping immutable after parsing: zero-copy strings retain its backing bytes for as
 	// long as the resulting ProviderInfo needs them.
-	if _, err := json.Parse(mapping, &info, json.ZeroCopy); err != nil {
+	remainder, err := json.Parse(mapping, &info, json.ZeroCopy)
+	if err != nil || len(remainder) != 0 {
 		return nil, fmt.Errorf("could not decode mapping information for provider %s: %s", tfProvider, mapping)
 	}
 
@@ -134,7 +136,8 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 
 // CachingProviderInfoSource wraps a ProviderInfoSource in a cache for faster access.
 type CachingProviderInfoSource struct {
-	lock sync.RWMutex
+	lock     sync.RWMutex
+	requests singleflight.Group
 
 	source  ProviderInfoSource
 	entries map[string]*tfbridge.ProviderInfo
@@ -159,20 +162,27 @@ func (s *CachingProviderInfoSource) GetProviderInfo(
 		return info, nil
 	}
 
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	// Another goroutine may have populated the entry while this caller waited.
-	if info, ok := s.entries[key]; ok {
-		return info, nil
-	}
+	value, err, _ := s.requests.Do(key, func() (any, error) {
+		// Another request may have populated the cache before this call started.
+		if info, ok := s.getFromCache(key); ok {
+			return info, nil
+		}
 
-	info, err := s.source.GetProviderInfo(provider, requiredProvider)
+		info, err := s.source.GetProviderInfo(provider, requiredProvider)
+		if err != nil {
+			// Do not retain transient mapper, registry, or plugin failures.
+			return nil, err
+		}
+
+		s.lock.Lock()
+		s.entries[key] = info
+		s.lock.Unlock()
+		return info, nil
+	})
 	if err != nil {
 		return nil, err
 	}
-
-	s.entries[key] = info
-	return info, nil
+	return value.(*tfbridge.ProviderInfo), nil
 }
 
 func providerInfoCacheKey(provider string, requiredProvider *configs.RequiredProvider) string {
