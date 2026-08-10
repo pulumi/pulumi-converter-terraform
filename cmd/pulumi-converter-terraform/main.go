@@ -99,7 +99,7 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	if err != nil {
 		return nil, fmt.Errorf("create mapper: %w", err)
 	}
-	var providerInfoSource tfconvert.ProviderInfoSource = tfconvert.NewMapperProviderInfoSource(mapper)
+	providerInfoSource := tfconvert.NewMapperProviderInfoSource(mapper)
 	providerInfoResolver := tfconvert.NewProviderInfoResolver()
 
 	if req.LoaderTarget == "" {
@@ -111,6 +111,8 @@ func (*tfConverter) ConvertProgram(_ context.Context,
 	}
 
 	if *convertExamples != "" {
+		// Examples in one bulk request repeatedly use the same provider mappings. Keep the cache
+		// request-scoped so separate conversions cannot reuse mappings for different plugin state.
 		providerInfoSource = tfconvert.NewCachingProviderInfoSource(providerInfoSource)
 
 		//nolint:gosec // path is user-provided input from the CLI

@@ -123,6 +123,8 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 	}
 
 	var info tfbridge.MarshallableProviderInfo
+	// Keep mapping immutable after parsing: zero-copy strings retain its backing bytes for as
+	// long as the resulting ProviderInfo needs them.
 	if _, err := json.Parse(mapping, &info, json.ZeroCopy); err != nil {
 		return nil, fmt.Errorf("could not decode mapping information for provider %s: %s", tfProvider, mapping)
 	}

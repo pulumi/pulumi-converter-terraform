@@ -21,6 +21,7 @@ require (
 	github.com/pulumi/pulumi/pkg/v3 v3.257.0
 	github.com/pulumi/pulumi/sdk/v3 v3.257.0
 	github.com/pulumi/terraform v0.13.0
+	github.com/segmentio/encoding v0.5.4
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
@@ -224,7 +225,6 @@ require (
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
 	github.com/segmentio/asm v1.1.3 // indirect
-	github.com/segmentio/encoding v0.3.6 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.3 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
