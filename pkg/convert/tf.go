@@ -269,6 +269,8 @@ func getTrivaFromIndex(tokens hclsyntax.Tokens, first, last int, blockLike bool)
 // significant and return ["# leading trivia", "/* trailing trivia a */"] for local_a, and ["# leading trivia
 // b\n/* more leading trivia */", "# trailing trivia"] for local_b.
 
+// sourceCache belongs to one convertState. Translation within that state is serial, so lazy
+// token population needs no synchronization.
 type sourceCache struct {
 	sources map[string][]byte
 	tokens  map[string]hclsyntax.Tokens
