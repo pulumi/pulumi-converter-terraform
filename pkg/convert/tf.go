@@ -272,19 +272,19 @@ func getTrivaFromIndex(tokens hclsyntax.Tokens, first, last int, blockLike bool)
 // sourceCache belongs to one convertState. Translation within that state is serial, so lazy
 // token population needs no synchronization.
 type sourceCache struct {
-	sources map[string][]byte
-	tokens  map[string]hclsyntax.Tokens
+	sourceBytes map[string][]byte
+	tokens      map[string]hclsyntax.Tokens
 }
 
 func newSourceCache(sources map[string][]byte) *sourceCache {
-	return &sourceCache{sources: sources, tokens: make(map[string]hclsyntax.Tokens, len(sources))}
+	return &sourceCache{sourceBytes: sources, tokens: make(map[string]hclsyntax.Tokens, len(sources))}
 }
 
 func (s *sourceCache) tokensFor(filename string) hclsyntax.Tokens {
 	if tokens, ok := s.tokens[filename]; ok {
 		return tokens
 	}
-	src, ok := s.sources[filename]
+	src, ok := s.sourceBytes[filename]
 	if !ok {
 		panic(fmt.Sprintf("Could not read '%s' to parse trivia", filename))
 	}
@@ -1418,7 +1418,7 @@ func convertTemplateExpr(state *convertState,
 func detectHeredocDelim(state *convertState, r hcl.Range) (string, string, bool) {
 	hereDocRegex := regexp.MustCompile(`^<<-?([[:alpha:]]+)\n`)
 
-	file := state.sources.sources[r.Filename]
+	file := state.sources.sourceBytes[r.Filename]
 	start := r.Start.Byte
 	hereDocStr := hereDocRegex.FindSubmatch(file[start:])
 	if hereDocStr != nil {
