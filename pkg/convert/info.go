@@ -16,7 +16,6 @@ package convert
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -30,6 +29,8 @@ import (
 	"github.com/pulumi/terraform/pkg/addrs"
 	"github.com/pulumi/terraform/pkg/configs"
 	"github.com/pulumi/terraform/pkg/getproviders"
+	"github.com/segmentio/encoding/json"
+	"golang.org/x/sync/singleflight"
 )
 
 // ProviderInfoSource is an interface for retrieving information about a bridged Terraform provider.
@@ -122,10 +123,16 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 		return nil, errors.New(mappingMessage)
 	}
 
-	var info *tfbridge.MarshallableProviderInfo
-	err = json.Unmarshal(mapping, &info)
+	var info tfbridge.MarshallableProviderInfo
+	// Keep mapping immutable after parsing: zero-copy strings retain its backing bytes for as
+	// long as the resulting ProviderInfo needs them.
+	remainder, err := json.Parse(mapping, &info, json.ZeroCopy)
 	if err != nil {
-		return nil, fmt.Errorf("could not decode mapping information for provider %s: %s", tfProvider, mapping)
+		return nil, fmt.Errorf("could not decode mapping information for provider %s: %w", tfProvider, err)
+	}
+	if len(remainder) != 0 {
+		return nil, fmt.Errorf("could not decode mapping information for provider %s: "+
+			"unexpected trailing data %q", tfProvider, remainder)
 	}
 
 	return info.Unmarshal(), nil
@@ -133,7 +140,8 @@ func (s *mapperProviderInfoSource) GetProviderInfo(
 
 // CachingProviderInfoSource wraps a ProviderInfoSource in a cache for faster access.
 type CachingProviderInfoSource struct {
-	lock sync.RWMutex
+	lock     sync.RWMutex
+	requests singleflight.Group
 
 	source  ProviderInfoSource
 	entries map[string]*tfbridge.ProviderInfo
@@ -153,20 +161,43 @@ func (s *CachingProviderInfoSource) GetProviderInfo(
 	provider string,
 	requiredProvider *configs.RequiredProvider,
 ) (*tfbridge.ProviderInfo, error) {
-	if info, ok := s.getFromCache(provider); ok {
+	key := providerInfoCacheKey(provider, requiredProvider)
+	if info, ok := s.getFromCache(key); ok {
 		return info, nil
 	}
 
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	value, err, _ := s.requests.Do(key, func() (any, error) {
+		// Another request may have populated the cache before this call started.
+		if info, ok := s.getFromCache(key); ok {
+			return info, nil
+		}
 
-	info, err := s.source.GetProviderInfo(provider, requiredProvider)
+		info, err := s.source.GetProviderInfo(provider, requiredProvider)
+		if err != nil {
+			// Do not retain transient mapper, registry, or plugin failures.
+			return nil, err
+		}
+
+		s.lock.Lock()
+		s.entries[key] = info
+		s.lock.Unlock()
+		return info, nil
+	})
 	if err != nil {
 		return nil, err
 	}
+	return value.(*tfbridge.ProviderInfo), nil
+}
 
-	s.entries[provider] = info
-	return info, nil
+func providerInfoCacheKey(provider string, requiredProvider *configs.RequiredProvider) string {
+	pulumiProvider := provider
+	if renamed, ok := pulumiRenamedProviderNames[provider]; ok {
+		pulumiProvider = renamed
+	}
+	if !isTerraformProvider(pulumiProvider) || requiredProvider == nil {
+		return provider
+	}
+	return provider + "\x00" + requiredProvider.Source + "\x00" + requiredProvider.Requirement.Required.String()
 }
 
 // getFromCache retrieves the provider information from the cache, taking a read lock to do so.
