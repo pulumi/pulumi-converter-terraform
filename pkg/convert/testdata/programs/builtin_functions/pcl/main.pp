@@ -862,8 +862,8 @@ output "funcLog4" {
 output "funcLookup0" {
   value = invoke("std:index:lookup", {
     map = {
-      a = "ay"
-      b = "bee"
+      "a" = "ay"
+      "b" = "bee"
     }
     key     = "a"
     default = "what?"
@@ -872,8 +872,8 @@ output "funcLookup0" {
 output "funcLookup1" {
   value = invoke("std:index:lookup", {
     map = {
-      a = "ay"
-      b = "bee"
+      "a" = "ay"
+      "b" = "bee"
     }
     key     = "c"
     default = "what?"
