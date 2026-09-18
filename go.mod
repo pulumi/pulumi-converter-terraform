@@ -216,7 +216,7 @@ require (
 	github.com/pulumi/appdash v0.0.0-20231130102222-75f619a67231 // indirect
 	github.com/pulumi/inflector v0.2.1 // indirect
 	github.com/pulumi/pulumi-dotnet/pulumi-language-dotnet/v3 v3.113.3 // indirect
-	github.com/pulumi/pulumi-java v1.37.1 // indirect
+	github.com/pulumi/pulumi-java v1.37.2 // indirect
 	github.com/pulumi/pulumi-yaml v1.38.6 // indirect
 	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260916120110-c2b0b816dbbd // indirect
 	github.com/pulumi/terraform-diff-reader v0.0.2 // indirect
