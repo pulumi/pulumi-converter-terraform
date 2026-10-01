@@ -18,8 +18,8 @@ require (
 	github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a
 	github.com/pulumi/providertest v0.7.0
 	github.com/pulumi/pulumi-terraform-bridge/v3 v3.135.0
-	github.com/pulumi/pulumi/pkg/v3 v3.266.0
-	github.com/pulumi/pulumi/sdk/v3 v3.266.0
+	github.com/pulumi/pulumi/pkg/v3 v3.267.0
+	github.com/pulumi/pulumi/sdk/v3 v3.267.0
 	github.com/pulumi/terraform v0.13.0
 	github.com/segmentio/encoding v0.5.4
 	github.com/spf13/afero v1.15.0
@@ -218,7 +218,7 @@ require (
 	github.com/pulumi/pulumi-dotnet/pulumi-language-dotnet/v3 v3.114.1 // indirect
 	github.com/pulumi/pulumi-java v1.37.3 // indirect
 	github.com/pulumi/pulumi-yaml v1.38.8 // indirect
-	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20260930123519-07b502231953 // indirect
+	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20261001123424-e27cf14d0592 // indirect
 	github.com/pulumi/terraform-diff-reader v0.0.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
@@ -272,7 +272,7 @@ require (
 	go.opentelemetry.io/otel/sdk/log v0.22.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
-	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
+	go.opentelemetry.io/proto/otlp v1.11.1 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
