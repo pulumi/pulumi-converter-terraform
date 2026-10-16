@@ -18,8 +18,8 @@ require (
 	github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a
 	github.com/pulumi/providertest v0.7.0
 	github.com/pulumi/pulumi-terraform-bridge/v3 v3.135.0
-	github.com/pulumi/pulumi/pkg/v3 v3.269.0
-	github.com/pulumi/pulumi/sdk/v3 v3.269.0
+	github.com/pulumi/pulumi/pkg/v3 v3.270.0
+	github.com/pulumi/pulumi/sdk/v3 v3.270.0
 	github.com/pulumi/terraform v0.13.0
 	github.com/segmentio/encoding v0.5.4
 	github.com/spf13/afero v1.15.0
@@ -213,11 +213,11 @@ require (
 	github.com/pulumi-labs/pulumi-hcl v0.3.1 // indirect
 	github.com/pulumi/appdash v0.0.0-20231130102222-75f619a67231 // indirect
 	github.com/pulumi/inflector v0.2.1 // indirect
-	github.com/pulumi/pulumi-cloud-sdk/go v1.20261015.0 // indirect
+	github.com/pulumi/pulumi-cloud-sdk/go v1.20261016.0 // indirect
 	github.com/pulumi/pulumi-dotnet/pulumi-language-dotnet/v3 v3.114.2 // indirect
 	github.com/pulumi/pulumi-java v1.37.4 // indirect
 	github.com/pulumi/pulumi-yaml v1.38.10 // indirect
-	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20261016121839-1ae6b81d16d8 // indirect
+	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20261016212635-7b4b596ff7b6 // indirect
 	github.com/pulumi/terraform-diff-reader v0.0.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
