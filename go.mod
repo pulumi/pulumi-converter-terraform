@@ -1,6 +1,6 @@
 module github.com/pulumi/pulumi-converter-terraform
 
-go 1.26.6
+go 1.26.10
 
 require (
 	github.com/apparentlymart/go-versions v1.0.3
@@ -213,10 +213,10 @@ require (
 	github.com/pulumi-labs/pulumi-hcl v0.3.1 // indirect
 	github.com/pulumi/appdash v0.0.0-20231130102222-75f619a67231 // indirect
 	github.com/pulumi/inflector v0.2.1 // indirect
-	github.com/pulumi/pulumi-cloud-sdk/go v1.20261027.1310 // indirect
-	github.com/pulumi/pulumi-dotnet/pulumi-language-dotnet/v3 v3.116.1 // indirect
-	github.com/pulumi/pulumi-java v1.37.8 // indirect
-	github.com/pulumi/pulumi-yaml v1.38.14 // indirect
+	github.com/pulumi/pulumi-cloud-sdk/go v1.20261028.0 // indirect
+	github.com/pulumi/pulumi-dotnet/pulumi-language-dotnet/v3 v3.116.2 // indirect
+	github.com/pulumi/pulumi-java v1.38.0 // indirect
+	github.com/pulumi/pulumi-yaml v1.38.15 // indirect
 	github.com/pulumi/pulumi/sdk/pcl/v3 v3.0.0-20261022220754-7439dca2b79a // indirect
 	github.com/pulumi/terraform-diff-reader v0.0.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
